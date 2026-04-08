@@ -51,7 +51,7 @@
         .top-controls {
             position:fixed; top:12px; right:20px; z-index:100; display:flex; gap:12px;
         }
-        /* NEW: MIDI Panel */
+        /* MIDI Panel (unchanged) */
         #midiPanel {
             display: none;
             position: fixed;
@@ -81,6 +81,52 @@
         }
         #midiPanel .play-btn { background: #0f0; color: black; }
         #midiPanel .side-btn { background: #222; color: #0f0; border: 1px solid #0f0; }
+        /* NEW: Setlist Panel – always visible, left sidebar */
+        #setlistPanel {
+            position: fixed;
+            left: 20px;
+            top: 100px;
+            width: 340px;
+            height: calc(100vh - 160px);
+            background: rgba(15,15,15,0.95);
+            border: 2px solid #0f0;
+            border-radius: 12px;
+            padding: 20px;
+            overflow-y: auto;
+            z-index: 40;
+            box-shadow: 0 0 30px #0f0;
+            color: white;
+            display: block; /* always shown by default */
+        }
+        .setlist-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 16px;
+            color: #0f0;
+        }
+        .setlist-item {
+            padding: 10px 14px;
+            margin: 6px 0;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 19px;
+            line-height: 1.3;
+        }
+        .setlist-item:hover {
+            background: #222;
+        }
+        .setlist-item.current {
+            background: #0f0;
+            color: #111;
+            font-weight: bold;
+            box-shadow: 0 0 12px #0f0;
+        }
+        .setlist-item strong {
+            display: inline-block;
+            width: 28px;
+            color: #0f0;
+        }
     </style>
 </head>
 <body>
@@ -99,6 +145,9 @@
             <button onclick="toggleMidiPanel()" style="padding:10px 20px; font-size:18px; background:#222; color:#0f0; border:2px solid #0f0; border-radius:6px; cursor:pointer;">
                 🎹 MIDI Controls
             </button>
+            <button onclick="toggleSetlistPanel()" style="padding:10px 20px; font-size:18px; background:#222; color:#0f0; border:2px solid #0f0; border-radius:6px; cursor:pointer;">
+                📜 Setlist
+            </button>
             <button onclick="toggleFullscreen()" style="padding:10px 20px; font-size:18px; background:#222; color:#0f0; border:2px solid #0f0; border-radius:6px; cursor:pointer;">
                 ⛶ Fullscreen
             </button>
@@ -111,10 +160,9 @@
         <div id="lyrics"></div>
     </div>
 
-    <!-- Import Modal (unchanged) -->
+    <!-- Import Modal (full – unchanged) -->
     <div id="modal">
         <div id="modal-content">
-            <!-- (same modal content as previous version – omitted here for brevity; copy from last response) -->
             <h2 style="margin-top:0; color:#0f0;">🚀 Auto-Import Chord Chart</h2>
             <p style="margin-bottom:22px; opacity:0.8; line-height:1.4;">
                 Paste text OR upload a .txt file.<br>
@@ -157,7 +205,7 @@
         </div>
     </div>
 
-    <!-- NEW: On-stage MIDI Control Panel (editable / simulatable MIDI) -->
+    <!-- MIDI Panel (unchanged) -->
     <div id="midiPanel">
         <div class="header">
             <span style="font-size:22px;">🎹 MIDI Controls</span>
@@ -172,6 +220,15 @@
             On-screen MIDI simulation • Works even without pedal<br>
             MIDI clock running in background
         </small>
+    </div>
+
+    <!-- NEW: Setlist Panel (always visible by default – highlights current song) -->
+    <div id="setlistPanel">
+        <div class="setlist-header">
+            <h3 style="margin:0;">📜 SETLIST</h3>
+            <button onclick="toggleSetlistPanel()" style="margin-left:auto; background:none; border:none; color:#0f0; font-size:28px; cursor:pointer; line-height:1;">✕</button>
+        </div>
+        <div id="setlistItems"></div>
     </div>
 
     <script src="js/midi.js"></script>
