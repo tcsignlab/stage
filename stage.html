@@ -26,10 +26,6 @@
         .chord{font-weight:bold;color:#aaa;display:inline-block;min-width:120px;margin-right:18px;transition:all .2s;}
         .chord.active{color:#00cc77;text-shadow:0 0 20px #00cc77;}
         .section{color:#00cc77 !important;font-weight:bold;font-size:1.4em;margin:36px 0 16px 0;text-shadow:0 0 18px #00cc77;}
-        #audioMixer{position:fixed;bottom:90px;left:20px;background:rgba(15,15,15,.95);border:2px solid #222;border-radius:12px;padding:15px;width:320px;z-index:150;box-shadow:0 0 30px rgba(0,0,0,.7);display:none;}
-        #audioMixer h4{margin:0 0 12px 0;color:#0f0;}
-        .track-row{display:flex;align-items:center;gap:8px;margin:8px 0;}
-        .track-row label{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
         #modal,#midiMapModal{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.95);z-index:1000;align-items:center;justify-content:center;}
         #modal-content,#midiMapContent{background:#111;padding:30px;border-radius:12px;width:92%;max-width:920px;max-height:94vh;overflow-y:auto;box-shadow:0 0 40px rgba(0,204,119,0.3);}
         #modal-content label,#midiMapContent label{display:block;margin:14px 0 6px;font-size:18px;font-weight:bold;}
@@ -40,6 +36,10 @@
         .setlist-item{padding:14px 18px;margin:6px 0;border-radius:8px;cursor:pointer;transition:all .2s ease;position:relative;}
         .setlist-item:hover{background:#222;}
         .setlist-item.current{background:#00aa66;color:#111;font-weight:bold;box-shadow:0 0 12px #00cc77;}
+        .dropdown-arrow{position:absolute;right:18px;top:14px;cursor:pointer;font-size:18px;color:#0f0;}
+        .track-subpanel{margin:8px 0 8px 40px;background:rgba(0,0,0,0.4);padding:12px;border-radius:8px;}
+        .track-row{display:flex;align-items:center;gap:8px;margin:8px 0;}
+        .track-row label{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
     </style>
 </head>
 <body>
@@ -73,17 +73,7 @@
         <button onclick="nextSong()" class="sleek-btn">⏭ NEXT</button>
     </div>
 
-    <div id="audioMixer">
-        <h4>🎵 Audio Mixer</h4>
-        <div id="trackList"></div>
-        <div class="track-row" style="margin-top:12px;border-top:1px solid #333;padding-top:8px;">
-            <label>Click Track</label>
-            <button id="clickToggleBtn" onclick="toggleClickTrack()" class="sleek-btn" style="width:80px;">ON</button>
-            <input type="range" id="clickVolume" min="0" max="1" step="0.01" value="0.5" style="width:120px;">
-        </div>
-    </div>
-
-    <!-- Import Modal (unchanged) -->
+    <!-- Import Modal -->
     <div id="modal">
         <div id="modal-content">
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
@@ -118,7 +108,7 @@
         </div>
     </div>
 
-    <!-- MIDI Map Modal (unchanged) -->
+    <!-- MIDI Map Modal -->
     <div id="midiMapModal">
         <div id="midiMapContent">
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
@@ -167,6 +157,7 @@
         let audioTracks = [];
         let audioContext = null;
         let clickOn = true;
+        let expandedSongIndex = -1;   // which song in setlist is expanded
 
         let midiCCPrev = parseInt(localStorage.getItem('midiCCPrev')) || 120;
         let midiCCStop = parseInt(localStorage.getItem('midiCCStop')) || 121;
@@ -175,52 +166,41 @@
         let midiCCClick = parseInt(localStorage.getItem('midiCCClick')) || 124;
         let midiClock = {bpm: 0, lastTick: 0};
 
-        // ==================== DEBUG HELPER ====================
-        function debugLoadDeepInside() {
-            console.log("%c🔧 DEBUG: Forcing load of Deep Inside of You", "color:#0f0;font-weight:bold");
-            currentSongIndex = setlist.findIndex(s => s.title === "Deep Inside of You");
-            if (currentSongIndex === -1) currentSongIndex = 4; // fallback to 5th position
-            loadSong();
+        function handleMidi(msg) {
+            const status = msg.data[0];
+            const data1 = msg.data[1];
+            if (status === 248) {
+                const now = performance.now();
+                if (midiClock.lastTick) midiClock.bpm = Math.round(60000 / ((now - midiClock.lastTick) * 24));
+                midiClock.lastTick = now;
+            }
+            if (status === 176) {
+                if (data1 === midiCCPrev) previousSong();
+                if (data1 === midiCCStop) pauseSong();
+                if (data1 === midiCCPlay) togglePlayPause();
+                if (data1 === midiCCNext) nextSong();
+                if (data1 === midiCCClick) toggleClickTrack();
+            }
         }
+        navigator.requestMIDIAccess().then(midi => {
+            for (let input of midi.inputs.values()) input.onmidimessage = handleMidi;
+        }).catch(() => {});
 
-        // ==================== AUDIO & TRANSPORT ====================
         function initAudio() {
             if (!audioContext) audioContext = new (window.AudioContext || window.webkitAudioContext)();
         }
 
         function loadAudioTracks() {
-            console.log("🎵 loadAudioTracks called. song.audio =", song?.audio);
             audioTracks.forEach(t => t.audio.pause());
             audioTracks = [];
-            document.getElementById('trackList').innerHTML = '';
+            if (!song || !song.audio || !Array.isArray(song.audio) || song.audio.length === 0) return;
 
-            if (!song || !song.audio || !Array.isArray(song.audio) || song.audio.length === 0) {
-                console.warn("⚠️ No audio array found – hiding mixer");
-                document.getElementById('audioMixer').style.display = 'none';
-                return;
-            }
-
-            console.log("✅ Found", song.audio.length, "audio tracks");
             song.audio.forEach((track, i) => {
                 const audio = new Audio("songs/" + track.file);
                 audio.loop = true;
                 audio.volume = 1.0;
-
-                const row = document.createElement('div');
-                row.className = 'track-row';
-                row.innerHTML = `
-                    <label>${track.name}</label>
-                    <input type="range" min="0" max="1" step="0.01" value="1" style="width:120px;">
-                    <button onclick="this.parentElement.querySelector('input').value=0;this.parentElement.querySelector('input').dispatchEvent(new Event('input'))" style="width:40px;">Mute</button>
-                    <button onclick="soloTrack(${i});" style="width:40px;">Solo</button>
-                `;
-                row.querySelector('input').oninput = (e) => audio.volume = parseFloat(e.target.value);
-                document.getElementById('trackList').appendChild(row);
-
                 audioTracks.push({name: track.name, audio: audio});
             });
-
-            document.getElementById('audioMixer').style.display = 'block';
         }
 
         function soloTrack(index) {
@@ -231,9 +211,7 @@
 
         function toggleClickTrack() {
             clickOn = !clickOn;
-            const btn = document.getElementById('clickToggleBtn');
-            btn.textContent = clickOn ? 'ON' : 'OFF';
-            btn.style.background = clickOn ? '#00cc77' : '#666';
+            renderSetlist(); // refresh dropdown
         }
 
         function playClick(count = 4) {
@@ -312,16 +290,19 @@
         function previousSong() { currentSongIndex = (currentSongIndex - 1 + setlist.length) % setlist.length; loadSong(); }
         function nextSong() { currentSongIndex = (currentSongIndex + 1) % setlist.length; loadSong(); }
 
-        // ==================== SETLIST & SONG LOADING ====================
+        function debugLoadDeepInside() {
+            currentSongIndex = setlist.findIndex(s => s.title === "Deep Inside of You");
+            if (currentSongIndex === -1) currentSongIndex = 0;
+            loadSong();
+        }
+
         async function loadSetlist() {
             try {
                 const res = await fetch("setlist.json");
-                if (!res.ok) throw new Error("setlist.json not found");
+                if (!res.ok) throw new Error();
                 setlist = await res.json();
-                console.log("✅ setlist.json loaded –", setlist.length, "songs");
             } catch(e) {
-                console.error("❌ Failed to load setlist.json", e);
-                document.getElementById("setlistItems").innerHTML = `<div style="color:#f66;padding:20px;text-align:center;">setlist.json not found or invalid</div>`;
+                console.error("setlist.json not found");
                 setlist = [];
             }
             renderSetlist();
@@ -332,45 +313,23 @@
             if (setlist.length === 0) return;
             const entry = setlist[currentSongIndex];
             const filename = entry.file || entry;
-            console.log("🔄 Loading song:", filename, "– full path: songs/" + filename);
-
             try {
                 const res = await fetch("songs/" + filename);
-                if (!res.ok) throw new Error("File not found");
                 song = await res.json();
-                console.log("✅ Song loaded successfully. Has audio?", !!song.audio);
                 document.getElementById("currentSong").innerText = `${entry.artist || ''} ${entry.title || filename.replace('.json','')}`.trim();
                 renderLyrics();
                 renderSetlist();
                 loadAudioTracks();
             } catch(e) {
-                console.error("❌ Failed to load song file:", e);
                 const entry = setlist[currentSongIndex];
-                document.getElementById("currentSong").innerText = `${entry.artist || ''} ${entry.title || 'Unknown'} (file missing)`;
+                document.getElementById("currentSong").innerText = `${entry.artist || ''} ${entry.title || 'Unknown'} (chart missing)`;
                 song = {title: "Missing Chart", lines: []};
                 renderLyrics();
                 renderSetlist();
             }
         }
 
-        function renderSetlist() {
-            const container = document.getElementById('setlistItems');
-            container.innerHTML = '';
-            setlist.forEach((entry, i) => {
-                const div = document.createElement('div');
-                div.className = `setlist-item ${i === currentSongIndex ? 'current' : ''}`;
-                div.innerHTML = `<strong>${i+1}.</strong> ${entry.artist} – ${entry.title}`;
-                div.onclick = () => {
-                    stopSong();
-                    currentSongIndex = i;
-                    loadSong();
-                };
-                container.appendChild(div);
-            });
-        }
-
-        // ==================== ALL OTHER FUNCTIONS (unchanged) ====================
-        function renderLyrics() { /* same as before */ 
+        function renderLyrics() {
             const inner = document.getElementById("lyricsInner");
             inner.innerHTML = "";
             if (!song?.lines || song.lines.length === 0) {
@@ -431,6 +390,71 @@
             document.getElementById('songTime').textContent = `${elapsedStr} / ${totalStr}`;
         }
 
+        function renderSetlist() {
+            const container = document.getElementById('setlistItems');
+            container.innerHTML = '';
+            setlist.forEach((entry, i) => {
+                const hasAudio = entry.audio && Array.isArray(entry.audio) && entry.audio.length > 0;
+
+                const div = document.createElement('div');
+                div.className = `setlist-item ${i === currentSongIndex ? 'current' : ''}`;
+                div.innerHTML = `
+                    <strong>${i+1}.</strong> ${entry.artist} – ${entry.title}
+                    ${hasAudio ? `<span class="dropdown-arrow" onclick="event.stopImmediatePropagation();toggleDropdown(${i});">${i === expandedSongIndex ? '▲' : '▼'}</span>` : ''}
+                `;
+                div.onclick = (e) => {
+                    if (e.target.classList.contains('dropdown-arrow')) return;
+                    stopSong();
+                    currentSongIndex = i;
+                    loadSong();
+                };
+                container.appendChild(div);
+
+                // Expanded dropdown
+                if (hasAudio && i === expandedSongIndex) {
+                    const sub = document.createElement('div');
+                    sub.className = 'track-subpanel';
+
+                    // Tracks
+                    entry.audio.forEach((track, trackIdx) => {
+                        const row = document.createElement('div');
+                        row.className = 'track-row';
+                        row.innerHTML = `
+                            <label>${track.name}</label>
+                            <input type="range" min="0" max="1" step="0.01" value="1" style="width:120px;">
+                            <button onclick="this.parentElement.querySelector('input').value=0;this.parentElement.querySelector('input').dispatchEvent(new Event('input'))" style="width:40px;">Mute</button>
+                            <button onclick="soloTrack(${trackIdx});" style="width:40px;">Solo</button>
+                        `;
+                        row.querySelector('input').oninput = (e) => {
+                            const audioObj = audioTracks.find(a => a.name === track.name);
+                            if (audioObj) audioObj.audio.volume = parseFloat(e.target.value);
+                        };
+                        sub.appendChild(row);
+                    });
+
+                    // Click Track
+                    const clickRow = document.createElement('div');
+                    clickRow.className = 'track-row';
+                    clickRow.style.borderTop = '1px solid #444';
+                    clickRow.style.marginTop = '8px';
+                    clickRow.style.paddingTop = '8px';
+                    clickRow.innerHTML = `
+                        <label>Click Track</label>
+                        <button onclick="toggleClickTrack()" class="sleek-btn" style="width:80px;">${clickOn ? 'ON' : 'OFF'}</button>
+                        <input type="range" id="clickVolume" min="0" max="1" step="0.01" value="0.5" style="width:120px;">
+                    `;
+                    sub.appendChild(clickRow);
+
+                    container.appendChild(sub);
+                }
+            });
+        }
+
+        function toggleDropdown(index) {
+            expandedSongIndex = (expandedSongIndex === index) ? -1 : index;
+            renderSetlist();
+        }
+
         function toggleSetlistPanel() { const p = document.getElementById('setlistPanel'); p.style.display = p.style.display === 'none' ? 'block' : 'none'; }
         function toggleFullscreen() { if (!document.fullscreenElement) document.documentElement.requestFullscreen(); else document.exitFullscreen(); }
         function toggleLayout() {
@@ -478,7 +502,7 @@
             document.getElementById('modal').style.display = 'none';
             document.getElementById('midiMapModal').style.display = 'none';
             loadSetlist();
-            console.log('%c🎸 Guitar Stage Teleprompter – DEBUG VERSION ACTIVE', 'color:#00cc77;font-size:18px');
+            console.log('%c🎸 Guitar Stage Teleprompter – Audio controls now in setlist dropdown', 'color:#00cc77;font-size:18px');
         };
     </script>
 </body>
