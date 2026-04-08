@@ -15,7 +15,6 @@
             padding:0;
         }
 
-        /* CLEAN HEADER & BIG CHORD – nothing can show behind them */
         #topBar{
             position:fixed;
             top:0;
@@ -57,7 +56,6 @@
         #currentSong { font-size:26px; font-weight:bold; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
         #nextSongContainer { flex:0 0 auto; font-size:22px; opacity:0.85; white-space:nowrap; }
 
-        /* SLEEK BUTTONS */
         .sleek-btn {
             background:#1f1f1f;
             color:#e5e5e5;
@@ -71,8 +69,8 @@
             box-shadow:0 3px 10px rgba(0,0,0,.4);
         }
         .sleek-btn:hover { background:#2a2a2a; border-color:#00cc77; color:#fff; transform:translateY(-1px); }
+        .sleek-btn.primary { background:#00aa66; color:#111; border:none; font-weight:700; }
 
-        /* PERSISTENT TRANSPORT BAR – always visible, bottom, out of the way */
         #transportBar {
             position:fixed;
             bottom:20px;
@@ -87,15 +85,7 @@
             z-index:110;
             box-shadow:0 8px 30px rgba(0,0,0,.7);
         }
-        #transportBar button {
-            padding:12px 24px;
-            font-size:18px;
-            font-weight:600;
-            border-radius:9999px;
-        }
-        #transportBar .play-btn { background:#00cc77; color:#111; }
 
-        /* STATIC LYRICS – all lines always visible, no scrolling container */
         #lyricsContainer{
             position:absolute;
             top:520px;
@@ -115,17 +105,12 @@
             padding:8px 20px;
             border-radius:8px;
             transition:all .3s ease;
-            position:relative;
         }
         .line.current {
             background:rgba(0,204,119,.15);
             color:#fff;
             font-weight:600;
             box-shadow:0 0 25px rgba(0,204,119,.4);
-        }
-        .line.current .chord {
-            color:#00cc77;
-            text-shadow:0 0 20px #00cc77;
         }
         .chord{
             font-weight:bold;
@@ -135,13 +120,33 @@
             margin-right:12px;
         }
 
-        /* Layout forces (unchanged) */
-        @media (orientation: portrait), (max-width: 1100px) {
-            #bigChord { top:90px; font-size:clamp(160px,28vw,380px); }
-            #lyricsContainer { top:460px; font-size:clamp(26px,4vw,42px); }
+        /* MODAL – FIXED & HARDENED */
+        #modal {
+            display: none !important; /* extra strong default */
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0,0,0,0.95);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
         }
-        .force-wide #bigChord { font-size:clamp(120px,18vw,280px) !important; }
-        .force-portrait #bigChord { font-size:clamp(160px,28vw,420px) !important; }
+        #modal-content {
+            background: #111;
+            padding: 30px;
+            border-radius: 12px;
+            width: 92%;
+            max-width: 920px;
+            max-height: 94vh;
+            overflow-y: auto;
+            box-shadow: 0 0 40px rgba(0,204,119,0.3);
+        }
+        #modal-content label { display:block; margin:14px 0 6px; font-size:18px; font-weight:bold; }
+        #modal-content input, #modal-content textarea {
+            width:100%; padding:12px; background:#222; color:#0f0; border:2px solid #333;
+            border-radius:6px; font-family:monospace; font-size:16px;
+        }
+        #modal-content textarea { height:240px; resize:vertical; }
     </style>
 </head>
 <body>
@@ -162,16 +167,13 @@
         </div>
     </div>
 
-    <!-- Clean mask behind big chord -->
     <div id="chordMask"></div>
     <div id="bigChord"></div>
 
-    <!-- ALL LYRICS STATIC – no more translateY scrolling -->
     <div id="lyricsContainer">
         <div id="lyrics"></div>
     </div>
 
-    <!-- PERSISTENT TRANSPORT BAR – always visible, bottom center, easy to reach but out of the way -->
     <div id="transportBar">
         <button onclick="previousSong()" class="sleek-btn">⏮ PREV</button>
         <button onclick="pauseSong()" class="sleek-btn">⏹ STOP</button>
@@ -179,13 +181,16 @@
         <button onclick="nextSong()" class="sleek-btn">⏭ NEXT</button>
     </div>
 
-    <!-- Import Modal (unchanged) -->
+    <!-- IMPORT MODAL – now guaranteed closed on startup -->
     <div id="modal">
         <div id="modal-content">
-            <h2 style="margin-top:0; color:#ddd;">🚀 Auto-Import Chord Chart</h2>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+                <h2 style="margin:0; color:#ddd;">🚀 Auto-Import Chord Chart</h2>
+                <button onclick="closeModal()" style="background:none; border:none; font-size:32px; color:#aaa; cursor:pointer; line-height:1;">×</button>
+            </div>
             <p style="margin-bottom:22px; opacity:0.8;">
-                Paste full chord chart exactly as it appears on Ultimate Guitar.<br>
-                <strong>Structure is preserved 100% – no reformatting.</strong>
+                Paste full chord chart exactly as it appears.<br>
+                <strong>Structure is preserved 100%.</strong>
             </p>
             
             <label>Song Title</label>
@@ -219,9 +224,8 @@
         </div>
     </div>
 
-    <!-- MIDI Panel (optional – can still be toggled) -->
+    <!-- MIDI Panel & Setlist Panel (unchanged) -->
     <div id="midiPanel" style="display:none;">
-        <!-- same as before -->
         <div class="header"><span style="font-size:22px;">🎹 MIDI Controls</span><span id="liveBpm" style="margin-left:auto;font-family:monospace;background:#222;padding:4px 12px;border-radius:9999px;font-size:18px;">BPM: —</span></div>
         <div style="display:flex;gap:8px;">
             <button onclick="previousSong()" class="sleek-btn">⏮ PREV</button>
@@ -230,7 +234,6 @@
         </div>
     </div>
 
-    <!-- Setlist Panel -->
     <div id="setlistPanel">
         <div class="setlist-header">
             <h3 style="margin:0;">📜 SETLIST</h3>
@@ -243,14 +246,41 @@
     <script src="js/scroll.js"></script>
     <script src="js/stage.js"></script>
     <script>
-        // Layout system (unchanged from previous version)
+        // HARDENED MODAL SAFETY – runs immediately
+        function forceCloseModalOnStart() {
+            const modal = document.getElementById('modal');
+            if (modal) {
+                modal.style.display = 'none';
+            }
+        }
+
+        // Make sure modal is closed as soon as possible
+        window.addEventListener('load', forceCloseModalOnStart);
+        window.addEventListener('DOMContentLoaded', forceCloseModalOnStart);
+
+        // Layout system (unchanged)
         let layoutMode = localStorage.getItem('teleprompterLayout') || 'auto';
-        function updateLayoutButton(){ /* same */ }
-        function applyLayout(){ /* same */ }
-        function toggleLayout(){ /* same */ }
-        window.addEventListener('resize', ()=>{ if(layoutMode==='auto' && typeof renderSetlist==='function') renderSetlist(); });
-        window.addEventListener('orientationchange', ()=>{ if(layoutMode==='auto' && typeof renderSetlist==='function') renderSetlist(); });
+        function updateLayoutButton() {
+            const btn = document.getElementById('layoutBtn');
+            btn.textContent = layoutMode === 'auto' ? '📐 Auto' : layoutMode === 'wide' ? '📐 Wide' : '📐 Portrait';
+        }
+        function applyLayout() {
+            document.body.classList.remove('force-wide', 'force-portrait');
+            if (layoutMode === 'wide') document.body.classList.add('force-wide');
+            if (layoutMode === 'portrait') document.body.classList.add('force-portrait');
+            updateLayoutButton();
+            if (typeof renderSetlist === 'function') renderSetlist();
+        }
+        function toggleLayout() {
+            if (layoutMode === 'auto') layoutMode = 'wide';
+            else if (layoutMode === 'wide') layoutMode = 'portrait';
+            else layoutMode = 'auto';
+            localStorage.setItem('teleprompterLayout', layoutMode);
+            applyLayout();
+        }
         applyLayout();
+
+        console.log('%c🎸 Stage Teleprompter READY – Modal fixed & hidden on startup', 'color:#00cc77;font-size:18px');
     </script>
 </body>
 </html>
