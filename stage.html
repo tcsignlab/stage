@@ -6,7 +6,97 @@
     <title>Guitar Stage Teleprompter</title>
     <link rel="stylesheet" href="css/stage.css">
     <style>
-        /* Modal styles (unchanged) */
+        body{
+            background:black;
+            color:white;
+            font-family:Arial;
+            overflow:hidden;
+            margin:0;
+            padding:0;
+        }
+
+        #topBar{
+            position:fixed;
+            top:0;
+            width:100%;
+            display:flex;
+            align-items:center;
+            gap:20px;
+            padding:12px 30px;
+            font-size:28px;
+            background:rgba(0,0,0,0.85);
+            z-index:50;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.6);
+        }
+
+        /* FIXED: Title area now safely expands and truncates instead of hiding behind buttons */
+        #currentSongContainer {
+            flex: 1;
+            min-width: 0;
+            display: flex;
+            align-items: center;
+        }
+        #currentSong {
+            font-size: 26px;
+            font-weight: bold;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 100%;
+            line-height: 1.2;
+        }
+
+        #nextSongContainer {
+            flex: 0 0 auto;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 22px;
+            opacity: 0.85;
+            white-space: nowrap;
+        }
+
+        .top-controls {
+            flex: 0 0 auto;
+            display: flex;
+            gap: 10px;
+        }
+
+        /* SLEEK BUTTONS – modern dark stage look (no neon green anywhere) */
+        .sleek-btn {
+            background: #1f1f1f;
+            color: #e5e5e5;
+            border: 1px solid #444;
+            padding: 10px 20px;
+            font-size: 16px;
+            font-weight: 500;
+            border-radius: 9999px;
+            cursor: pointer;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.4);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .sleek-btn:hover {
+            background: #2a2a2a;
+            border-color: #00cc77;
+            color: #fff;
+            transform: translateY(-1px);
+            box-shadow: 0 6px 16px rgba(0, 204, 119, 0.25);
+        }
+        .sleek-btn.primary {
+            background: #00aa66;
+            color: #111;
+            border: none;
+            font-weight: 700;
+        }
+        .sleek-btn.primary:hover {
+            background: #00cc77;
+            transform: translateY(-1px);
+        }
+
+        /* Modal styles (unchanged except button classes) */
         #modal {
             display: none;
             position: fixed;
@@ -27,20 +117,17 @@
             max-width: 920px;
             max-height: 94vh;
             overflow-y: auto;
-            box-shadow: 0 0 40px #0f0;
+            box-shadow: 0 0 40px rgba(0,204,119,0.3);
         }
         #modal-content label { display:block; margin:14px 0 6px; font-size:18px; font-weight:bold; }
         #modal-content input, #modal-content textarea {
-            width:100%; padding:12px; background:#222; color:#0f0; border:2px solid #0f0;
+            width:100%; padding:12px; background:#222; color:#0f0; border:2px solid #333;
             border-radius:6px; font-family:monospace; font-size:16px;
         }
         #modal-content textarea { height:240px; resize:vertical; }
         #modal-content input[type="file"] { padding:10px; background:#1a1a1a; color:#0f0; cursor:pointer; }
-        #modal-content button {
-            background:#0f0; color:black; border:none; padding:14px 28px; margin:10px 6px 10px 0;
-            font-size:18px; font-weight:bold; cursor:pointer; border-radius:6px;
-        }
-        #modal-content button:hover { background:#ff0; }
+        #modal-content button { /* will use .sleek-btn */ }
+
         #preview { margin-top:24px; max-height:340px; overflow-y:auto; background:#1a1a1a; padding:18px; border-radius:8px; }
         #preview ul { list-style:none; padding:0; }
         #preview li { padding:10px 14px; background:#222; margin:6px 0; border-radius:6px; display:flex; align-items:center; gap:14px; }
@@ -48,36 +135,96 @@
             background:#111; color:#0f0; padding:18px; font-family:monospace; font-size:14px;
             white-space:pre; overflow:auto; max-height:300px; border-radius:8px; margin-top:20px;
         }
-        .top-controls {
-            position:fixed; top:12px; right:20px; z-index:100; display:flex; gap:12px;
+
+        /* MIDI Panel – sleek buttons */
+        #midiPanel {
+            display: none;
+            position: fixed;
+            bottom: 30px;
+            left: 30px;
+            background: rgba(15,15,15,0.95);
+            border: 2px solid #222;
+            border-radius: 16px;
+            padding: 18px 22px;
+            z-index: 999;
+            box-shadow: 0 0 30px rgba(0,0,0,0.6);
+            min-width: 340px;
         }
-        /* MIDI Panel (unchanged) */
-        #midiPanel { /* ... same as before ... */ }
-        /* Setlist Panel (unchanged) */
-        #setlistPanel { /* ... same as before ... */ }
+        #midiPanel .header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 14px;
+            color: #ddd;
+        }
+        #midiPanel button {
+            flex: 1;
+            margin: 4px;
+        }
+
+        /* Setlist Panel – sleek */
+        #setlistPanel {
+            position: fixed;
+            left: 20px;
+            top: 100px;
+            width: 340px;
+            height: calc(100vh - 160px);
+            background: rgba(15,15,15,0.95);
+            border: 2px solid #222;
+            border-radius: 16px;
+            padding: 20px;
+            overflow-y: auto;
+            z-index: 40;
+            box-shadow: 0 0 30px rgba(0,0,0,0.6);
+            color: white;
+            display: block;
+        }
+        .setlist-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 16px;
+            color: #ddd;
+        }
+        .setlist-item {
+            padding: 10px 14px;
+            margin: 6px 0;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 19px;
+            line-height: 1.3;
+        }
+        .setlist-item:hover { background: #222; }
+        .setlist-item.current {
+            background: #00aa66;
+            color: #111;
+            font-weight: bold;
+            box-shadow: 0 0 12px #00cc77;
+        }
     </style>
 </head>
 <body>
     <div id="topBar">
-        <div style="display:flex; align-items:center; gap:15px;">
-            <span id="currentSong" style="font-size:28px; font-weight:bold;">No song loaded</span>
+        <!-- FIXED TITLE AREA -->
+        <div id="currentSongContainer">
+            <span id="currentSong">No song loaded</span>
         </div>
-        <div id="nextSongContainer" style="display:flex; align-items:center; gap:15px;">
-            Next: <span id="nextSong" style="font-size:24px;">—</span>
+
+        <div id="nextSongContainer">
+            Next: <span id="nextSong">—</span>
         </div>
         
         <div class="top-controls">
-            <button onclick="toggleModal()" style="padding:10px 20px; font-size:18px; background:#0f0; color:black; border:none; border-radius:6px; cursor:pointer;">
+            <button onclick="toggleModal()" class="sleek-btn primary">
                 📥 Import Chart
             </button>
-            <button onclick="toggleMidiPanel()" style="padding:10px 20px; font-size:18px; background:#222; color:#0f0; border:2px solid #0f0; border-radius:6px; cursor:pointer;">
-                🎹 MIDI Controls
+            <button onclick="toggleMidiPanel()" class="sleek-btn">
+                🎹 MIDI
             </button>
-            <button onclick="toggleSetlistPanel()" style="padding:10px 20px; font-size:18px; background:#222; color:#0f0; border:2px solid #0f0; border-radius:6px; cursor:pointer;">
+            <button onclick="toggleSetlistPanel()" class="sleek-btn">
                 📜 Setlist
             </button>
-            <button onclick="toggleFullscreen()" style="padding:10px 20px; font-size:18px; background:#222; color:#0f0; border:2px solid #0f0; border-radius:6px; cursor:pointer;">
-                ⛶ Fullscreen
+            <button onclick="toggleFullscreen()" class="sleek-btn">
+                ⛶ Full
             </button>
         </div>
     </div>
@@ -85,14 +232,13 @@
     <div id="bigChord"></div>
     <div id="lyricsContainer"><div id="lyrics"></div></div>
 
-    <!-- Import Modal – now with Ultimate Guitar tip -->
+    <!-- Import Modal (buttons now use sleek class) -->
     <div id="modal">
         <div id="modal-content">
-            <h2 style="margin-top:0; color:#0f0;">🚀 Auto-Import Chord Chart</h2>
+            <h2 style="margin-top:0; color:#ddd;">🚀 Auto-Import Chord Chart</h2>
             <p style="margin-bottom:22px; opacity:0.8; line-height:1.4;">
                 Paste text OR upload a .txt file.<br>
-                <strong style="color:#ff0;">Ultimate Guitar tip:</strong> Go to <a href="https://tabs.ultimate-guitar.com" target="_blank" style="color:#0f0;">tabs.ultimate-guitar.com</a>, search your song, copy the **entire tab text** (chords + lyrics), and paste here.<br>
-                The parser is 100% tuned for their exact format — chords, timings, and scrolling lines are created automatically.
+                <strong style="color:#ff0;">Ultimate Guitar tip:</strong> Go to <a href="https://tabs.ultimate-guitar.com" target="_blank" style="color:#0f0;">tabs.ultimate-guitar.com</a>, search your song, copy the **entire tab text**, and paste here.
             </p>
             
             <label>Song Title</label>
@@ -111,51 +257,47 @@
             <input type="file" id="chartFile" accept=".txt" onchange="handleFileUpload(event)">
             
             <div style="margin:24px 0; display:flex; gap:12px;">
-                <button onclick="parseAndImport()">Parse &amp; Preview</button>
-                <button onclick="closeModal()" style="background:#555;">Cancel</button>
+                <button onclick="parseAndImport()" class="sleek-btn primary">Parse &amp; Preview</button>
+                <button onclick="closeModal()" class="sleek-btn">Cancel</button>
             </div>
 
             <div id="preview"></div>
             <div id="jsonPreview" style="display:none;"></div>
             
             <div style="margin-top:20px; display:flex; gap:12px; flex-wrap:wrap;">
-                <button id="downloadBtn" onclick="downloadSongJSON()" style="display:none; background:#0f0;">⬇️ Download song.json</button>
-                <button id="tempLoadBtn" onclick="loadTempSongNow()" style="display:none; background:#ff0; color:black;">▶️ Preview in Teleprompter NOW</button>
-                <button onclick="closeModal()">Close</button>
+                <button id="downloadBtn" onclick="downloadSongJSON()" style="display:none;" class="sleek-btn primary">⬇️ Download song.json</button>
+                <button id="tempLoadBtn" onclick="loadTempSongNow()" style="display:none;" class="sleek-btn">▶️ Preview in Teleprompter NOW</button>
+                <button onclick="closeModal()" class="sleek-btn">Close</button>
             </div>
             
             <small style="display:block; margin-top:24px; opacity:0.7; line-height:1.3;">
                 • Works with any text chart<br>
-                • Timings calculated from BPM (4 beats per lyric line)<br>
-                • Personal use only — lyrics stay on your device
+                • Timings calculated from BPM
             </small>
         </div>
     </div>
 
-    <!-- MIDI Panel (unchanged) -->
+    <!-- MIDI Panel (sleek buttons) -->
     <div id="midiPanel">
-        <!-- ... exact same as previous version ... -->
         <div class="header">
             <span style="font-size:22px;">🎹 MIDI Controls</span>
             <span id="liveBpm" style="margin-left:auto; font-family:monospace; background:#222; padding:4px 12px; border-radius:9999px; font-size:18px;">BPM: —</span>
         </div>
         <div style="display:flex; gap:8px;">
-            <button onclick="previousSong()" class="side-btn">⏮<br><small>PREV SONG</small></button>
-            <button onclick="togglePlayPause()" class="play-btn" id="playPauseBtn">▶️<br><small>PLAY / PAUSE</small></button>
-            <button onclick="nextSong()" class="side-btn">⏭<br><small>NEXT SONG</small></button>
+            <button onclick="previousSong()" class="sleek-btn">⏮<br><small>PREV</small></button>
+            <button onclick="togglePlayPause()" class="sleek-btn" id="playPauseBtn" style="flex:1.4;">▶️<br><small>PLAY / PAUSE</small></button>
+            <button onclick="nextSong()" class="sleek-btn">⏭<br><small>NEXT</small></button>
         </div>
         <small style="display:block; text-align:center; margin-top:12px; opacity:0.6;">
-            On-screen MIDI simulation • Works even without pedal<br>
-            MIDI clock running in background
+            On-screen MIDI simulation • Works even without pedal
         </small>
     </div>
 
-    <!-- Setlist Panel (unchanged) -->
+    <!-- Setlist Panel (sleek close button) -->
     <div id="setlistPanel">
-        <!-- ... exact same as previous version ... -->
         <div class="setlist-header">
             <h3 style="margin:0;">📜 SETLIST</h3>
-            <button onclick="toggleSetlistPanel()" style="margin-left:auto; background:none; border:none; color:#0f0; font-size:28px; cursor:pointer; line-height:1;">✕</button>
+            <button onclick="toggleSetlistPanel()" class="sleek-btn" style="margin-left:auto; background:none; border:none; color:#ddd; font-size:28px; padding:4px 12px; box-shadow:none;">✕</button>
         </div>
         <div id="setlistItems"></div>
     </div>
