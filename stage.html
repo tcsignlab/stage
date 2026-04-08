@@ -52,7 +52,6 @@
             <button onclick="toggleModal()" class="sleek-btn primary">📥 Import</button>
             <button onclick="toggleSetlistPanel()" class="sleek-btn">📜 Setlist</button>
             <button onclick="toggleMidiMap()" class="sleek-btn">⚙️ MIDI Map</button>
-            <button onclick="debugLoadDeepInside()" class="sleek-btn" style="background:#00cc77;color:#000;">🔧 Debug: Load Deep Inside of You</button>
             <button onclick="toggleLayout()" class="sleek-btn" id="layoutBtn">📐 Auto</button>
             <button onclick="toggleFullscreen()" class="sleek-btn">⛶ Full</button>
         </div>
@@ -157,7 +156,7 @@
         let audioTracks = [];
         let audioContext = null;
         let clickOn = true;
-        let expandedSongIndex = -1;   // which song in setlist is expanded
+        let expandedSongIndex = -1;
 
         let midiCCPrev = parseInt(localStorage.getItem('midiCCPrev')) || 120;
         let midiCCStop = parseInt(localStorage.getItem('midiCCStop')) || 121;
@@ -211,7 +210,7 @@
 
         function toggleClickTrack() {
             clickOn = !clickOn;
-            renderSetlist(); // refresh dropdown
+            renderSetlist();
         }
 
         function playClick(count = 4) {
@@ -289,12 +288,6 @@
 
         function previousSong() { currentSongIndex = (currentSongIndex - 1 + setlist.length) % setlist.length; loadSong(); }
         function nextSong() { currentSongIndex = (currentSongIndex + 1) % setlist.length; loadSong(); }
-
-        function debugLoadDeepInside() {
-            currentSongIndex = setlist.findIndex(s => s.title === "Deep Inside of You");
-            if (currentSongIndex === -1) currentSongIndex = 0;
-            loadSong();
-        }
 
         async function loadSetlist() {
             try {
@@ -394,13 +387,11 @@
             const container = document.getElementById('setlistItems');
             container.innerHTML = '';
             setlist.forEach((entry, i) => {
-                const hasAudio = entry.audio && Array.isArray(entry.audio) && entry.audio.length > 0;
-
                 const div = document.createElement('div');
                 div.className = `setlist-item ${i === currentSongIndex ? 'current' : ''}`;
                 div.innerHTML = `
                     <strong>${i+1}.</strong> ${entry.artist} – ${entry.title}
-                    ${hasAudio ? `<span class="dropdown-arrow" onclick="event.stopImmediatePropagation();toggleDropdown(${i});">${i === expandedSongIndex ? '▲' : '▼'}</span>` : ''}
+                    <span class="dropdown-arrow" onclick="event.stopImmediatePropagation();toggleDropdown(${i});">${i === expandedSongIndex ? '▲' : '▼'}</span>
                 `;
                 div.onclick = (e) => {
                     if (e.target.classList.contains('dropdown-arrow')) return;
@@ -410,29 +401,34 @@
                 };
                 container.appendChild(div);
 
-                // Expanded dropdown
-                if (hasAudio && i === expandedSongIndex) {
+                // Expanded audio dropdown
+                if (i === expandedSongIndex) {
                     const sub = document.createElement('div');
                     sub.className = 'track-subpanel';
 
-                    // Tracks
-                    entry.audio.forEach((track, trackIdx) => {
-                        const row = document.createElement('div');
-                        row.className = 'track-row';
-                        row.innerHTML = `
-                            <label>${track.name}</label>
-                            <input type="range" min="0" max="1" step="0.01" value="1" style="width:120px;">
-                            <button onclick="this.parentElement.querySelector('input').value=0;this.parentElement.querySelector('input').dispatchEvent(new Event('input'))" style="width:40px;">Mute</button>
-                            <button onclick="soloTrack(${trackIdx});" style="width:40px;">Solo</button>
-                        `;
-                        row.querySelector('input').oninput = (e) => {
-                            const audioObj = audioTracks.find(a => a.name === track.name);
-                            if (audioObj) audioObj.audio.volume = parseFloat(e.target.value);
-                        };
-                        sub.appendChild(row);
-                    });
+                    if (song && song.audio && Array.isArray(song.audio) && song.audio.length > 0) {
+                        song.audio.forEach((track, trackIdx) => {
+                            const row = document.createElement('div');
+                            row.className = 'track-row';
+                            row.innerHTML = `
+                                <label>${track.name}</label>
+                                <input type="range" min="0" max="1" step="0.01" value="1" style="width:120px;">
+                                <button onclick="this.parentElement.querySelector('input').value=0;this.parentElement.querySelector('input').dispatchEvent(new Event('input'))" style="width:40px;">Mute</button>
+                                <button onclick="soloTrack(${trackIdx});" style="width:40px;">Solo</button>
+                            `;
+                            row.querySelector('input').oninput = (e) => {
+                                const audioObj = audioTracks.find(a => a.name === track.name);
+                                if (audioObj) audioObj.audio.volume = parseFloat(e.target.value);
+                            };
+                            sub.appendChild(row);
+                        });
+                    } else {
+                        const noTracks = document.createElement('div');
+                        noTracks.style.opacity = '0.6';
+                        noTracks.textContent = 'No backing tracks for this song';
+                        sub.appendChild(noTracks);
+                    }
 
-                    // Click Track
                     const clickRow = document.createElement('div');
                     clickRow.className = 'track-row';
                     clickRow.style.borderTop = '1px solid #444';
@@ -452,7 +448,12 @@
 
         function toggleDropdown(index) {
             expandedSongIndex = (expandedSongIndex === index) ? -1 : index;
-            renderSetlist();
+            if (expandedSongIndex === index) {
+                currentSongIndex = index;
+                loadSong();
+            } else {
+                renderSetlist();
+            }
         }
 
         function toggleSetlistPanel() { const p = document.getElementById('setlistPanel'); p.style.display = p.style.display === 'none' ? 'block' : 'none'; }
@@ -502,7 +503,7 @@
             document.getElementById('modal').style.display = 'none';
             document.getElementById('midiMapModal').style.display = 'none';
             loadSetlist();
-            console.log('%c🎸 Guitar Stage Teleprompter – Audio controls now in setlist dropdown', 'color:#00cc77;font-size:18px');
+            console.log('%c🎸 Guitar Stage Teleprompter – Audio dropdown fixed', 'color:#00cc77;font-size:18px');
         };
     </script>
 </body>
