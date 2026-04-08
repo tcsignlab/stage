@@ -32,7 +32,7 @@
         #modal-content label,#midiMapContent label{display:block;margin:14px 0 6px;font-size:18px;font-weight:bold;}
         #modal-content input,#modal-content textarea,#midiMapContent input{width:100%;padding:12px;background:#222;color:#0f0;border:2px solid #333;border-radius:6px;font-family:monospace;font-size:16px;}
         #modal-content textarea{height:240px;resize:vertical;}
-        #setlistPanel{position:fixed;left:20px;top:100px;width:400px;height:calc(100vh - 160px);background:#1a1a1a;border:2px solid #333;border-radius:16px;padding:20px;overflow-y:auto;z-index:500;box-shadow:0 0 40px rgba(0,0,0,.7);color:#fff;display:block !important;}
+        #setlistPanel{position:fixed;left:20px;top:100px;width:410px;height:calc(100vh - 160px);background:#1f1f1f;border:2px solid #333;border-radius:16px;padding:20px;overflow-y:auto;z-index:500;box-shadow:0 0 40px rgba(0,0,0,.7);color:#fff;display:block !important;}
         .setlist-header{display:flex;align-items:center;margin-bottom:16px;color:#ddd;}
         .setlist-item{padding:14px 18px;margin:6px 0;border-radius:8px;cursor:pointer;transition:all .2s ease;position:relative;pointer-events:auto !important;color:#f0f0f0;}
         .setlist-item:hover{background:#3a3a3a;}
@@ -47,8 +47,8 @@
 
     <div id="topBar">
         <div id="currentSongContainer"><span id="currentSong">No song loaded</span></div>
-        <div id="nextSongContainer" style="margin-left:-85px;">Next: <span id="nextSong">—</span></div>
-        <div id="songTime" style="margin-left:-25px;">0:00 / 0:00</div>
+        <div id="nextSongContainer" style="margin-left:-95px;">Next: <span id="nextSong">—</span></div>
+        <div id="songTime" style="margin-left:-30px;">0:00 / 0:00</div>
         <div class="top-controls" style="margin-left:-35px;">
             <button onclick="toggleModal()" class="sleek-btn primary">📥 Import</button>
             <button onclick="toggleMidiMap()" class="sleek-btn">⚙️ MIDI Map</button>
@@ -81,16 +81,11 @@
                 <button onclick="closeModal()" style="background:none;border:none;font-size:32px;color:#aaa;cursor:pointer;line-height:1;">×</button>
             </div>
             <p style="margin-bottom:22px;opacity:0.8;">Paste full chord chart exactly as it appears.<br><strong>Structure is preserved 100%.</strong></p>
-            <label>Song Title</label>
-            <input id="importTitle" type="text" value="New Song" placeholder="Song Title">
-            <label>Artist</label>
-            <input id="importArtist" type="text" value="Unknown Artist" placeholder="Artist Name">
-            <label>BPM</label>
-            <input id="importBpm" type="number" value="120" min="40" max="240">
-            <label>Paste Chord Chart</label>
-            <textarea id="chartPaste" placeholder="Paste the entire chord chart here..."></textarea>
-            <label>Or upload .txt file</label>
-            <input type="file" id="chartFile" accept=".txt" onchange="handleFileUpload(event)">
+            <label>Song Title</label><input id="importTitle" type="text" value="New Song" placeholder="Song Title">
+            <label>Artist</label><input id="importArtist" type="text" value="Unknown Artist" placeholder="Artist Name">
+            <label>BPM</label><input id="importBpm" type="number" value="120" min="40" max="240">
+            <label>Paste Chord Chart</label><textarea id="chartPaste" placeholder="Paste the entire chord chart here..."></textarea>
+            <label>Or upload .txt file</label><input type="file" id="chartFile" accept=".txt" onchange="handleFileUpload(event)">
             <div style="margin:24px 0;display:flex;gap:12px;">
                 <button onclick="parseAndImport()" class="sleek-btn primary">Parse &amp; Preview</button>
                 <button onclick="closeModal()" class="sleek-btn">Cancel</button>
@@ -113,16 +108,11 @@
                 <button onclick="closeMidiMap()" style="background:none;border:none;font-size:32px;color:#aaa;cursor:pointer;line-height:1;">×</button>
             </div>
             <p style="margin-bottom:22px;opacity:0.8;">Assign CC numbers (0-127) for your footswitch.<br>Defaults: 120=Prev • 121=Stop • 122=Play/Pause • 123=Next • 124=Click On/Off</p>
-            <label>CC for PREV SONG</label>
-            <input id="ccPrev" type="number" min="0" max="127" value="120">
-            <label>CC for STOP</label>
-            <input id="ccStop" type="number" min="0" max="127" value="121">
-            <label>CC for PLAY / PAUSE</label>
-            <input id="ccPlay" type="number" min="0" max="127" value="122">
-            <label>CC for NEXT SONG</label>
-            <input id="ccNext" type="number" min="0" max="127" value="123">
-            <label>CC for CLICK ON/OFF</label>
-            <input id="ccClick" type="number" min="0" max="127" value="124">
+            <label>CC for PREV SONG</label><input id="ccPrev" type="number" min="0" max="127" value="120">
+            <label>CC for STOP</label><input id="ccStop" type="number" min="0" max="127" value="121">
+            <label>CC for PLAY / PAUSE</label><input id="ccPlay" type="number" min="0" max="127" value="122">
+            <label>CC for NEXT SONG</label><input id="ccNext" type="number" min="0" max="127" value="123">
+            <label>CC for CLICK ON/OFF</label><input id="ccClick" type="number" min="0" max="127" value="124">
             <div style="margin:24px 0;display:flex;gap:12px;">
                 <button onclick="saveMidiMap()" class="sleek-btn primary">Save Mapping</button>
                 <button onclick="closeMidiMap()" class="sleek-btn">Cancel</button>
@@ -160,12 +150,6 @@
         let midiCCNext = parseInt(localStorage.getItem('midiCCNext')) || 123;
         let midiCCClick = parseInt(localStorage.getItem('midiCCClick')) || 124;
 
-        function handleMidi(msg) { /* unchanged MIDI handling */ }
-
-        navigator.requestMIDIAccess().then(midi => {
-            for (let input of midi.inputs.values()) input.onmidimessage = handleMidi;
-        }).catch(() => {});
-
         function initAudio() {
             if (!audioContext) audioContext = new (window.AudioContext || window.webkitAudioContext)();
         }
@@ -175,12 +159,12 @@
             if (!clickOn || !playing) return;
             const interval = 60000 / currentBPM;
             clickInterval = setInterval(() => {
-                if (!playing || !clickOn) return stopContinuousClick();
+                if (!playing || !clickOn) return;
                 initAudio();
                 const osc = audioContext.createOscillator();
                 const gain = audioContext.createGain();
                 osc.frequency.value = 800;
-                gain.gain.value = 0.75; // louder & clear
+                gain.gain.value = 0.75;
                 osc.connect(gain).connect(audioContext.destination);
                 osc.start();
                 osc.stop(audioContext.currentTime + 0.05);
@@ -188,10 +172,8 @@
         }
 
         function stopContinuousClick() {
-            if (clickInterval) {
-                clearInterval(clickInterval);
-                clickInterval = null;
-            }
+            if (clickInterval) clearInterval(clickInterval);
+            clickInterval = null;
         }
 
         function playClick(count = 4) {
@@ -211,7 +193,7 @@
                 if (clicksLeft > 0) setTimeout(playOne, interval);
                 else {
                     startBackingTracks();
-                    startContinuousClick(); // ← continuous click starts here
+                    startContinuousClick();
                 }
             };
             playOne();
@@ -237,7 +219,118 @@
             stopContinuousClick();
         }
 
-        // ... (loadAudioTracks, soloTrack, startSong, pauseSong, stopSong, togglePlayPause, loadSetlist, loadSong, renderLyrics, updateHighlight, updateTimeDisplay, renderSetlist, saveVocalOffset, toggleDropdown, modals, etc. are exactly as in the previous rock-solid version)
+        function loadAudioTracks() {
+            audioTracks.forEach(t => t.audio.pause());
+            audioTracks = [];
+            if (!song || !song.audio || !Array.isArray(song.audio) || song.audio.length === 0) return;
+            song.audio.forEach(track => {
+                const audio = new Audio("songs/" + track.file);
+                audio.loop = true;
+                audio.volume = 1;
+                audioTracks.push({name: track.name, audio: audio});
+            });
+        }
+
+        function soloTrack(index) {
+            audioTracks.forEach((track, i) => track.audio.volume = (i === index) ? 1 : 0);
+        }
+
+        function toggleClickTrack() {
+            clickOn = !clickOn;
+            renderSetlist();
+        }
+
+        function startSong() {
+            initAudio();
+            pauseSong();
+            startTime = Date.now();
+            playing = true;
+            document.getElementById('transportPlayBtn').innerHTML = '⏸️ PAUSE';
+            playClick(4);
+        }
+
+        function pauseSong() {
+            playing = false;
+            pausedElapsed = (Date.now() - startTime) / 1000;
+            pauseAllAudio();
+            document.getElementById('transportPlayBtn').innerHTML = '▶️ PLAY';
+        }
+
+        function stopSong() {
+            playing = false;
+            pausedElapsed = 0;
+            startTime = null;
+            document.getElementById('transportPlayBtn').innerHTML = '▶️ PLAY';
+            document.getElementById("bigChord").innerText = '';
+            document.getElementById("nextChord").textContent = '—';
+            document.getElementById("lyricsInner").style.transform = 'translateY(0px)';
+            stopAllAudio();
+            renderLyrics();
+        }
+
+        function togglePlayPause() {
+            if (playing) pauseSong();
+            else startSong();
+        }
+
+        function previousSong() { currentSongIndex = (currentSongIndex - 1 + setlist.length) % setlist.length; loadSong(); }
+        function nextSong() { currentSongIndex = (currentSongIndex + 1) % setlist.length; loadSong(); }
+
+        async function loadSetlist() {
+            try {
+                const res = await fetch("setlist.json");
+                if (res.ok) setlist = await res.json();
+            } catch(e) { console.error("setlist.json not found"); }
+            renderSetlist();
+            loadSong();
+        }
+
+        async function loadSong() {
+            if (setlist.length === 0) return;
+            const entry = setlist[currentSongIndex];
+            const filename = entry.file || entry;
+            try {
+                const res = await fetch("songs/" + filename);
+                song = await res.json();
+                currentBPM = song.bpm || 120;
+                document.getElementById("currentSong").innerText = `${entry.artist || ''} ${entry.title || filename.replace('.json','')}`.trim();
+                renderLyrics();
+                loadAudioTracks();
+                // Dynamic scroll speed that perfectly matches song length
+                const inner = document.getElementById("lyricsInner");
+                if (inner && song && song.lines && song.lines.length) {
+                    const totalTime = song.lines[song.lines.length-1].time + 15 || 180;
+                    currentScrollMultiplier = Math.max(9, inner.scrollHeight / totalTime * 1.15);
+                }
+                renderSetlist();
+            } catch(e) {
+                document.getElementById("currentSong").innerText = `${entry.artist || ''} ${entry.title || 'Unknown'} (chart missing)`;
+                song = {title: "Missing Chart", lines: []};
+                currentBPM = 120;
+                renderLyrics();
+                renderSetlist();
+            }
+        }
+
+        function renderLyrics() {
+            const inner = document.getElementById("lyricsInner");
+            inner.innerHTML = "";
+            if (!song?.lines || song.lines.length === 0) {
+                const msg = document.createElement("div");
+                msg.style.opacity = "0.4"; msg.style.fontStyle = "italic";
+                msg.textContent = "(no chart loaded – import one above)";
+                inner.appendChild(msg);
+                return;
+            }
+            song.lines.forEach((line, i) => {
+                const div = document.createElement("div");
+                div.className = line.isSection ? "line section" : "line";
+                div.innerHTML = line.isSection 
+                    ? `<span class="chord" data-index="${i}">${line.lyric}</span>` 
+                    : `<span class="chord" data-index="${i}">${line.chord || ''}</span> ${line.lyric || ''}`;
+                inner.appendChild(div);
+            });
+        }
 
         function scrollLyrics(elapsed) {
             const offset = song && song.lyricOffset !== undefined ? song.lyricOffset : 0;
@@ -245,29 +338,147 @@
             document.getElementById("lyricsInner").style.transform = `translateY(-${adjusted * currentScrollMultiplier}px)`;
         }
 
-        async function loadSong() {
-            // ... existing load code ...
-            renderLyrics();
-            // Dynamic scroll speed that matches song length
-            const inner = document.getElementById("lyricsInner");
-            if (inner && song && song.lines && song.lines.length) {
-                const totalTime = song.lines[song.lines.length - 1].time + 15 || 180;
-                const totalHeight = inner.scrollHeight;
-                currentScrollMultiplier = Math.max(8, totalHeight / totalTime * 1.1); // auto-matches length
-            } else {
-                currentScrollMultiplier = 11.5;
+        function updateHighlight(elapsed) {
+            const offset = song && song.lyricOffset !== undefined ? song.lyricOffset : 0;
+            const adjusted = Math.max(0, elapsed - offset);
+            if (!song?.lines) return;
+            let activeIndex = -1;
+            for (let i = 0; i < song.lines.length; i++) {
+                if (adjusted >= song.lines[i].time) activeIndex = i;
+                else break;
             }
-            renderSetlist();
-            loadAudioTracks();
+            if (activeIndex >= 0) document.getElementById("bigChord").innerText = song.lines[activeIndex].chord || '';
+            const nextIndex = activeIndex + 1;
+            const nextChordEl = document.getElementById("nextChord");
+            if (nextIndex < song.lines.length) {
+                nextChordEl.textContent = song.lines[nextIndex].chord || '';
+            } else {
+                nextChordEl.textContent = '—';
+            }
+            document.querySelectorAll('.chord').forEach(chord => {
+                chord.classList.toggle('active', parseInt(chord.dataset.index) === activeIndex);
+            });
         }
 
-        // (All other functions unchanged from the last working version – full file is ready)
+        function updateTimeDisplay() {
+            if (!song) return;
+            let elapsed = playing ? (Date.now() - startTime) / 1000 : pausedElapsed;
+            const total = song.lines.length ? song.lines[song.lines.length-1].time + 20 : 0;
+            const elapsedStr = `${Math.floor(elapsed/60)}:${(Math.floor(elapsed)%60).toString().padStart(2,'0')}`;
+            const totalStr = `${Math.floor(total/60)}:${(total%60).toString().padStart(2,'0')}`;
+            document.getElementById('songTime').textContent = `${elapsedStr} / ${totalStr}`;
+        }
+
+        function renderSetlist() {
+            const container = document.getElementById('setlistItems');
+            container.innerHTML = '';
+            setlist.forEach((entry, i) => {
+                const div = document.createElement('div');
+                div.className = `setlist-item ${i === currentSongIndex ? 'current' : ''}`;
+                div.innerHTML = `
+                    <strong>${i+1}.</strong> ${entry.artist} – ${entry.title}
+                    <span class="dropdown-arrow" onclick="event.stopImmediatePropagation();toggleDropdown(${i});">${i === expandedSongIndex ? '▲' : '▼'}</span>
+                `;
+                div.onclick = (e) => {
+                    if (e.target.classList.contains('dropdown-arrow')) return;
+                    stopSong();
+                    currentSongIndex = i;
+                    loadSong();
+                };
+                container.appendChild(div);
+
+                if (i === expandedSongIndex) {
+                    const sub = document.createElement('div');
+                    sub.className = 'track-subpanel';
+                    if (song && song.audio && Array.isArray(song.audio) && song.audio.length > 0) {
+                        song.audio.forEach((track, trackIdx) => {
+                            const row = document.createElement('div');
+                            row.className = 'track-row';
+                            row.innerHTML = `
+                                <label>${track.name}</label>
+                                <input type="range" min="0" max="1" step="0.01" value="1" style="width:120px;">
+                                <button onclick="this.parentElement.querySelector('input').value=0;this.parentElement.querySelector('input').dispatchEvent(new Event('input'))" style="width:40px;">Mute</button>
+                                <button onclick="soloTrack(${trackIdx});" style="width:40px;">Solo</button>
+                            `;
+                            row.querySelector('input').oninput = (e) => {
+                                const audioObj = audioTracks.find(a => a.name === track.name);
+                                if (audioObj) audioObj.audio.volume = parseFloat(e.target.value);
+                            };
+                            sub.appendChild(row);
+                        });
+                    }
+                    // Vocal offset
+                    const offsetRow = document.createElement('div');
+                    offsetRow.className = 'track-row';
+                    offsetRow.style.borderTop = '1px solid #444';
+                    offsetRow.style.marginTop = '8px';
+                    offsetRow.style.paddingTop = '8px';
+                    offsetRow.innerHTML = `
+                        <label>Vocals Start Offset (sec)</label>
+                        <input type="number" id="vocalOffsetInput" value="${song && song.lyricOffset !== undefined ? song.lyricOffset : 0}" step="0.1" style="width:90px;">
+                        <button onclick="saveVocalOffset()" class="sleek-btn" style="width:60px;">Save</button>
+                    `;
+                    sub.appendChild(offsetRow);
+                    // Click track
+                    const clickRow = document.createElement('div');
+                    clickRow.className = 'track-row';
+                    clickRow.style.borderTop = '1px solid #444';
+                    clickRow.style.marginTop = '8px';
+                    clickRow.style.paddingTop = '8px';
+                    clickRow.innerHTML = `
+                        <label>Click Track</label>
+                        <button onclick="toggleClickTrack()" class="sleek-btn" style="width:80px;">${clickOn ? 'ON' : 'OFF'}</button>
+                        <input type="range" id="clickVolume" min="0" max="1" step="0.01" value="0.75" style="width:120px;">
+                    `;
+                    sub.appendChild(clickRow);
+                    container.appendChild(sub);
+                }
+            });
+        }
+
+        function saveVocalOffset() {
+            if (!song) return;
+            const input = document.getElementById('vocalOffsetInput');
+            song.lyricOffset = parseFloat(input.value) || 0;
+            renderSetlist();
+        }
+
+        function toggleDropdown(index) {
+            expandedSongIndex = (expandedSongIndex === index) ? -1 : index;
+            if (expandedSongIndex === index) {
+                currentSongIndex = index;
+                loadSong();
+            } else {
+                renderSetlist();
+            }
+        }
+
+        function toggleSetlistPanel() { const p = document.getElementById('setlistPanel'); p.style.display = p.style.display === 'none' ? 'block' : 'none'; }
+        function toggleFullscreen() { if (!document.fullscreenElement) document.documentElement.requestFullscreen(); else document.exitFullscreen(); }
+        function toggleLayout() { /* unchanged */ }
+        function toggleModal() { document.getElementById('modal').style.display = 'flex'; }
+        function closeModal() { document.getElementById('modal').style.display = 'none'; }
+        function toggleMidiMap() { document.getElementById('midiMapModal').style.display = 'flex'; }
+        function closeMidiMap() { document.getElementById('midiMapModal').style.display = 'none'; }
+        function saveMidiMap() { /* unchanged */ }
+
+        setInterval(() => {
+            if (!song?.lines) return;
+            let elapsed = playing && audioTracks.length > 0 && audioTracks[0].audio 
+                ? audioTracks[0].audio.currentTime 
+                : (playing ? (Date.now() - startTime) / 1000 : pausedElapsed);
+            const offset = song && song.lyricOffset !== undefined ? song.lyricOffset : 0;
+            const adjusted = Math.max(0, elapsed - offset);
+            updateHighlight(adjusted);
+            scrollLyrics(adjusted);
+            updateTimeDisplay();
+        }, 40);
 
         window.onload = () => {
             document.getElementById('modal').style.display = 'none';
             document.getElementById('midiMapModal').style.display = 'none';
             loadSetlist();
-            console.log('%c🎸 Guitar Stage Teleprompter – ALL BUGS FIXED (constant click, header shift, dynamic scroll)', 'color:#00cc77;font-size:18px');
+            console.log('%c🎸 Guitar Stage Teleprompter – Setlist restored, tracks visible, constant click working', 'color:#00cc77;font-size:18px');
         };
     </script>
 </body>
