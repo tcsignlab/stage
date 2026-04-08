@@ -7,17 +7,17 @@
     <style>
         body{background:black;color:white;font-family:Arial;overflow:hidden;margin:0;padding:0;}
         #topBar{position:fixed;top:0;width:100%;display:flex;align-items:center;gap:20px;padding:12px 30px;font-size:28px;background:rgba(0,0,0,0.95);z-index:100;box-shadow:0 4px 20px rgba(0,0,0,0.8);}
-        #chordMask{position:fixed;top:80px;left:0;width:100%;height:520px;background:linear-gradient(black,transparent 88%);z-index:90;pointer-events:none;}
+        #chordMask{position:fixed;top:80px;left:0;width:100%;height:560px;background:linear-gradient(to bottom, black 75%, transparent 90%);z-index:90;pointer-events:none;}
         #bigChord{position:fixed;top:110px;width:100%;font-size:clamp(140px,22vw,320px);font-weight:bold;color:#00cc77;text-align:center;z-index:95;text-shadow:0 0 40px #00cc77;pointer-events:none;line-height:1;}
         #currentSongContainer{flex:1;min-width:0;display:flex;align-items:center;}
         #currentSong{font-size:26px;font-weight:bold;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
         #nextSongContainer{flex:0 0 auto;font-size:22px;opacity:0.85;white-space:nowrap;}
-        #songTime{font-family:monospace;font-size:22px;color:#0f0;margin-left:20px;}
+        #songTime{font-family:monospace;font-size:22px;color:#0f0;margin-left:20px;min-width:120px;text-align:right;}
         .sleek-btn{background:#1f1f1f;color:#e5e5e5;border:1px solid #444;padding:10px 20px;font-size:16px;font-weight:500;border-radius:9999px;cursor:pointer;transition:all .25s cubic-bezier(0.4,0,0.2,1);box-shadow:0 3px 10px rgba(0,0,0,.4);}
         .sleek-btn:hover{background:#2a2a2a;border-color:#00cc77;color:#fff;transform:translateY(-1px);}
         .sleek-btn.primary{background:#00aa66;color:#111;border:none;font-weight:700;}
         #transportBar{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:rgba(15,15,15,.95);border:2px solid #222;border-radius:9999px;padding:8px 16px;display:flex;gap:8px;z-index:110;box-shadow:0 8px 30px rgba(0,0,0,.7);}
-        #lyricsContainer{position:absolute;top:530px;bottom:60px;left:0;right:0;overflow-y:auto;text-align:center;font-size:clamp(24px,3vw,38px);line-height:1.55;padding:20px 60px 140px;z-index:10;color:#ddd;transition:transform .05s linear;}
+        #lyricsContainer{position:absolute;top:560px;bottom:80px;left:0;right:0;overflow-y:auto;text-align:center;font-size:clamp(24px,3vw,38px);line-height:1.55;padding:30px 60px 160px;z-index:10;color:#ddd;transition:transform .05s linear;}
         .line{margin:22px 0;padding:8px 20px;border-radius:8px;}
         .chord{font-weight:bold;color:#aaa;display:inline-block;min-width:110px;margin-right:16px;transition:all .2s;}
         .chord.active{color:#00cc77;text-shadow:0 0 20px #00cc77;}
@@ -120,7 +120,7 @@
         </div>
     </div>
 
-    <!-- Setlist Panel (shown by default) -->
+    <!-- Setlist Panel -->
     <div id="setlistPanel">
         <div class="setlist-header">
             <h3 style="margin:0;">📜 SETLIST</h3>
@@ -134,6 +134,7 @@
         let currentSongIndex = 0;
         let song = null;
         let startTime = null;
+        let pausedElapsed = 0;
         let playing = false;
         let currentSongData = null;
         let layoutMode = localStorage.getItem('teleprompterLayout') || 'auto';
@@ -221,10 +222,7 @@
                         time += secondsPerLine;
                         i += 2;
                     } else {
-                        chordTokens.forEach(chord => {
-                            parsedLines.push({time: Math.round(time), chord: chord, lyric: ""});
-                            time += secondsPerBeat;
-                        });
+                        chordTokens.forEach(chord => { parsedLines.push({time: Math.round(time), chord: chord, lyric: ""}); time += secondsPerBeat; });
                         i++;
                     }
                 } else {
@@ -360,22 +358,34 @@
         }
 
         function updateTimeDisplay() {
-            if (!playing || !song) {
+            if (!song) {
                 document.getElementById('songTime').textContent = "0:00 / 0:00";
                 return;
             }
-            const elapsed = Math.floor((Date.now() - startTime) / 1000);
-            const total = song.lines.length ? song.lines[song.lines.length-1].time + 15 : 0; // extra padding at end
-            const elapsedStr = `${Math.floor(elapsed/60)}:${(elapsed%60).toString().padStart(2,'0')}`;
+            let elapsed = playing ? (Date.now() - startTime) / 1000 : pausedElapsed;
+            const total = song.lines.length ? song.lines[song.lines.length-1].time + 20 : 0;
+            const elapsedStr = `${Math.floor(elapsed/60)}:${(Math.floor(elapsed)%60).toString().padStart(2,'0')}`;
             const totalStr = `${Math.floor(total/60)}:${(total%60).toString().padStart(2,'0')}`;
             document.getElementById('songTime').textContent = `${elapsedStr} / ${totalStr}`;
         }
 
-        function startSong() { startTime = Date.now(); playing = true; }
-        function pauseSong() { playing = false; document.getElementById('transportPlayBtn').innerHTML = '▶️ PLAY'; }
+        function startSong() {
+            if (!playing) {
+                startTime = Date.now() - (pausedElapsed * 1000);
+                playing = true;
+            }
+        }
+        function pauseSong() {
+            if (playing) {
+                pausedElapsed = (Date.now() - startTime) / 1000;
+                playing = false;
+            }
+            document.getElementById('transportPlayBtn').innerHTML = '▶️ PLAY';
+        }
         function togglePlayPause() {
             if (playing) pauseSong();
-            else { startSong(); document.getElementById('transportPlayBtn').innerHTML = '⏸️ PAUSE'; }
+            else startSong();
+            document.getElementById('transportPlayBtn').innerHTML = playing ? '⏸️ PAUSE' : '▶️ PLAY';
         }
         function previousSong() { currentSongIndex = (currentSongIndex - 1 + setlist.length) % setlist.length; loadSong(); }
         function nextSong() { currentSongIndex = (currentSongIndex + 1) % setlist.length; loadSong(); }
@@ -409,13 +419,12 @@
             btn.textContent = layoutMode === 'auto' ? '📐 Auto' : layoutMode === 'wide' ? '📐 Wide' : '📐 Portrait';
         }
 
-        // Main loop
         setInterval(() => {
-            if (!playing || !song?.lines) {
+            if (!song?.lines) {
                 updateTimeDisplay();
                 return;
             }
-            const elapsed = (Date.now() - startTime) / 1000;
+            const elapsed = playing ? (Date.now() - startTime) / 1000 : pausedElapsed;
             updateHighlight(elapsed);
             scrollLyrics(elapsed);
             updateTimeDisplay();
@@ -425,7 +434,7 @@
             document.getElementById('modal').style.display = 'none';
             document.getElementById('midiMapModal').style.display = 'none';
             loadSetlist();
-            console.log('%c🎸 Guitar Stage Teleprompter – Timer added + lyrics now stay visible longer', 'color:#00cc77;font-size:18px');
+            console.log('%c🎸 Guitar Stage Teleprompter – Timer always visible + lyrics fixed', 'color:#00cc77;font-size:18px');
         };
     </script>
 </body>
