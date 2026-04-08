@@ -34,10 +34,9 @@
         #modal-content textarea{height:240px;resize:vertical;}
         #setlistPanel{position:fixed;left:20px;top:100px;width:340px;height:calc(100vh - 160px);background:rgba(15,15,15,.95);border:2px solid #222;border-radius:16px;padding:20px;overflow-y:auto;z-index:200;box-shadow:0 0 30px rgba(0,0,0,.6);color:white;display:block !important;}
         .setlist-header{display:flex;align-items:center;margin-bottom:16px;color:#ddd;}
-        .setlist-item{padding:14px 18px;margin:6px 0;border-radius:8px;cursor:grab;transition:all .2s ease;position:relative;}
+        .setlist-item{padding:14px 18px;margin:6px 0;border-radius:8px;cursor:pointer;transition:all .2s ease;position:relative;}
         .setlist-item:hover{background:#222;}
         .setlist-item.current{background:#00aa66;color:#111;font-weight:bold;box-shadow:0 0 12px #00cc77;}
-        .setlist-item:active{cursor:grabbing;}
         .dropdown-arrow{position:absolute;right:18px;top:14px;cursor:pointer;font-size:18px;color:#0f0;}
         .track-subpanel{margin:8px 0 8px 40px;background:rgba(0,0,0,0.4);padding:12px;border-radius:8px;}
         .track-row{display:flex;align-items:center;gap:8px;margin:8px 0;}
@@ -89,8 +88,6 @@
             <input id="importArtist" type="text" value="Unknown Artist" placeholder="Artist Name">
             <label>BPM</label>
             <input id="importBpm" type="number" value="120" min="40" max="240">
-            <label>Vocals Start Offset (seconds)</label>
-            <input id="importVocalStart" type="number" value="0" step="0.1" style="width:120px;">
             <label>Paste Chord Chart</label>
             <textarea id="chartPaste" placeholder="Paste the entire chord chart here..."></textarea>
             <label>Or upload .txt file</label>
@@ -395,12 +392,11 @@
             const container = document.getElementById('setlistItems');
             container.innerHTML = '';
             setlist.forEach((entry, i) => {
-                const hasAudio = entry.audio && Array.isArray(entry.audio) && entry.audio.length > 0;
                 const div = document.createElement('div');
                 div.className = `setlist-item ${i === currentSongIndex ? 'current' : ''}`;
                 div.innerHTML = `
                     <strong>${i+1}.</strong> ${entry.artist} – ${entry.title}
-                    ${hasAudio ? `<span class="dropdown-arrow" onclick="event.stopImmediatePropagation();toggleDropdown(${i});">${i === expandedSongIndex ? '▲' : '▼'}</span>` : ''}
+                    <span class="dropdown-arrow" onclick="event.stopImmediatePropagation();toggleDropdown(${i});">${i === expandedSongIndex ? '▲' : '▼'}</span>
                 `;
                 div.onclick = (e) => {
                     if (e.target.classList.contains('dropdown-arrow')) return;
@@ -430,20 +426,12 @@
                             };
                             sub.appendChild(row);
                         });
+                    } else {
+                        const noTracks = document.createElement('div');
+                        noTracks.style.opacity = '0.6';
+                        noTracks.textContent = 'Loading audio tracks...';
+                        sub.appendChild(noTracks);
                     }
-
-                    // Vocals Start Offset row
-                    const offsetRow = document.createElement('div');
-                    offsetRow.className = 'track-row';
-                    offsetRow.style.borderTop = '1px solid #444';
-                    offsetRow.style.marginTop = '8px';
-                    offsetRow.style.paddingTop = '8px';
-                    offsetRow.innerHTML = `
-                        <label>Vocals Start Offset (sec)</label>
-                        <input type="number" id="vocalOffsetInput" value="${song && song.lyricOffset !== undefined ? song.lyricOffset : 0}" step="0.1" style="width:80px;">
-                        <button onclick="saveVocalOffset()" class="sleek-btn" style="width:60px;">Save</button>
-                    `;
-                    sub.appendChild(offsetRow);
 
                     const clickRow = document.createElement('div');
                     clickRow.className = 'track-row';
@@ -462,18 +450,11 @@
             });
         }
 
-        function saveVocalOffset() {
-            if (!song) return;
-            const input = document.getElementById('vocalOffsetInput');
-            song.lyricOffset = parseFloat(input.value) || 0;
-            renderSetlist();
-        }
-
         function toggleDropdown(index) {
             expandedSongIndex = (expandedSongIndex === index) ? -1 : index;
             if (expandedSongIndex === index) {
                 currentSongIndex = index;
-                loadSong();
+                loadSong();   // ← Ensures song (and its audio) is loaded
             } else {
                 renderSetlist();
             }
@@ -530,7 +511,7 @@
             document.getElementById('modal').style.display = 'none';
             document.getElementById('midiMapModal').style.display = 'none';
             loadSetlist();
-            console.log('%c🎸 Guitar Stage Teleprompter – Vocals Start Offset added for perfect sync', 'color:#00cc77;font-size:18px');
+            console.log('%c🎸 Guitar Stage Teleprompter – Dropdown arrows permanently fixed', 'color:#00cc77;font-size:18px');
         };
     </script>
 </body>
