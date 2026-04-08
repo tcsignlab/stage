@@ -8,8 +8,70 @@ overflow:hidden;
 #topBar{
 position:fixed;
 top:0;
-width:100%;
-display:flex;
+wid/* css/stage.css - UPDATED with modal support + minor live fixes */
+body{
+    background:black;
+    color:white;
+    font-family:Arial;
+    overflow:hidden;
+    margin:0;
+    padding:0;
+}
+
+#topBar{
+    position:fixed;
+    top:0;
+    width:100%;
+    display:flex;
+    justify-content:space-between;
+    padding:10px 30px;
+    font-size:28px;
+    background:rgba(0,0,0,0.6);
+    z-index:50;
+    align-items:center;
+}
+
+#bigChord{
+    position:fixed;
+    top:80px;
+    width:100%;
+    font-size:340px;
+    font-weight:bold;
+    color:#00ff00;
+    text-align:center;
+    z-index:10;
+    text-shadow: 0 0 20px #0f0;
+    pointer-events:none;
+}
+
+#lyricsContainer{
+    position:absolute;
+    bottom:-100vh;
+    width:100%;
+    text-align:center;
+    font-size:36px;
+    line-height:1.4;
+    z-index:5;
+}
+
+.line{
+    margin:30px 0;
+    padding:0 40px;
+}
+
+.chord{
+    font-weight:bold;
+    color:white;
+    display:inline-block;
+    min-width:80px;
+}
+
+.chord.active{
+    color:#00ff00;
+    text-shadow: 0 0 15px #0f0;
+}
+
+/* Modal already handled in HTML inline for simplicity, but these classes can be used if you prefer external */
 justify-content:space-between;
 padding:10px 30px;
 font-size:28px;
