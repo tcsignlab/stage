@@ -13,7 +13,7 @@ body{background:#000;color:#fff;font-family:Arial,sans-serif;overflow:hidden;mar
 #songTime{font-family:monospace;font-size:15px;color:#0f0;white-space:nowrap;flex-shrink:0;min-width:90px;text-align:right;}
 .top-controls{display:flex;gap:6px;flex-shrink:0;}
 
-/* TAB STRIP - MANUAL SCROLL ONLY */
+/* TAB STRIP */
 #tabStrip{position:fixed;bottom:66px;left:368px;right:12px;height:172px;background:#060606;border-top:1px solid #1a1a1a;border-bottom:1px solid #1a1a1a;overflow:hidden;z-index:108;display:none;}
 #tabStripLabel{position:absolute;left:0;top:0;bottom:0;width:54px;display:flex;align-items:center;justify-content:center;font-size:10px;letter-spacing:1px;color:#3a3a3a;background:#060606;border-right:1px solid #1a1a1a;z-index:2;}
 #tabStripInner{position:absolute;left:54px;top:0;width:calc(100% - 54px);height:100%;overflow-y:auto;white-space:pre;font-family:'Courier New',monospace;font-size:14px;color:#00cc77;padding:14px 28px 14px 18px;line-height:1.32;letter-spacing:0.5px;background:#0a120a;scrollbar-width:thin;scrollbar-color:#00cc77 #1a1a1a;}
@@ -40,7 +40,7 @@ body{background:#000;color:#fff;font-family:Arial,sans-serif;overflow:hidden;mar
 .chord-card{transition:transform .3s cubic-bezier(0.4,0,0.2,1), opacity .3s ease;opacity:1;}
 .chord-card.fade{opacity:0;transform:scale(0.92);}
 
-/* Big chord container - CENTERED using left panel as left boundary */
+/* Big chord container - CENTERED */
 #bigChordContainer{position:fixed;top:92px;left:368px;right:12px;display:flex;align-items:center;justify-content:center;gap:40px;z-index:95;pointer-events:none;}
 #arrowBetween{font-size:clamp(40px,5vw,80px);color:#00cc77;opacity:.6;}
 #nextChord{font-size:clamp(38px,5.5vw,88px);font-weight:bold;color:#00cc77;opacity:.38;transition:opacity .3s;}
@@ -59,6 +59,7 @@ body{background:#000;color:#fff;font-family:Arial,sans-serif;overflow:hidden;mar
 .setlist-item{padding:9px 12px;margin:3px 0;border-radius:6px;cursor:pointer;transition:background .16s;position:relative;color:#e8e8e8;font-size:13px;line-height:1.3;}
 .setlist-item:hover{background:#282828;}
 .setlist-item.current{background:#00aa66;color:#060606;font-weight:bold;box-shadow:0 0 9px #00cc77;}
+.setlist-item.dragging{opacity:0.4;}
 .dropdown-arrow{position:absolute;right:10px;top:9px;cursor:pointer;font-size:17px;color:#0f0;z-index:10;}
 .track-subpanel{margin:4px 0 4px 10px;background:rgba(0,0,0,.4);padding:10px;border-radius:6px;}
 .track-row{display:flex;align-items:center;gap:6px;margin:6px 0;font-size:12px;}
@@ -78,7 +79,7 @@ body{background:#000;color:#fff;font-family:Arial,sans-serif;overflow:hidden;mar
 .modal-box textarea{height:180px;resize:vertical;}
 .songsterr-box{background:#081308;border:1px solid #0d3020;border-radius:7px;padding:12px;margin-bottom:14px;}
 
-/* MIDI ACTIVITY LIGHT */
+/* MIDI Activity Light */
 #miiActivityLight{width:18px;height:18px;border-radius:50%;background:#222;box-shadow:0 0 0 3px rgba(0,204,119,.3);transition:all .12s ease;opacity:0.3;}
 #miiActivityLight.active{opacity:1;background:#00ff88;box-shadow:0 0 18px 12px #00ff99;transform:scale(1.3);}
 </style>
@@ -190,7 +191,7 @@ body{background:#000;color:#fff;font-family:Arial,sans-serif;overflow:hidden;mar
   </div>
 </div>
 
-<!-- MIDI Modal - UPDATED WITH ACTIVITY LIGHT + CONNECTION STATUS -->
+<!-- MIDI Modal -->
 <div id="midiModal" class="modal-overlay">
   <div class="modal-box">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
@@ -198,20 +199,20 @@ body{background:#000;color:#fff;font-family:Arial,sans-serif;overflow:hidden;mar
       <button onclick="closeModal('midiModal')" style="background:none;border:none;font-size:26px;color:#666;cursor:pointer;">×</button>
     </div>
     
-    <!-- NEW: MIDI Connection Status -->
     <div style="background:#081308;border:1px solid #0d3020;border-radius:7px;padding:12px;margin-bottom:16px;">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
         <div style="font-size:13px;color:#0f0;font-weight:bold;">MIDI STATUS</div>
-        <div id="midiActivityLight" style="width:18px;height:18px;border-radius:50%;background:#222;box-shadow:0 0 0 3px rgba(0,204,119,.3);transition:all .12s ease;opacity:0.3;"></div>
+        <div id="midiActivityLight"></div>
       </div>
       <div id="midiPortsList" style="font-size:12px;color:#0a0;line-height:1.4;min-height:48px;max-height:120px;overflow-y:auto;"></div>
+      <label style="display:flex;align-items:center;gap:8px;margin-top:12px;">
+        <input type="checkbox" id="midiClockSyncCheck" checked>
+        <span>Follow external MIDI Clock (tempo sync)</span>
+      </label>
       <div style="margin-top:10px;font-size:11px;color:#555;">
-        <strong>Tip for Bluetooth MIDI:</strong><br>
-        • Use <strong>LoopMIDI</strong> + <strong>midiBerry</strong> (default on your PC)<br>
-        • Enable Bluetooth MIDI in Windows &amp; connect your device<br>
-        • Refresh ports below if nothing appears
+        <strong>Tip:</strong> LoopMIDI + midiBerry (Bluetooth) works perfectly.
       </div>
-      <button onclick="refreshMidiPorts()" class="btn" style="margin-top:10px;padding:4px 12px;font-size:12px;">🔄 Refresh MIDI Ports</button>
+      <button onclick="refreshMidiPorts()" class="btn" style="margin-top:10px;padding:4px 12px;font-size:12px;">🔄 Refresh Ports</button>
     </div>
 
     <p style="font-size:12px;color:#555;margin-bottom:14px;">CC defaults: 120=Prev • 121=Stop • 122=Play • 123=Next • 124=Click</p>
@@ -229,11 +230,103 @@ body{background:#000;color:#fff;font-family:Arial,sans-serif;overflow:hidden;mar
 
 <script>
 /* ====================== CHORD LIBRARY ====================== */
-const CHORDS = { /* unchanged - same as previous version */ };
-const ENHARMONIC = { /* unchanged */ };
-function resolveChord(raw) { /* unchanged */ }
-function chordSVG(key, frets, barreFret) { /* unchanged */ }
-function showChordDiagrams(rawChord) { /* unchanged */ }
+const CHORDS = {
+  'C': [['x','3','2','0','1','0'],0], 'Cm': [['x','3','5','5','4','3'],3],
+  'D': [['x','x','0','2','3','2'],0], 'Dm': [['x','x','0','2','3','1'],0],
+  'E': [['0','2','2','1','0','0'],0], 'Em': [['0','2','2','0','0','0'],0],
+  'F': [['1','3','3','2','1','1'],1], 'Fm': [['1','3','3','1','1','1'],1],
+  'G': [['3','2','0','0','0','3'],0], 'Gm': [['3','5','5','3','3','3'],3],
+  'A': [['x','0','2','2','2','0'],0], 'Am': [['x','0','2','2','1','0'],0],
+  'B': [['x','2','4','4','4','2'],2], 'Bm': [['x','2','4','4','3','2'],2],
+  'C7': [['x','3','2','3','1','0'],0], 'Cm7': [['x','3','5','3','4','3'],3],
+  'D7': [['x','x','0','2','1','2'],0], 'Dm7': [['x','x','0','2','1','1'],0],
+  'E7': [['0','2','0','1','0','0'],0], 'Em7': [['0','2','0','0','0','0'],0],
+  'G7': [['3','2','0','0','0','1'],0], 'Gm7': [['3','5','3','3','3','3'],3],
+  'A7': [['x','0','2','0','2','0'],0], 'Am7': [['x','0','2','0','1','0'],0],
+  'B7': [['x','2','1','2','0','2'],0], 'Bm7': [['x','2','4','2','3','2'],2],
+  'Cmaj7':[['x','3','2','0','0','0'],0], 'Dmaj7':[['x','x','0','2','2','2'],0],
+  'Emaj7':[['0','2','1','1','0','0'],0], 'Fmaj7':[['1','x','3','2','1','0'],0],
+  'Gmaj7':[['3','2','0','0','0','2'],0], 'Amaj7':[['x','0','2','1','2','0'],0],
+  'E5': [['0','2','2','x','x','x'],0], 'A5': [['x','0','2','2','x','x'],0],
+  'B5': [['x','2','4','4','x','x'],2], 'C5': [['x','3','5','5','x','x'],3],
+  'D5': [['x','x','0','2','3','x'],0], 'F5': [['1','3','3','x','x','x'],1],
+  'G5': [['3','5','5','x','x','x'],3], 'Ab5': [['4','6','6','x','x','x'],4],
+  'Dsus2':[['x','x','0','2','3','0'],0], 'Dsus4':[['x','x','0','2','3','3'],0],
+  'Asus2':[['x','0','2','2','0','0'],0], 'Asus4':[['x','0','2','2','3','0'],0],
+  'Esus4':[['0','2','2','2','0','0'],0], 'Gsus4':[['3','3','0','0','1','3'],0],
+  'Cadd9':[['x','3','2','0','3','0'],0], 'Gadd9':[['3','0','0','0','0','3'],0],
+  'Db': [['x','4','3','1','2','1'],1], 'C#': [['x','4','3','1','2','1'],1],
+  'Eb': [['x','6','5','3','4','3'],3], 'D#': [['x','6','5','3','4','3'],3],
+  'Ab': [['4','6','6','5','4','4'],4], 'G#': [['4','6','6','5','4','4'],4],
+  'Bb': [['x','1','3','3','3','1'],1], 'A#': [['x','1','3','3','3','1'],1],
+  'F#': [['2','4','4','3','2','2'],2], 'Gb': [['2','4','4','3','2','2'],2],
+  'Dbm': [['x','4','6','6','5','4'],4], 'C#m': [['x','4','6','6','5','4'],4],
+  'Ebm': [['x','x','5','3','4','3'],3], 'D#m': [['x','x','5','3','4','3'],3],
+  'Abm': [['4','6','6','4','4','4'],4], 'G#m': [['4','6','6','4','4','4'],4],
+  'Bbm': [['x','1','3','3','2','1'],1], 'F#m': [['2','4','4','2','2','2'],2],
+};
+const ENHARMONIC = {'Db':'C#','C#':'Db','Eb':'D#','D#':'Eb','Gb':'F#','F#':'Gb','Ab':'G#','G#':'Ab','Bb':'A#','A#':'Bb'};
+function resolveChord(raw) {
+  if (!raw) return null;
+  const name = raw.split('/')[0].trim();
+  if (CHORDS[name]) return name;
+  const root2 = name.slice(0,2), rest2 = name.slice(2);
+  const root1 = name.slice(0,1), rest1 = name.slice(1);
+  for (const r of [root2, root1]) {
+    if (ENHARMONIC[r]) {
+      const alt = ENHARMONIC[r] + (r===root2?rest2:rest1);
+      if (CHORDS[alt]) return alt;
+    }
+  }
+  return null;
+}
+function chordSVG(key, frets, barreFret) {
+  const W=76, H=98, x0=10, y0=20, ss=11, fs=14, NF=5;
+  let minF=99;
+  frets.forEach(f=>{ if(f!=='x'&&f!=='0'&&f!==0){const n=parseInt(f);if(n<minF)minF=n;} });
+  const off = (minF>1&&minF<99) ? minF-1 : 0;
+  let out='';
+  for(let s=0;s<6;s++) out+=`<line x1="${x0+s*ss}" y1="${y0}" x2="${x0+s*ss}" y2="${y0+NF*fs}" stroke="#2a2a2a" stroke-width="1"/>`;
+  for(let f=0;f<=NF;f++) out+=`<line x1="${x0}" y1="${y0+f*fs}" x2="${x0+5*ss}" y2="${y0+f*fs}" stroke="${f===0?'#555':'#1e1e1e'}" stroke-width="${f===0?1.5:.8}"/>`;
+  if(barreFret>0&&off>0){const by=y0+(barreFret-off)*fs-fs/2;out+=`<rect x="${x0}" y="${by-5}" width="${5*ss}" height="10" rx="5" fill="#00994d" opacity=".8"/>`;}
+  frets.forEach((f,si)=>{
+    const cx=x0+si*ss;
+    if(f==='x') out+=`<text x="${cx}" y="${y0-5}" font-size="8" fill="#3a3a3a" text-anchor="middle">×</text>`;
+    else if(f==='0'||f===0) out+=`<circle cx="${cx}" cy="${y0-6}" r="3.5" fill="none" stroke="#3a3a3a" stroke-width="1.2"/>`;
+    else { const fn=parseInt(f)-off; if(fn>0&&fn<=NF){const cy=y0+fn*fs-fs/2;out+=`<circle cx="${cx}" cy="${cy}" r="4.5" fill="#00cc77"/>`;} }
+  });
+  const posLabel = off>0 ? `<text x="${W-4}" y="${y0+8}" font-size="8" fill="#555" text-anchor="end">${off+1}fr</text>` : '';
+  return `<svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">${out}${posLabel}</svg>`;
+}
+function showChordDiagrams(rawChord) {
+  const nameEl = document.getElementById('chordPanelName');
+  const row = document.getElementById('chordDiagramsRow');
+  if (!rawChord) {
+    nameEl.textContent='';
+    row.innerHTML='<div style="color:#252525;font-size:12px;padding:6px;align-self:center;">—</div>';
+    return;
+  }
+  nameEl.textContent = rawChord;
+  const key = resolveChord(rawChord);
+  if (!key) {
+    row.innerHTML=`<div style="color:#333;font-size:12px;padding:6px;align-self:center;">${rawChord} – no shape</div>`;
+    return;
+  }
+  const variants = [];
+  const [frets, barre] = CHORDS[key];
+  variants.push({ label: key, sub: '', frets, barre });
+  const rootOnly = key.replace(/m(aj)?|7|sus\d?|add\d|dim|aug|\d/g,'');
+  const p5 = rootOnly+'5';
+  if (CHORDS[p5] && p5 !== key) { const [pf,pb]=CHORDS[p5]; variants.push({label:p5,sub:'power',frets:pf,barre:pb}); }
+  const companion = key.endsWith('m')&&!key.endsWith('maj7') ? key.slice(0,-1) : key+'m';
+  if (CHORDS[companion] && companion!==key) { const [cf,cb]=CHORDS[companion]; variants.push({label:companion,sub:'',frets:cf,barre:cb}); }
+  row.innerHTML = variants.map(v=>`
+    <div class="chord-card">
+      <div class="chord-card-name">${v.label}</div>
+      ${chordSVG(v.label,v.frets,v.barre)}
+      <div class="chord-card-label">${v.sub}</div>
+    </div>`).join('');
+}
 
 /* ====================== STATE ====================== */
 let setlist = [], currentIdx = 0, song = null;
@@ -246,8 +339,11 @@ let lastShownChord = '';
 let tabVisible = false;
 let tempoLightOn = true;
 let lastBeatTime = 0;
-let midiInputs = [];          // NEW: track active MIDI inputs
+let midiInputs = [];
 let midiActivityTimeout = null;
+let followMidiClock = true;           // NEW: MIDI clock sync toggle
+let clockPulses = 0;
+let lastClockTime = 0;
 
 const CC = {
   prev: +localStorage.getItem('midiCCPrev')||120,
@@ -258,32 +354,143 @@ const CC = {
 };
 
 /* ====================== AUDIO & TRANSPORT ====================== */
-/* (unchanged from previous version) */
 function initAudio(){ if(!audioCtx) audioCtx = new (window.AudioContext||window.webkitAudioContext)(); }
-function beep(){ /* unchanged */ }
-function startClick(){ /* unchanged */ }
-function stopClick(){ /* unchanged */ }
-function countIn(beats, cb){ /* unchanged */ }
-function startTracks(){ /* unchanged */ }
-function stopAllAudio(){ /* unchanged */ }
-function pauseAllAudio(){ /* unchanged */ }
-function loadTracks(){ /* unchanged */ }
-function startSong(){ /* unchanged */ }
-function pauseSong(){ /* unchanged */ }
-function stopSong(){ /* unchanged */ }
+function beep(){
+  initAudio();
+  const o = audioCtx.createOscillator(), g = audioCtx.createGain();
+  o.frequency.value = 800; g.gain.value = clickVol;
+  o.connect(g).connect(audioCtx.destination);
+  o.start(); o.stop(audioCtx.currentTime + 0.05);
+}
+function startClick(){ stopClick(); if(!clickOn || !playing) return; clickIv = setInterval(()=>{ if(playing && clickOn) beep(); }, 60000/currentBPM); }
+function stopClick(){ clearInterval(clickIv); clickIv = null; }
+function countIn(beats, cb){
+  if(!clickOn){ cb(); return; }
+  initAudio();
+  let n = beats; const ms = 60000/currentBPM;
+  const t = ()=>{ beep(); if(--n > 0) setTimeout(t, ms); else setTimeout(cb, ms); };
+  t();
+}
+function startTracks(){ audioTracks.forEach(t => { t.audio.currentTime = 0; t.audio.play().catch(()=>{}); }); }
+function stopAllAudio(){ audioTracks.forEach(t => { t.audio.pause(); t.audio.currentTime = 0; }); stopClick(); }
+function pauseAllAudio(){ audioTracks.forEach(t => t.audio.pause()); stopClick(); }
+function loadTracks(){
+  stopAllAudio(); audioTracks = [];
+  if(!song?.audio?.length) return;
+  song.audio.forEach(t => {
+    const a = new Audio('songs/'+t.file);
+    a.loop = false;
+    a.onended = () => { if(playing){ pauseSong(); nextSong(); } };
+    audioTracks.push({name:t.name, audio:a});
+  });
+}
+function startSong(){
+  initAudio(); playing = true;
+  document.getElementById('playBtn').textContent = '⏸️ PAUSE';
+  countIn(4, () => {
+    startTracks();
+    startTime = Date.now() - pausedElapsed * 1000;
+    startClick();
+  });
+}
+function pauseSong(){
+  playing = false;
+  pausedElapsed = startTime ? (Date.now() - startTime)/1000 : pausedElapsed;
+  pauseAllAudio();
+  document.getElementById('playBtn').textContent = '▶️ PLAY';
+}
+function stopSong(){
+  playing = false; pausedElapsed = 0; startTime = null;
+  document.getElementById('playBtn').textContent = '▶️ PLAY';
+  document.getElementById('bigChord').textContent = '';
+  document.getElementById('nextChord').textContent = '—';
+  document.getElementById('lyricsInner').style.transform = 'translateY(0)';
+  stopAllAudio();
+  renderLyrics();
+  showChordDiagrams(null);
+  lastChord = null; lastShownChord = '';
+}
 function togglePlayPause(){ if(playing) pauseSong(); else startSong(); }
 
-/* ====================== SETLIST & SONG ====================== */
-async function loadSetlist(){ /* unchanged */ }
-async function loadSong(){ /* unchanged */ }
+/* ====================== SETLIST (REARRANGABLE) ====================== */
+async function loadSetlist(){
+  try {
+    const r = await fetch('setlist.json');
+    if (r.ok) setlist = await r.json();
+  } catch(e) { console.warn('setlist.json not found'); }
+  renderSetlist();
+  if (setlist.length) loadSong();
+}
+async function loadSong(){
+  if(!setlist.length) return;
+  const e = setlist[currentIdx], f = e.file || e;
+  const ne = setlist[(currentIdx + 1) % setlist.length];
+  document.getElementById('nextSong').textContent = ne ? (ne.title || ne) : '—';
+  try {
+    const r = await fetch('songs/' + f);
+    song = await r.json();
+    currentBPM = song.bpm || 120;
+    document.getElementById('currentSong').textContent = [e.artist, e.title || f.replace('.json','')].filter(Boolean).join(' – ');
+    renderLyrics(); loadTracks(); recalcScroll();
+    if (song.tab) autoLoadTab(song.tab);
+  } catch(_) {
+    song = {title:'Missing', lines:[]}; currentBPM = 120;
+    document.getElementById('currentSong').textContent = (e.title || f) + ' (missing)';
+    renderLyrics();
+  }
+  expandedIdx = currentIdx;
+  renderSetlist();
+}
 function nextSong(){ stopSong(); expandedIdx = -1; currentIdx = (currentIdx + 1) % setlist.length; loadSong(); }
 function previousSong(){ stopSong(); expandedIdx = -1; currentIdx = (currentIdx - 1 + setlist.length) % setlist.length; loadSong(); }
-function recalcScroll(){ /* unchanged */ }
-function renderLyrics(){ /* unchanged */ }
-function renderSetlist(){ /* unchanged */ }
-function soloTrack(i){ /* unchanged */ }
-function saveOffset(){ /* unchanged */ }
-function toggleDrop(i){ /* unchanged */ }
+
+function renderSetlist(){
+  const c = document.getElementById('setlistItems'); c.innerHTML = '';
+  setlist.forEach((e,i) => {
+    const d = document.createElement('div');
+    d.className = 'setlist-item' + (i===currentIdx ? ' current' : '');
+    d.draggable = true;
+    d.dataset.index = i;
+    d.innerHTML = `<strong>${i+1}.</strong> ${e.artist||''} – ${e.title||e.file}<span class="dropdown-arrow" onclick="event.stopImmediatePropagation();toggleDrop(${i})">${i===expandedIdx?'▲':'▼'}</span>`;
+    d.ondragstart = ev => { ev.dataTransfer.setData('text/plain', i); d.classList.add('dragging'); };
+    d.ondragend = () => d.classList.remove('dragging');
+    d.ondragover = ev => ev.preventDefault();
+    d.ondrop = ev => {
+      ev.preventDefault();
+      const fromIdx = parseInt(ev.dataTransfer.getData('text/plain'));
+      if (fromIdx === i) return;
+      const moved = setlist.splice(fromIdx, 1)[0];
+      setlist.splice(i, 0, moved);
+      renderSetlist();
+    };
+    d.onclick = ev => { if(ev.target.classList.contains('dropdown-arrow')) return; stopSong(); currentIdx = i; loadSong(); };
+    c.appendChild(d);
+    if(i===expandedIdx){
+      const sub = document.createElement('div'); sub.className = 'track-subpanel';
+      if(song?.audio?.length) song.audio.forEach((t,ti) => {
+        const row = document.createElement('div'); row.className = 'track-row';
+        row.innerHTML = `<label>${t.name}</label><input type="range" min="0" max="1" step=".01" value="1" style="width:80px;"><button onclick="soloTrack(${ti})" class="btn" style="padding:2px 7px;font-size:11px;">Solo</button>`;
+        row.querySelector('input').oninput = ev => { const tr = audioTracks.find(a=>a.name===t.name); if(tr) tr.audio.volume = +ev.target.value; };
+        sub.appendChild(row);
+      });
+      const or = document.createElement('div'); or.className = 'track-row'; or.style.cssText = 'border-top:1px solid #1e1e1e;margin-top:5px;padding-top:5px;';
+      or.innerHTML = `<label>Lyric offset (s)</label><input type="number" id="voi" value="${song?.lyricOffset??0}" step=".1" style="width:64px;"><button onclick="saveOffset()" class="btn" style="padding:2px 7px;font-size:11px;">Save</button>`;
+      sub.appendChild(or);
+      const cr = document.createElement('div'); cr.className = 'track-row'; cr.style.cssText = 'border-top:1px solid #1e1e1e;margin-top:5px;padding-top:5px;';
+      cr.innerHTML = `<label>Click</label><button onclick="clickOn=!clickOn;renderSetlist()" class="btn" style="padding:2px 7px;font-size:11px;">${clickOn?'ON':'OFF'}</button><input type="range" min="0" max="1" step=".01" value="${clickVol}" style="width:80px;">`;
+      cr.querySelector('input').oninput = ev => { clickVol = +ev.target.value; };
+      sub.appendChild(cr);
+      c.appendChild(sub);
+    }
+  });
+}
+function soloTrack(i){ audioTracks.forEach((t,j) => t.audio.volume = j===i ? 1 : 0); }
+function saveOffset(){ if(song) song.lyricOffset = parseFloat(document.getElementById('voi').value)||0; }
+function toggleDrop(i){
+  expandedIdx = expandedIdx===i ? -1 : i;
+  if(expandedIdx===i && currentIdx!==i){ currentIdx=i; loadSong(); return; }
+  renderSetlist();
+}
 
 /* ====================== MAIN LOOP ====================== */
 setInterval(() => {
@@ -312,7 +519,7 @@ function updateLyricsBottom(){ /* unchanged */ }
 function toggleTempoLight(){ /* unchanged */ }
 function updateTempoLight(){ /* unchanged */ }
 
-/* ====================== MIDI SYSTEM - ENHANCED WITH ACTIVITY LIGHT ====================== */
+/* ====================== MIDI (CLOCK SYNC + ACTIVITY) ====================== */
 function flashMidiActivity() {
   const light = document.getElementById('midiActivityLight');
   if (!light) return;
@@ -344,43 +551,54 @@ function updateMidiPortList() {
 }
 
 function initMIDI(){
-  if(!navigator.requestMIDIAccess) {
-    console.warn('Web MIDI not supported');
-    return;
-  }
+  if(!navigator.requestMIDIAccess) return;
   navigator.requestMIDIAccess({sysex: false}).then(midiAccess => {
     midiInputs = Array.from(midiAccess.inputs.values());
     updateMidiPortList();
 
     const h = inp => {
       inp.onmidimessage = e => {
-        // Any MIDI message triggers activity light
         flashMidiActivity();
 
-        if(e.data[0] !== 0xB0) return; // only CC messages for routing
-        const cc = e.data[1];
-        if(cc === CC.prev) previousSong();
-        else if(cc === CC.stop) stopSong();
-        else if(cc === CC.play) togglePlayPause();
-        else if(cc === CC.next) nextSong();
-        else if(cc === CC.click){ clickOn = !clickOn; renderSetlist(); }
+        const status = e.data[0] & 0xF0;
+        const data1 = e.data[1];
+
+        // MIDI CLOCK (0xF8)
+        if (e.data[0] === 0xF8 && followMidiClock) {
+          const now = Date.now();
+          clockPulses++;
+          if (now - lastClockTime > 2000) clockPulses = 1; // reset after long gap
+          lastClockTime = now;
+
+          if (clockPulses % 24 === 0) {
+            const bpm = Math.round(60000 / ((now - lastBeatTime) / 24));
+            if (bpm > 30 && bpm < 300) currentBPM = bpm;
+            lastBeatTime = now;
+          }
+          return;
+        }
+
+        // CC messages
+        if (e.data[0] === 0xB0) {
+          const cc = data1;
+          if(cc === CC.prev) previousSong();
+          else if(cc === CC.stop) stopSong();
+          else if(cc === CC.play) togglePlayPause();
+          else if(cc === CC.next) nextSong();
+          else if(cc === CC.click){ clickOn = !clickOn; renderSetlist(); }
+        }
       };
     };
 
     midiAccess.inputs.forEach(h);
     midiAccess.onstatechange = e => {
       if(e.port.type === 'input') {
-        if(e.port.state === 'connected') {
-          midiInputs = Array.from(midiAccess.inputs.values());
-          updateMidiPortList();
-          h(e.port);
-        } else {
-          midiInputs = Array.from(midiAccess.inputs.values());
-          updateMidiPortList();
-        }
+        midiInputs = Array.from(midiAccess.inputs.values());
+        updateMidiPortList();
+        if(e.port.state === 'connected') h(e.port);
       }
     };
-  }).catch(err => console.warn('MIDI access denied', err));
+  }).catch(()=>{});
 }
 
 function saveMidiMap(){
@@ -389,6 +607,7 @@ function saveMidiMap(){
   CC.play = +document.getElementById('ccPlay').value;
   CC.next = +document.getElementById('ccNext').value;
   CC.click = +document.getElementById('ccClick').value;
+  followMidiClock = document.getElementById('midiClockSyncCheck').checked;
   Object.entries(CC).forEach(([k,v]) => localStorage.setItem('midiCC'+k[0].toUpperCase()+k.slice(1), v));
   closeModal('midiModal');
 }
@@ -405,12 +624,13 @@ function openSongsterr(){ /* unchanged */ }
 
 /* ====================== STARTUP ====================== */
 window.onload = () => {
-  initMIDI();                     // now also updates port list on open
+  initMIDI();
   document.getElementById('ccPrev').value = CC.prev;
   document.getElementById('ccStop').value = CC.stop;
   document.getElementById('ccPlay').value = CC.play;
   document.getElementById('ccNext').value = CC.next;
   document.getElementById('ccClick').value = CC.click;
+  document.getElementById('midiClockSyncCheck').checked = followMidiClock;
   loadSetlist();
 };
 </script>
