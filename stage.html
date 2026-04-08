@@ -17,11 +17,16 @@
         .sleek-btn:hover{background:#2a2a2a;border-color:#00cc77;color:#fff;transform:translateY(-1px);}
         .sleek-btn.primary{background:#00aa66;color:#111;border:none;font-weight:700;}
         #transportBar{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:rgba(15,15,15,.95);border:2px solid #222;border-radius:9999px;padding:8px 16px;display:flex;gap:8px;z-index:110;box-shadow:0 8px 30px rgba(0,0,0,.7);}
-        #lyricsContainer{position:absolute;top:560px;bottom:100px;left:0;right:0;overflow-y:auto;text-align:center;font-size:clamp(24px,3vw,38px);line-height:1.6;padding:30px 60px 200px;z-index:20;color:#ddd;transition:transform .05s linear;}
+        
+        /* FIXED: Lyrics box is now locked in place and taller */
+        #lyricsContainer{position:absolute;top:560px;bottom:100px;left:0;right:0;overflow:hidden;text-align:center;font-size:clamp(24px,3vw,38px);line-height:1.6;padding:30px 60px;z-index:10;color:#ddd;}
+        #lyricsInner{position:relative;transition:transform .05s linear;}
+        
         .line{margin:26px 0;padding:8px 20px;border-radius:8px;}
         .chord{font-weight:bold;color:#aaa;display:inline-block;min-width:120px;margin-right:18px;transition:all .2s;}
         .chord.active{color:#00cc77;text-shadow:0 0 20px #00cc77;}
         .section{color:#00cc77 !important;font-weight:bold;font-size:1.4em;margin:36px 0 16px 0;text-shadow:0 0 18px #00cc77;}
+        
         #modal,#midiMapModal{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.95);z-index:1000;align-items:center;justify-content:center;}
         #modal-content,#midiMapContent{background:#111;padding:30px;border-radius:12px;width:92%;max-width:920px;max-height:94vh;overflow-y:auto;box-shadow:0 0 40px rgba(0,204,119,0.3);}
         #modal-content label,#midiMapContent label{display:block;margin:14px 0 6px;font-size:18px;font-weight:bold;}
@@ -51,7 +56,11 @@
 
     <div id="chordMask"></div>
     <div id="bigChord"></div>
-    <div id="lyricsContainer"><div id="lyrics"></div></div>
+
+    <!-- FIXED: Locked tall lyrics viewport -->
+    <div id="lyricsContainer">
+        <div id="lyricsInner"></div>
+    </div>
 
     <div id="transportBar">
         <button onclick="previousSong()" class="sleek-btn">⏮ PREV</button>
@@ -120,7 +129,7 @@
         </div>
     </div>
 
-    <!-- Setlist Panel – top layer -->
+    <!-- Setlist Panel -->
     <div id="setlistPanel">
         <div class="setlist-header">
             <h3 style="margin:0;">📜 SETLIST</h3>
@@ -130,9 +139,6 @@
     </div>
 
     <script>
-        // (All previous code remains fully functional – parser, timer, MIDI CC, etc.)
-        // Only CSS and setlist z-index were updated for your request.
-
         let setlist = [];
         let currentSongIndex = 0;
         let song = null;
@@ -321,13 +327,13 @@
         }
 
         function renderLyrics() {
-            const container = document.getElementById("lyrics");
-            container.innerHTML = "";
+            const inner = document.getElementById("lyricsInner");
+            inner.innerHTML = "";
             if (!song?.lines || song.lines.length === 0) {
                 const msg = document.createElement("div");
                 msg.style.opacity = "0.4"; msg.style.fontStyle = "italic";
                 msg.textContent = "(no chart loaded – import one above)";
-                container.appendChild(msg);
+                inner.appendChild(msg);
                 return;
             }
             song.lines.forEach((line, i) => {
@@ -336,7 +342,7 @@
                 div.innerHTML = line.isSection 
                     ? `<span class="chord" data-index="${i}">${line.lyric}</span>` 
                     : `<span class="chord" data-index="${i}">${line.chord || ''}</span> ${line.lyric || ''}`;
-                container.appendChild(div);
+                inner.appendChild(div);
             });
         }
 
@@ -344,7 +350,7 @@
             let speed = 40;
             if (song && song.bpm) speed = song.bpm * 0.6;
             else if (midiClock.bpm) speed = midiClock.bpm * 0.6;
-            document.getElementById("lyricsContainer").style.transform = `translateY(-${elapsed * speed}px)`;
+            document.getElementById("lyricsInner").style.transform = `translateY(-${elapsed * speed}px)`;
         }
 
         function updateHighlight(elapsed) {
@@ -433,7 +439,7 @@
             document.getElementById('modal').style.display = 'none';
             document.getElementById('midiMapModal').style.display = 'none';
             loadSetlist();
-            console.log('%c🎸 Guitar Stage Teleprompter – Lyrics now show 4+ lines cleanly below big chord', 'color:#00cc77;font-size:18px');
+            console.log('%c🎸 Guitar Stage Teleprompter – Lyrics box locked + 4+ lines visible', 'color:#00cc77;font-size:18px');
         };
     </script>
 </body>
