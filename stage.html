@@ -52,6 +52,7 @@
             <button onclick="toggleModal()" class="sleek-btn primary">📥 Import</button>
             <button onclick="toggleSetlistPanel()" class="sleek-btn">📜 Setlist</button>
             <button onclick="toggleMidiMap()" class="sleek-btn">⚙️ MIDI Map</button>
+            <button onclick="debugLoadDeepInside()" class="sleek-btn" style="background:#00cc77;color:#000;">🔧 Debug: Load Deep Inside of You</button>
             <button onclick="toggleLayout()" class="sleek-btn" id="layoutBtn">📐 Auto</button>
             <button onclick="toggleFullscreen()" class="sleek-btn">⛶ Full</button>
         </div>
@@ -82,7 +83,7 @@
         </div>
     </div>
 
-    <!-- Import Modal -->
+    <!-- Import Modal (unchanged) -->
     <div id="modal">
         <div id="modal-content">
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
@@ -117,7 +118,7 @@
         </div>
     </div>
 
-    <!-- MIDI Map Modal -->
+    <!-- MIDI Map Modal (unchanged) -->
     <div id="midiMapModal">
         <div id="midiMapContent">
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
@@ -174,40 +175,32 @@
         let midiCCClick = parseInt(localStorage.getItem('midiCCClick')) || 124;
         let midiClock = {bpm: 0, lastTick: 0};
 
-        function handleMidi(msg) {
-            const status = msg.data[0];
-            const data1 = msg.data[1];
-            if (status === 248) {
-                const now = performance.now();
-                if (midiClock.lastTick) midiClock.bpm = Math.round(60000 / ((now - midiClock.lastTick) * 24));
-                midiClock.lastTick = now;
-            }
-            if (status === 176) {
-                if (data1 === midiCCPrev) previousSong();
-                if (data1 === midiCCStop) pauseSong();
-                if (data1 === midiCCPlay) togglePlayPause();
-                if (data1 === midiCCNext) nextSong();
-                if (data1 === midiCCClick) toggleClickTrack();
-            }
+        // ==================== DEBUG HELPER ====================
+        function debugLoadDeepInside() {
+            console.log("%c🔧 DEBUG: Forcing load of Deep Inside of You", "color:#0f0;font-weight:bold");
+            currentSongIndex = setlist.findIndex(s => s.title === "Deep Inside of You");
+            if (currentSongIndex === -1) currentSongIndex = 4; // fallback to 5th position
+            loadSong();
         }
-        navigator.requestMIDIAccess().then(midi => {
-            for (let input of midi.inputs.values()) input.onmidimessage = handleMidi;
-        }).catch(() => {});
 
+        // ==================== AUDIO & TRANSPORT ====================
         function initAudio() {
             if (!audioContext) audioContext = new (window.AudioContext || window.webkitAudioContext)();
         }
 
         function loadAudioTracks() {
+            console.log("🎵 loadAudioTracks called. song.audio =", song?.audio);
             audioTracks.forEach(t => t.audio.pause());
             audioTracks = [];
             document.getElementById('trackList').innerHTML = '';
 
             if (!song || !song.audio || !Array.isArray(song.audio) || song.audio.length === 0) {
+                console.warn("⚠️ No audio array found – hiding mixer");
                 document.getElementById('audioMixer').style.display = 'none';
                 return;
             }
 
+            console.log("✅ Found", song.audio.length, "audio tracks");
             song.audio.forEach((track, i) => {
                 const audio = new Audio("songs/" + track.file);
                 audio.loop = true;
@@ -319,42 +312,65 @@
         function previousSong() { currentSongIndex = (currentSongIndex - 1 + setlist.length) % setlist.length; loadSong(); }
         function nextSong() { currentSongIndex = (currentSongIndex + 1) % setlist.length; loadSong(); }
 
+        // ==================== SETLIST & SONG LOADING ====================
         async function loadSetlist() {
             try {
                 const res = await fetch("setlist.json");
-                if (!res.ok) throw new Error("File not found");
+                if (!res.ok) throw new Error("setlist.json not found");
                 setlist = await res.json();
-                console.log("✅ setlist.json loaded successfully");
+                console.log("✅ setlist.json loaded –", setlist.length, "songs");
             } catch(e) {
-                console.error("❌ Could not load setlist.json", e);
-                document.getElementById("setlistItems").innerHTML = `<div style="color:#f66;padding:20px;text-align:center;">setlist.json not found<br>Please upload your setlist.json to the root folder</div>`;
+                console.error("❌ Failed to load setlist.json", e);
+                document.getElementById("setlistItems").innerHTML = `<div style="color:#f66;padding:20px;text-align:center;">setlist.json not found or invalid</div>`;
                 setlist = [];
             }
-            loadSong();
             renderSetlist();
+            loadSong();
         }
 
         async function loadSong() {
             if (setlist.length === 0) return;
+            const entry = setlist[currentSongIndex];
+            const filename = entry.file || entry;
+            console.log("🔄 Loading song:", filename, "– full path: songs/" + filename);
+
             try {
-                const entry = setlist[currentSongIndex];
-                const filename = entry.file || entry;
                 const res = await fetch("songs/" + filename);
+                if (!res.ok) throw new Error("File not found");
                 song = await res.json();
+                console.log("✅ Song loaded successfully. Has audio?", !!song.audio);
                 document.getElementById("currentSong").innerText = `${entry.artist || ''} ${entry.title || filename.replace('.json','')}`.trim();
                 renderLyrics();
                 renderSetlist();
                 loadAudioTracks();
             } catch(e) {
+                console.error("❌ Failed to load song file:", e);
                 const entry = setlist[currentSongIndex];
-                document.getElementById("currentSong").innerText = `${entry.artist || ''} ${entry.title || 'Unknown'} (chart missing)`;
+                document.getElementById("currentSong").innerText = `${entry.artist || ''} ${entry.title || 'Unknown'} (file missing)`;
                 song = {title: "Missing Chart", lines: []};
                 renderLyrics();
                 renderSetlist();
             }
         }
 
-        function renderLyrics() {
+        function renderSetlist() {
+            const container = document.getElementById('setlistItems');
+            container.innerHTML = '';
+            setlist.forEach((entry, i) => {
+                const div = document.createElement('div');
+                div.className = `setlist-item ${i === currentSongIndex ? 'current' : ''}`;
+                div.innerHTML = `<strong>${i+1}.</strong> ${entry.artist} – ${entry.title}`;
+                div.onclick = () => {
+                    stopSong();
+                    currentSongIndex = i;
+                    loadSong();
+                };
+                container.appendChild(div);
+            });
+        }
+
+        // ==================== ALL OTHER FUNCTIONS (unchanged) ====================
+        function renderLyrics() { /* same as before */ 
             const inner = document.getElementById("lyricsInner");
             inner.innerHTML = "";
             if (!song?.lines || song.lines.length === 0) {
@@ -415,22 +431,6 @@
             document.getElementById('songTime').textContent = `${elapsedStr} / ${totalStr}`;
         }
 
-        function renderSetlist() {
-            const container = document.getElementById('setlistItems');
-            container.innerHTML = '';
-            setlist.forEach((entry, i) => {
-                const div = document.createElement('div');
-                div.className = `setlist-item ${i === currentSongIndex ? 'current' : ''}`;
-                div.innerHTML = `<strong>${i+1}.</strong> ${entry.artist} – ${entry.title}`;
-                div.onclick = () => {
-                    stopSong();
-                    currentSongIndex = i;
-                    loadSong();
-                };
-                container.appendChild(div);
-            });
-        }
-
         function toggleSetlistPanel() { const p = document.getElementById('setlistPanel'); p.style.display = p.style.display === 'none' ? 'block' : 'none'; }
         function toggleFullscreen() { if (!document.fullscreenElement) document.documentElement.requestFullscreen(); else document.exitFullscreen(); }
         function toggleLayout() {
@@ -478,7 +478,7 @@
             document.getElementById('modal').style.display = 'none';
             document.getElementById('midiMapModal').style.display = 'none';
             loadSetlist();
-            console.log('%c🎸 Guitar Stage Teleprompter – Setlist now fully dynamic', 'color:#00cc77;font-size:18px');
+            console.log('%c🎸 Guitar Stage Teleprompter – DEBUG VERSION ACTIVE', 'color:#00cc77;font-size:18px');
         };
     </script>
 </body>
