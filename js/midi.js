@@ -1,53 +1,36 @@
+navigator.requestMIDIAccess().then(midi=>{
 
-let midiClock = {
-    pulses:0,
-    lastTick:0,
-    bpm:0
+for(let input of midi.inputs.values()){
+
+input.onmidimessage=handleMidi
+
 }
 
-navigator.requestMIDIAccess().then(midi=>{
-    for(let input of midi.inputs.values()){
-        input.onmidimessage = handleMidi
-    }
 })
 
 function handleMidi(msg){
 
-    let status = msg.data[0]
-    let note = msg.data[1]
+let command=msg.data[0]
+let note=msg.data[1]
 
-    // MIDI Clock tick
-    if(status === 248){
-        handleClockTick()
-    }
+if(command===144){
 
-    // Start
-    if(status === 250){
-        startSong()
-    }
+switch(note){
 
-    // Stop
-    if(status === 252){
-        pauseSong()
-    }
+case 60:
+startSong()
+break
 
-    // Note messages for pedals
-    if(status === 144){
-        if(note===60) startSong()
-        if(note===61) pauseSong()
-        if(note===62) nextSong()
-    }
+case 61:
+pauseSong()
+break
+
+case 62:
+nextSong()
+break
+
 }
 
-function handleClockTick(){
+}
 
-    let now = performance.now()
-
-    if(midiClock.lastTick){
-        let delta = now - midiClock.lastTick
-        let bpm = 60000/(delta*24)
-        midiClock.bpm = bpm
-    }
-
-    midiClock.lastTick = now
 }
