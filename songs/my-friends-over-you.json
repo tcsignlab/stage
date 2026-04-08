@@ -7,7 +7,7 @@
     { "name": "Vocals", "file": "my-friends-over-you-vocals.mp3" },
     { "name": "Bass", "file": "my-friends-over-you-bass.mp3" }
   ],
-  [
+  "lines": [
   {"time":"00:00.000","chord":"D","lyric":""},
   {"time":"00:01.350","chord":"G","lyric":""},
   {"time":"00:02.700","chord":"D","lyric":""},
