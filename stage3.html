@@ -40,12 +40,14 @@ body{background:#000;color:#fff;font-family:Arial,sans-serif;overflow:hidden;mar
 .chord-card{transition:transform .3s cubic-bezier(0.4,0,0.2,1), opacity .3s ease;opacity:1;}
 .chord-card.fade{opacity:0;transform:scale(0.92);}
 
+/* Big chord container - NOW CENTERED using left panel / setlist box as left boundary */
+#bigChordContainer{position:fixed;top:92px;left:368px;right:12px;display:flex;align-items:center;justify-content:center;gap:40px;z-index:95;pointer-events:none;}
+#nextChord{font-size:clamp(38px,5.5vw,88px);font-weight:bold;color:#00cc77;opacity:.38;transition:opacity .3s;}
+#nextChord.active{opacity:1;}
+
 /* Rest of layout */
 #chordMask{position:fixed;top:66px;left:0;right:0;height:490px;background:linear-gradient(to bottom,#000 74%,transparent 93%);z-index:90;pointer-events:none;}
-#bigChordContainer{position:fixed;top:92px;left:calc(358px + 48%);transform:translateX(-50%);display:flex;align-items:center;gap:40px;z-index:95;pointer-events:none;}
 #arrowBetween{font-size:clamp(40px,5vw,80px);color:#00cc77;opacity:.6;}
-#nextChord{font-size:clamp(48px,7vw,100px);font-weight:bold;color:#00cc77;opacity:.38;transition:opacity .3s;}
-#nextChord.active{opacity:1;}
 #transportBar{position:fixed;bottom:10px;left:50%;transform:translateX(-50%);background:rgba(10,10,10,.97);border:1px solid #1e1e1e;border-radius:9999px;padding:6px 14px;display:flex;gap:8px;align-items:center;z-index:110;box-shadow:0 6px 22px rgba(0,0,0,.7);}
 .btn{background:#181818;color:#ddd;border:1px solid #333;padding:6px 13px;font-size:13px;font-weight:500;border-radius:9999px;cursor:pointer;transition:background .16s,border-color .16s,transform .1s;}
 .btn:hover{background:#242424;border-color:#00cc77;color:#fff;transform:translateY(-1px);}
@@ -264,7 +266,7 @@ function resolveChord(raw) {
   }
   return null;
 }
-function chordSVG(key, frets, barreFret, label='') {
+function chordSVG(key, frets, barreFret) {
   const W=76, H=98, x0=10, y0=20, ss=11, fs=14, NF=5;
   let minF=99;
   frets.forEach(f=>{ if(f!=='x'&&f!=='0'&&f!==0){const n=parseInt(f);if(n<minF)minF=n;} });
@@ -390,10 +392,8 @@ function stopSong(){
   lastChord = null; lastShownChord = '';
 }
 function togglePlayPause(){ if(playing) pauseSong(); else startSong(); }
-function previousSong(){ stopSong(); currentIdx = (currentIdx - 1 + setlist.length) % setlist.length; loadSong(); }
-function nextSong(){ stopSong(); currentIdx = (currentIdx + 1) % setlist.length; loadSong(); }
 
-/* ====================== SETLIST & SONG ====================== */
+/* ====================== SETLIST & SONG SWITCH (WITH MIXER AUTO-OPEN) ====================== */
 async function loadSetlist(){
   try {
     const r = await fetch('setlist.json');
@@ -419,7 +419,21 @@ async function loadSong(){
     document.getElementById('currentSong').textContent = (e.title || f) + ' (missing)';
     renderLyrics();
   }
+  /* AUTO-OPEN mixer for the newly loaded song */
+  expandedIdx = currentIdx;
   renderSetlist();
+}
+function nextSong(){
+  stopSong();
+  expandedIdx = -1;                 /* close old mixer first */
+  currentIdx = (currentIdx + 1) % setlist.length;
+  loadSong();
+}
+function previousSong(){
+  stopSong();
+  expandedIdx = -1;                 /* close old mixer first */
+  currentIdx = (currentIdx - 1 + setlist.length) % setlist.length;
+  loadSong();
 }
 function recalcScroll(){
   if(!song?.lines?.length) return;
