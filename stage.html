@@ -7,7 +7,7 @@
     <style>
         body{background:black;color:white;font-family:Arial;overflow:hidden;margin:0;padding:0;}
         #topBar{position:fixed;top:0;width:100%;display:flex;align-items:center;gap:20px;padding:12px 30px;font-size:28px;background:rgba(0,0,0,0.95);z-index:100;box-shadow:0 4px 20px rgba(0,0,0,0.8);}
-        #chordMask{position:fixed;top:80px;left:0;width:100%;height:480px;background:linear-gradient(black,transparent 85%);z-index:90;pointer-events:none;}
+        #chordMask{position:fixed;top:80px;left:0;width:100%;height:520px;background:linear-gradient(black,transparent 88%);z-index:90;pointer-events:none;}
         #bigChord{position:fixed;top:110px;width:100%;font-size:clamp(140px,22vw,320px);font-weight:bold;color:#00cc77;text-align:center;z-index:95;text-shadow:0 0 40px #00cc77;pointer-events:none;line-height:1;}
         #currentSongContainer{flex:1;min-width:0;display:flex;align-items:center;}
         #currentSong{font-size:26px;font-weight:bold;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
@@ -16,10 +16,25 @@
         .sleek-btn:hover{background:#2a2a2a;border-color:#00cc77;color:#fff;transform:translateY(-1px);}
         .sleek-btn.primary{background:#00aa66;color:#111;border:none;font-weight:700;}
         #transportBar{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:rgba(15,15,15,.95);border:2px solid #222;border-radius:9999px;padding:8px 16px;display:flex;gap:8px;z-index:110;box-shadow:0 8px 30px rgba(0,0,0,.7);}
-        #lyricsContainer{position:absolute;top:520px;bottom:120px;left:0;right:0;overflow-y:auto;text-align:center;font-size:clamp(24px,3vw,38px);line-height:1.55;padding:20px 60px 80px;z-index:10;color:#ddd;}
+        #lyricsContainer{position:absolute;top:530px;bottom:120px;left:0;right:0;overflow-y:auto;text-align:center;font-size:clamp(24px,3vw,38px);line-height:1.55;padding:20px 60px 120px;z-index:10;color:#ddd;transition:transform .05s linear;}
         .line{margin:22px 0;padding:8px 20px;border-radius:8px;}
         .chord{font-weight:bold;color:#aaa;display:inline-block;min-width:110px;margin-right:16px;transition:all .2s;}
         .chord.active{color:#00cc77;text-shadow:0 0 20px #00cc77;}
+        
+        /* NEW: Green section headers (Verse, Chorus, Bridge, etc.) */
+        .section{
+            color:#00cc77 !important;
+            font-weight:bold;
+            font-size:1.35em;
+            margin:32px 0 12px 0;
+            text-shadow:0 0 15px #00cc77;
+            letter-spacing:1px;
+        }
+        .line.current.section{
+            background:rgba(0,204,119,.25);
+            box-shadow:0 0 25px rgba(0,204,119,.6);
+        }
+
         #modal,#midiMapModal{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.95);z-index:1000;align-items:center;justify-content:center;}
         #modal-content,#midiMapContent{background:#111;padding:30px;border-radius:12px;width:92%;max-width:920px;max-height:94vh;overflow-y:auto;box-shadow:0 0 40px rgba(0,204,119,0.3);}
         #modal-content label,#midiMapContent label{display:block;margin:14px 0 6px;font-size:18px;font-weight:bold;}
@@ -64,7 +79,7 @@
                 <h2 style="margin:0;color:#ddd;">🚀 Auto-Import Chord Chart</h2>
                 <button onclick="closeModal()" style="background:none;border:none;font-size:32px;color:#aaa;cursor:pointer;line-height:1;">×</button>
             </div>
-            <p style="margin-bottom:22px;opacity:0.8;">Paste full chord chart exactly as it appears.<br><strong>Structure is preserved 100%.</strong></p>
+            <p style="margin-bottom:22px;opacity:0.8;">Paste full chord chart exactly as it appears.<br><strong>Section headers like [Verse 1], [Chorus] are now kept and highlighted green.</strong></p>
             
             <label>Song Title</label>
             <input id="importTitle" type="text" value="New Song" placeholder="Song Title">
@@ -117,7 +132,7 @@
         </div>
     </div>
 
-    <!-- Setlist Panel (shown by default) -->
+    <!-- Setlist Panel -->
     <div id="setlistPanel">
         <div class="setlist-header">
             <h3 style="margin:0;">📜 SETLIST</h3>
@@ -127,9 +142,7 @@
     </div>
 
     <script>
-        // (All previous working code – parser, import, MIDI, scrolling, etc. is unchanged and fully functional)
-        // Only the CSS positioning was updated for your request.
-
+        // GLOBAL STATE
         let setlist = [];
         let currentSongIndex = 0;
         let song = null;
@@ -138,6 +151,7 @@
         let currentSongData = null;
         let layoutMode = localStorage.getItem('teleprompterLayout') || 'auto';
 
+        // MIDI CC
         let midiCCPrev = parseInt(localStorage.getItem('midiCCPrev')) || 120;
         let midiCCStop = parseInt(localStorage.getItem('midiCCStop')) || 121;
         let midiCCPlay = parseInt(localStorage.getItem('midiCCPlay')) || 122;
@@ -178,6 +192,7 @@
             closeMidiMap();
         }
 
+        // ==================== UPDATED PARSER – keeps section headers ====================
         function isChordLine(line) {
             if (!line || line.length < 1) return false;
             const tokens = line.trim().split(/\s+/).filter(t => t);
@@ -185,16 +200,11 @@
             const chordRegex = /^[A-G][#b]?[mM]?[dim aug sus2-4]?[0-9]?[79]?[\/]?[A-G]?[#b]?$/i;
             return tokens.every(token => chordRegex.test(token) || token === 'N.C.' || token === 'NC' || /^\d+$/.test(token) || token.includes('/'));
         }
-        function extractMetadata(text) {
-            let title = "Untitled Song", artist = "Unknown Artist", bpm = 120;
-            const lines = text.split('\n');
-            const firstLine = lines[0] || "";
-            const byMatch = firstLine.match(/^(.*?)\s+(?:Chords)?\s*by\s+(.+?)$/i);
-            if (byMatch) { title = byMatch[1].replace(/Chords/i, '').trim(); artist = byMatch[2].trim(); }
-            const bpmMatch = text.match(/(\d{2,3})\s*bpm/i);
-            if (bpmMatch) bpm = parseInt(bpmMatch[1]);
-            return {title, artist, bpm};
+
+        function isSectionHeader(line) {
+            return /^\[[^\]]+\]$/.test(line.trim());
         }
+
         function parseChordChart(pastedText, bpm = 120) {
             const rawLines = pastedText.split('\n').map(l => l.trim()).filter(l => l && !l.startsWith('#') && !l.startsWith('//'));
             let parsedLines = [], time = 0;
@@ -203,17 +213,34 @@
             let i = 0;
             while (i < rawLines.length) {
                 let current = rawLines[i];
-                if (/^\[[^\]]+\]$/.test(current)) { i++; continue; }
+
+                if (isSectionHeader(current)) {
+                    // Keep section headers as special green lines
+                    parsedLines.push({
+                        time: Math.round(time),
+                        chord: "",
+                        lyric: current,          // e.g. "[Verse 1]"
+                        isSection: true
+                    });
+                    // Small time advance so it appears at the right moment
+                    time += secondsPerBeat * 0.5;
+                    i++;
+                    continue;
+                }
+
                 if (isChordLine(current)) {
                     const chordTokens = current.split(/\s+/).filter(Boolean);
                     const nextIdx = i + 1;
-                    const hasNextLyric = nextIdx < rawLines.length && rawLines[nextIdx] && !isChordLine(rawLines[nextIdx]);
+                    const hasNextLyric = nextIdx < rawLines.length && rawLines[nextIdx] && !isChordLine(rawLines[nextIdx]) && !isSectionHeader(rawLines[nextIdx]);
                     if (hasNextLyric) {
                         parsedLines.push({time: Math.round(time), chord: chordTokens[0] || 'N.C.', lyric: rawLines[nextIdx]});
                         time += secondsPerLine;
                         i += 2;
                     } else {
-                        chordTokens.forEach(chord => { parsedLines.push({time: Math.round(time), chord: chord, lyric: ""}); time += secondsPerBeat; });
+                        chordTokens.forEach(chord => {
+                            parsedLines.push({time: Math.round(time), chord: chord, lyric: ""});
+                            time += secondsPerBeat;
+                        });
                         i++;
                     }
                 } else {
@@ -226,6 +253,7 @@
             return parsedLines;
         }
 
+        // ==================== IMPORT & CORE (unchanged except parser) ====================
         function toggleModal() { document.getElementById('modal').style.display = 'flex'; }
         function closeModal() { document.getElementById('modal').style.display = 'none'; }
         function handleFileUpload(e) {
@@ -252,7 +280,7 @@
             const parsed = parseChordChart(pasted, bpm);
             currentSongData = {title, artist, bpm, lines: parsed};
             let html = `<h3 style="color:#0f0;">✅ Parsed ${parsed.length} lines • ${title} by ${artist} (${bpm} BPM)</h3><ul>`;
-            parsed.forEach(l => html += `<li><strong style="color:#0f0;display:inline-block;width:80px;">${l.chord}</strong> ${l.lyric || '<em>[chord change]</em>'} <small style="margin-left:auto;color:#666;">${l.time}s</small></li>`);
+            parsed.forEach(l => html += `<li><strong style="color:#0f0;display:inline-block;width:80px;">${l.chord || (l.isSection ? 'SECTION' : '')}</strong> ${l.lyric} <small style="margin-left:auto;color:#666;">${l.time}s</small></li>`);
             html += `</ul>`;
             document.getElementById('preview').innerHTML = html;
             document.getElementById('jsonPreview').innerHTML = `<strong>song.json preview:</strong><br>${JSON.stringify(currentSongData, null, 2)}`;
@@ -277,6 +305,7 @@
             startSong();
         }
 
+        // Core functions
         async function loadSetlist() {
             try {
                 const res = await fetch("setlist.json");
@@ -320,8 +349,10 @@
             }
             song.lines.forEach((line, i) => {
                 const div = document.createElement("div");
-                div.className = "line";
-                div.innerHTML = `<span class="chord" data-index="${i}">${line.chord || ''}</span> ${line.lyric || ''}`;
+                div.className = line.isSection ? "line section" : "line";
+                div.innerHTML = line.isSection 
+                    ? `<span class="chord" data-index="${i}">${line.lyric}</span>`   // section header is green
+                    : `<span class="chord" data-index="${i}">${line.chord || ''}</span> ${line.lyric || ''}`;
                 container.appendChild(div);
             });
         }
@@ -354,6 +385,7 @@
         }
         function previousSong() { currentSongIndex = (currentSongIndex - 1 + setlist.length) % setlist.length; loadSong(); }
         function nextSong() { currentSongIndex = (currentSongIndex + 1) % setlist.length; loadSong(); }
+
         function renderSetlist() {
             const container = document.getElementById('setlistItems');
             container.innerHTML = '';
@@ -361,7 +393,11 @@
                 const div = document.createElement('div');
                 div.className = `setlist-item ${i === currentSongIndex ? 'current' : ''}`;
                 div.innerHTML = `<strong>${i+1}.</strong> ${entry.artist} – ${entry.title}`;
-                div.onclick = () => { currentSongIndex = i; loadSong(); };
+                div.onclick = () => {
+                    pauseSong();
+                    currentSongIndex = i;
+                    loadSong();
+                };
                 container.appendChild(div);
             });
         }
@@ -390,7 +426,7 @@
             document.getElementById('modal').style.display = 'none';
             document.getElementById('midiMapModal').style.display = 'none';
             loadSetlist();
-            console.log('%c🎸 Guitar Stage Teleprompter – Lyrics now start cleanly below big chord', 'color:#00cc77;font-size:18px');
+            console.log('%c🎸 Guitar Stage Teleprompter – Section headers [Verse 1], [Chorus], etc. now green & visible', 'color:#00cc77;font-size:18px');
         };
     </script>
 </body>
