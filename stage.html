@@ -6,7 +6,7 @@
     <title>Guitar Stage Teleprompter</title>
     <style>
         body{background:black;color:white;font-family:Arial;overflow:hidden;margin:0;padding:0;}
-        #topBar{position:fixed;top:0;width:100%;display:flex;align-items:center;gap:20px;padding:12px 30px;font-size:28px;background:rgba(0,0,0,0.95);z-index:100;box-shadow:0 4px 20px rgba(0,0,0,0.8);}
+        #topBar{position:fixed;top:0;width:100%;display:flex;align-items:center;gap:20px;padding:12px 30px 12px 8%;font-size:28px;background:rgba(0,0,0,0.95);z-index:100;box-shadow:0 4px 20px rgba(0,0,0,0.8);}
         #chordMask{position:fixed;top:80px;left:0;width:100%;height:560px;background:linear-gradient(to bottom, black 78%, transparent 92%);z-index:90;pointer-events:none;}
         #bigChordContainer{position:fixed;top:110px;left:60%;transform:translateX(-50%);display:flex;align-items:center;gap:60px;z-index:95;}
         #bigChord{font-size:clamp(140px,22vw,320px);font-weight:bold;color:#00cc77;text-shadow:0 0 40px #00cc77;pointer-events:none;line-height:1;}
@@ -52,7 +52,6 @@
         <div id="songTime">0:00 / 0:00</div>
         <div class="top-controls">
             <button onclick="toggleModal()" class="sleek-btn primary">📥 Import</button>
-            <button onclick="toggleSetlistPanel()" class="sleek-btn">📜 Setlist</button>
             <button onclick="toggleMidiMap()" class="sleek-btn">⚙️ MIDI Map</button>
             <button onclick="toggleLayout()" class="sleek-btn" id="layoutBtn">📐 Auto</button>
             <button onclick="toggleFullscreen()" class="sleek-btn">⛶ Full</button>
@@ -161,6 +160,7 @@
         let clickOn = true;
         let expandedSongIndex = -1;
         let currentBPM = 120;
+        let clickInterval = null;
 
         let midiCCPrev = parseInt(localStorage.getItem('midiCCPrev')) || 120;
         let midiCCStop = parseInt(localStorage.getItem('midiCCStop')) || 121;
@@ -168,25 +168,6 @@
         let midiCCNext = parseInt(localStorage.getItem('midiCCNext')) || 123;
         let midiCCClick = parseInt(localStorage.getItem('midiCCClick')) || 124;
         let midiClock = {bpm: 0, lastTick: 0};
-
-        // Load saved setlist order if it exists
-        function loadSavedOrder() {
-            const saved = localStorage.getItem('setlistOrder');
-            if (saved) {
-                try {
-                    const orderMap = JSON.parse(saved);
-                    setlist.sort((a, b) => (orderMap[a.file || a.title] || 999) - (orderMap[b.file || b.title] || 999));
-                } catch(e) {}
-            }
-        }
-
-        function saveSetlistOrder() {
-            const orderMap = {};
-            setlist.forEach((entry, i) => {
-                orderMap[entry.file || entry.title] = i;
-            });
-            localStorage.setItem('setlistOrder', JSON.stringify(orderMap));
-        }
 
         function handleMidi(msg) {
             const status = msg.data[0];
@@ -236,12 +217,31 @@
             renderSetlist();
         }
 
+        function startContinuousClick() {
+            if (clickInterval) clearInterval(clickInterval);
+            if (!clickOn) return;
+            const interval = 60000 / currentBPM;
+            clickInterval = setInterval(() => {
+                if (!playing) {
+                    clearInterval(clickInterval);
+                    return;
+                }
+                initAudio();
+                const osc = audioContext.createOscillator();
+                const gain = audioContext.createGain();
+                osc.frequency.value = 800;
+                gain.gain.value = 0.4;
+                osc.connect(gain).connect(audioContext.destination);
+                osc.start();
+                osc.stop(audioContext.currentTime + 0.05);
+            }, interval);
+        }
+
         function playClick(count = 4) {
             if (!clickOn) return;
             initAudio();
             let clicksLeft = count;
-            const bpm = currentBPM;
-            const interval = 60000 / bpm;
+            const interval = 60000 / currentBPM;
 
             const playOne = () => {
                 const osc = audioContext.createOscillator();
@@ -263,6 +263,7 @@
                 track.audio.currentTime = 0;
                 track.audio.play().catch(() => {});
             });
+            startContinuousClick();
         }
 
         function stopAllAudio() {
@@ -270,10 +271,12 @@
                 track.audio.pause();
                 track.audio.currentTime = 0;
             });
+            if (clickInterval) clearInterval(clickInterval);
         }
 
         function pauseAllAudio() {
             audioTracks.forEach(track => track.audio.pause());
+            if (clickInterval) clearInterval(clickInterval);
         }
 
         function startSong() {
@@ -321,7 +324,6 @@
                 console.error("setlist.json not found");
                 setlist = [];
             }
-            loadSavedOrder();
             renderSetlist();
             loadSong();
         }
@@ -369,7 +371,13 @@
         }
 
         function scrollLyrics(elapsed) {
-            document.getElementById("lyricsInner").style.transform = `translateY(-${elapsed * 40}px)`;
+            if (!song || !audioTracks[0] || !audioTracks[0].audio.duration) {
+                document.getElementById("lyricsInner").style.transform = `translateY(-${elapsed * 4}px)`;
+                return;
+            }
+            const trackDuration = audioTracks[0].audio.duration || 180;
+            const scrollSpeed = 240 / trackDuration;   // tuned for ~90% slower than before
+            document.getElementById("lyricsInner").style.transform = `translateY(-${elapsed * scrollSpeed}px)`;
         }
 
         function updateHighlight(elapsed) {
@@ -410,27 +418,13 @@
             const container = document.getElementById('setlistItems');
             container.innerHTML = '';
             setlist.forEach((entry, i) => {
+                const hasAudio = entry.audio && Array.isArray(entry.audio) && entry.audio.length > 0;
                 const div = document.createElement('div');
                 div.className = `setlist-item ${i === currentSongIndex ? 'current' : ''}`;
-                div.draggable = true;
-                div.dataset.index = i;
                 div.innerHTML = `
                     <strong>${i+1}.</strong> ${entry.artist} – ${entry.title}
-                    <span class="dropdown-arrow" onclick="event.stopImmediatePropagation();toggleDropdown(${i});">${i === expandedSongIndex ? '▲' : '▼'}</span>
+                    ${hasAudio ? `<span class="dropdown-arrow" onclick="event.stopImmediatePropagation();toggleDropdown(${i});">${i === expandedSongIndex ? '▲' : '▼'}</span>` : ''}
                 `;
-                div.ondragstart = (e) => e.dataTransfer.setData('text/plain', i);
-                div.ondragover = (e) => e.preventDefault();
-                div.ondrop = (e) => {
-                    e.preventDefault();
-                    const fromIndex = parseInt(e.dataTransfer.getData('text/plain'));
-                    const toIndex = i;
-                    if (fromIndex !== toIndex) {
-                        const [moved] = setlist.splice(fromIndex, 1);
-                        setlist.splice(toIndex, 0, moved);
-                        saveSetlistOrder();
-                        renderSetlist();
-                    }
-                };
                 div.onclick = (e) => {
                     if (e.target.classList.contains('dropdown-arrow')) return;
                     stopSong();
@@ -439,7 +433,7 @@
                 };
                 container.appendChild(div);
 
-                if (i === expandedSongIndex) {
+                if (hasAudio && i === expandedSongIndex) {
                     const sub = document.createElement('div');
                     sub.className = 'track-subpanel';
 
@@ -537,7 +531,7 @@
             document.getElementById('modal').style.display = 'none';
             document.getElementById('midiMapModal').style.display = 'none';
             loadSetlist();
-            console.log('%c🎸 Guitar Stage Teleprompter – Setlist reorder + chords shifted right + clearer click toggle', 'color:#00cc77;font-size:18px');
+            console.log('%c🎸 Guitar Stage Teleprompter – Click track continuous + header shifted + slower adaptive scrolling', 'color:#00cc77;font-size:18px');
         };
     </script>
 </body>
