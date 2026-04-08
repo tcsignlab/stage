@@ -1,0 +1,27 @@
+{
+  "title": "Example Song",
+  "artist": "Demo",
+  "bpm": 100,
+  "lines": [
+    {
+      "time": 0,
+      "chord": "G",
+      "lyric": "[paste lyric line 1]"
+    },
+    {
+      "time": 4,
+      "chord": "D",
+      "lyric": "[paste lyric line 2]"
+    },
+    {
+      "time": 8,
+      "chord": "Em",
+      "lyric": "[paste lyric line 3]"
+    },
+    {
+      "time": 12,
+      "chord": "C",
+      "lyric": "[paste lyric line 4]"
+    }
+  ]
+}
