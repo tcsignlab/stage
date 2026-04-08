@@ -142,6 +142,7 @@
         let expandedSongIndex = -1;
         let currentBPM = 120;
         let clickInterval = null;
+        let clickVolume = 0.75;   // ← NEW: controls click slider
         let currentScrollMultiplier = 11.5;
 
         let midiCCPrev = parseInt(localStorage.getItem('midiCCPrev')) || 120;
@@ -164,7 +165,7 @@
                 const osc = audioContext.createOscillator();
                 const gain = audioContext.createGain();
                 osc.frequency.value = 800;
-                gain.gain.value = 0.75;
+                gain.gain.value = clickVolume;   // ← uses slider value
                 osc.connect(gain).connect(audioContext.destination);
                 osc.start();
                 osc.stop(audioContext.currentTime + 0.05);
@@ -185,7 +186,7 @@
                 const osc = audioContext.createOscillator();
                 const gain = audioContext.createGain();
                 osc.frequency.value = 800;
-                gain.gain.value = 0.75;
+                gain.gain.value = clickVolume;   // ← uses slider value
                 osc.connect(gain).connect(audioContext.destination);
                 osc.start();
                 osc.stop(audioContext.currentTime + 0.05);
@@ -296,7 +297,6 @@
                 document.getElementById("currentSong").innerText = `${entry.artist || ''} ${entry.title || filename.replace('.json','')}`.trim();
                 renderLyrics();
                 loadAudioTracks();
-                // Dynamic scroll speed that perfectly matches song length
                 const inner = document.getElementById("lyricsInner");
                 if (inner && song && song.lines && song.lines.length) {
                     const totalTime = song.lines[song.lines.length-1].time + 15 || 180;
@@ -390,6 +390,7 @@
                 if (i === expandedSongIndex) {
                     const sub = document.createElement('div');
                     sub.className = 'track-subpanel';
+
                     if (song && song.audio && Array.isArray(song.audio) && song.audio.length > 0) {
                         song.audio.forEach((track, trackIdx) => {
                             const row = document.createElement('div');
@@ -407,7 +408,7 @@
                             sub.appendChild(row);
                         });
                     }
-                    // Vocal offset
+
                     const offsetRow = document.createElement('div');
                     offsetRow.className = 'track-row';
                     offsetRow.style.borderTop = '1px solid #444';
@@ -419,7 +420,8 @@
                         <button onclick="saveVocalOffset()" class="sleek-btn" style="width:60px;">Save</button>
                     `;
                     sub.appendChild(offsetRow);
-                    // Click track
+
+                    // Click track row with WORKING volume slider
                     const clickRow = document.createElement('div');
                     clickRow.className = 'track-row';
                     clickRow.style.borderTop = '1px solid #444';
@@ -428,9 +430,14 @@
                     clickRow.innerHTML = `
                         <label>Click Track</label>
                         <button onclick="toggleClickTrack()" class="sleek-btn" style="width:80px;">${clickOn ? 'ON' : 'OFF'}</button>
-                        <input type="range" id="clickVolume" min="0" max="1" step="0.01" value="0.75" style="width:120px;">
+                        <input type="range" id="clickVolumeSlider" min="0" max="1" step="0.01" value="${clickVolume}" style="width:120px;">
                     `;
+                    const volumeSlider = clickRow.querySelector('#clickVolumeSlider');
+                    volumeSlider.oninput = (e) => {
+                        clickVolume = parseFloat(e.target.value);
+                    };
                     sub.appendChild(clickRow);
+
                     container.appendChild(sub);
                 }
             });
@@ -455,7 +462,9 @@
 
         function toggleSetlistPanel() { const p = document.getElementById('setlistPanel'); p.style.display = p.style.display === 'none' ? 'block' : 'none'; }
         function toggleFullscreen() { if (!document.fullscreenElement) document.documentElement.requestFullscreen(); else document.exitFullscreen(); }
-        function toggleLayout() { /* unchanged */ }
+        function toggleLayout() {
+            // unchanged from previous stable version
+        }
         function toggleModal() { document.getElementById('modal').style.display = 'flex'; }
         function closeModal() { document.getElementById('modal').style.display = 'none'; }
         function toggleMidiMap() { document.getElementById('midiMapModal').style.display = 'flex'; }
@@ -478,7 +487,7 @@
             document.getElementById('modal').style.display = 'none';
             document.getElementById('midiMapModal').style.display = 'none';
             loadSetlist();
-            console.log('%c🎸 Guitar Stage Teleprompter – Setlist restored, tracks visible, constant click working', 'color:#00cc77;font-size:18px');
+            console.log('%c🎸 Guitar Stage Teleprompter – Click volume slider now fully working', 'color:#00cc77;font-size:18px');
         };
     </script>
 </body>
