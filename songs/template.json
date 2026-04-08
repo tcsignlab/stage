@@ -6,22 +6,22 @@
     {
       "time": 0,
       "chord": "G",
-      "lyric": "[paste lyric line 1]"
+      "lyric": "I can see you, your brown skin shining in the sun."
     },
     {
       "time": 4,
       "chord": "D",
-      "lyric": "[paste lyric line 2]"
+      "lyric": "You got the top pulled down and radio on, baby"
     },
     {
       "time": 8,
       "chord": "Em",
-      "lyric": "[paste lyric line 3]"
+      "lyric": "I can tell you, my love for you will still be strong"
     },
     {
       "time": 12,
       "chord": "C",
-      "lyric": "[paste lyric line 4]"
+      "lyric": "After the boys of summer have gone."
     }
   ]
 }
