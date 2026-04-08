@@ -12,84 +12,76 @@ body{background:#000;color:#fff;font-family:Arial,sans-serif;overflow:hidden;mar
 #nextSongContainer{font-size:13px;color:#888;white-space:nowrap;flex-shrink:0;}
 #songTime{font-family:monospace;font-size:15px;color:#0f0;white-space:nowrap;flex-shrink:0;min-width:90px;text-align:right;}
 .top-controls{display:flex;gap:6px;flex-shrink:0;}
-
-/* TAB STRIP */
-#tabStrip{position:fixed;bottom:66px;left:368px;right:12px;height:172px;background:#060606;border-top:1px solid #1a1a1a;border-bottom:1px solid #1a1a1a;overflow:hidden;z-index:108;display:none;}
-#tabStripLabel{position:absolute;left:0;top:0;bottom:0;width:54px;display:flex;align-items:center;justify-content:center;font-size:10px;letter-spacing:1px;color:#3a3a3a;background:#060606;border-right:1px solid #1a1a1a;z-index:2;}
-#tabStripInner{position:absolute;left:54px;top:0;width:calc(100% - 54px);height:100%;overflow-y:auto;white-space:pre;font-family:'Courier New',monospace;font-size:14px;color:#00cc77;padding:14px 28px 14px 18px;line-height:1.32;letter-spacing:0.5px;background:#0a120a;scrollbar-width:thin;scrollbar-color:#00cc77 #1a1a1a;}
-#tabStripInner::-webkit-scrollbar{width:12px;}
-#tabStripInner::-webkit-scrollbar-thumb{background:#00cc77;border-radius:6px;}
-
-/* Tempo light */
-#tempoContainer{display:flex;align-items:center;gap:8px;margin-left:12px;}
-#tempoLight{width:20px;height:20px;border-radius:50%;background:#00cc77;box-shadow:0 0 0 3px rgba(0,204,119,.3);transition:all .08s ease;opacity:.4;}
-#tempoLight.active{opacity:1;box-shadow:0 0 22px 10px #00ff99;transform:scale(1.35);}
-
-/* Lyrics */
+#chordMask{position:fixed;top:66px;left:0;right:0;height:490px;background:linear-gradient(to bottom,#000 74%,transparent 93%);z-index:90;pointer-events:none;}
+#bigChordContainer{position:fixed;top:92px;left:368px;right:12px;display:flex;align-items:center;justify-content:center;gap:40px;z-index:95;pointer-events:none;}
+#bigChord{font-size:clamp(100px,15vw,250px);font-weight:bold;color:#00cc77;text-shadow:0 0 24px #00cc77;line-height:1;transition:transform .25s cubic-bezier(0.4,0,0.2,1);}
+#bigChord.pulse{transform:scale(1.12);}
+#arrowBetween{font-size:clamp(40px,5vw,80px);color:#00cc77;opacity:.6;}
+#nextChord{font-size:clamp(38px,5.5vw,88px);font-weight:bold;color:#00cc77;opacity:.35;transition:opacity .3s;}
+#nextChord.active{opacity:1;}
 #lyricsContainer{position:fixed;top:488px;bottom:78px;left:368px;right:12px;overflow:hidden;text-align:center;font-size:clamp(19px,2.3vw,32px);line-height:1.6;padding:18px 40px;z-index:10;color:#d4d4d4;}
 #lyricsInner{position:relative;transition:transform .05s linear;}
-.line{margin:18px 0;padding:4px 12px;border-radius:5px;}
+.line{position:absolute;left:0;right:0;padding:4px 12px;border-radius:5px;}
 .chord{font-weight:bold;color:#666;display:inline-block;min-width:96px;margin-right:10px;transition:color .18s;}
 .chord.active{color:#00cc77;text-shadow:0 0 12px #00cc77;}
-.section{color:#00cc77!important;font-weight:bold;font-size:1.28em;margin:26px 0 10px;text-shadow:0 0 10px #00cc77;}
-
-/* Chord display */
-#bigChord{font-size:clamp(100px,15vw,250px);font-weight:bold;color:#00cc77;text-shadow:0 0 24px #00cc77;line-height:1;transition:transform .25s cubic-bezier(0.4,0,0.2,1), opacity .3s ease;}
-#bigChord.pulse{transform:scale(1.12);}
-#chordDiagramsRow{display:flex;gap:10px;align-items:flex-start;overflow-x:auto;padding-bottom:2px;min-height:105px;transition:opacity .3s ease;}
-.chord-card{transition:transform .3s cubic-bezier(0.4,0,0.2,1), opacity .3s ease;opacity:1;}
-.chord-card.fade{opacity:0;transform:scale(0.92);}
-
-/* Big chord container - CENTERED */
-#bigChordContainer{position:fixed;top:92px;left:368px;right:12px;display:flex;align-items:center;justify-content:center;gap:40px;z-index:95;pointer-events:none;}
-#arrowBetween{font-size:clamp(40px,5vw,80px);color:#00cc77;opacity:.6;}
-#nextChord{font-size:clamp(38px,5.5vw,88px);font-weight:bold;color:#00cc77;opacity:.38;transition:opacity .3s;}
-#nextChord.active{opacity:1;}
-
-/* Rest of layout */
-#chordMask{position:fixed;top:66px;left:0;right:0;height:490px;background:linear-gradient(to bottom,#000 74%,transparent 93%);z-index:90;pointer-events:none;}
+.section{color:#00cc77!important;font-weight:bold;font-size:1.28em;text-shadow:0 0 10px #00cc77;}
+#tabStrip{position:fixed;bottom:66px;left:368px;right:12px;height:172px;background:#060606;border-top:1px solid #1a1a1a;border-bottom:1px solid #1a1a1a;overflow:hidden;z-index:108;display:none;}
+#tabStripLabel{position:absolute;left:0;top:0;bottom:0;width:54px;display:flex;align-items:center;justify-content:center;font-size:10px;letter-spacing:1px;color:#3a3a3a;background:#060606;border-right:1px solid #1a1a1a;z-index:2;}
+#tabStripInner{position:absolute;left:54px;top:0;width:calc(100% - 54px);height:100%;overflow-y:auto;white-space:pre;font-family:'Courier New',monospace;font-size:14px;color:#00cc77;padding:14px 28px 14px 18px;line-height:1.32;letter-spacing:.5px;background:#0a120a;scrollbar-width:thin;scrollbar-color:#00cc77 #1a1a1a;}
+#tabStripInner::-webkit-scrollbar{width:12px;}
+#tabStripInner::-webkit-scrollbar-thumb{background:#00cc77;border-radius:6px;}
 #transportBar{position:fixed;bottom:10px;left:50%;transform:translateX(-50%);background:rgba(10,10,10,.97);border:1px solid #1e1e1e;border-radius:9999px;padding:6px 14px;display:flex;gap:8px;align-items:center;z-index:110;box-shadow:0 6px 22px rgba(0,0,0,.7);}
 .btn{background:#181818;color:#ddd;border:1px solid #333;padding:6px 13px;font-size:13px;font-weight:500;border-radius:9999px;cursor:pointer;transition:background .16s,border-color .16s,transform .1s;}
 .btn:hover{background:#242424;border-color:#00cc77;color:#fff;transform:translateY(-1px);}
 .btn.primary{background:#00aa66;color:#080808;border:none;font-weight:700;}
 .btn.lit{background:#003d25;border-color:#00cc77;color:#00ff99;}
+#tempoContainer{display:flex;align-items:center;gap:8px;margin-left:4px;}
+#tempoLight{width:20px;height:20px;border-radius:50%;background:#00cc77;box-shadow:0 0 0 3px rgba(0,204,119,.3);transition:all .08s ease;opacity:.4;flex-shrink:0;}
+#tempoLight.active{opacity:1;box-shadow:0 0 22px 10px #00ff99;transform:scale(1.35);}
 #leftPanel{position:fixed;left:8px;top:72px;width:352px;bottom:8px;display:flex;flex-direction:column;gap:7px;z-index:500;}
-#setlistPanel{background:#101010;border:1px solid #242424;border-radius:11px;padding:12px;overflow-y:auto;flex:1;min-height:0;position:relative;}
+#setlistPanel{background:#101010;border:1px solid #242424;border-radius:11px;padding:12px;overflow-y:auto;flex:1;min-height:0;}
 .setlist-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
-.setlist-item{padding:9px 12px;margin:3px 0;border-radius:6px;cursor:pointer;transition:background .16s;position:relative;color:#e8e8e8;font-size:13px;line-height:1.3;}
-.setlist-item:hover{background:#282828;}
+.setlist-header-label{font-size:11px;color:#444;letter-spacing:1px;}
+.setlist-item{padding:9px 12px 9px 12px;margin:3px 0;border-radius:6px;cursor:pointer;transition:background .16s;position:relative;color:#e8e8e8;font-size:13px;line-height:1.3;padding-right:58px;}
+.setlist-item:hover{background:#1a1a1a;}
 .setlist-item.current{background:#00aa66;color:#060606;font-weight:bold;box-shadow:0 0 9px #00cc77;}
-.setlist-item.dragging{opacity:0.4;}
-.dropdown-arrow{position:absolute;right:10px;top:9px;cursor:pointer;font-size:17px;color:#0f0;z-index:10;}
+.setlist-item.current .item-del{color:#005533;}
+.setlist-item.dragging{opacity:.4;}
+.item-controls{position:absolute;right:8px;top:50%;transform:translateY(-50%);display:flex;gap:2px;align-items:center;}
+.item-btn{cursor:pointer;font-size:14px;padding:3px 5px;border-radius:4px;transition:background .15s;line-height:1;}
+.item-btn:hover{background:#333;}
+.item-del{color:#3a1111;}
+.item-del:hover{color:#ff4444!important;background:#1a0000!important;}
 .track-subpanel{margin:4px 0 4px 10px;background:rgba(0,0,0,.4);padding:10px;border-radius:6px;}
 .track-row{display:flex;align-items:center;gap:6px;margin:6px 0;font-size:12px;}
 .track-row label{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-#chordPanel{background:#101010;border:1px solid #242424;border-radius:11px;padding:11px;flex-shrink:0;}
+.empty-setlist{color:#333;font-size:13px;text-align:center;padding:28px 0;line-height:2;}
+.empty-setlist strong{color:#555;}
+#chordPanel{background:#101010;border:1px solid #242424;border-radius:11px;padding:11px;flex-shrink:0;min-height:126px;}
 #chordPanelHeader{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;}
 #chordPanelTitle{font-size:11px;color:#444;letter-spacing:1px;}
 #chordPanelName{font-size:15px;font-weight:bold;color:#00cc77;}
+#chordDiagramsRow{display:flex;gap:10px;align-items:flex-start;overflow-x:auto;padding-bottom:2px;min-height:98px;}
 #chordDiagramsRow::-webkit-scrollbar{height:3px;}
 #chordDiagramsRow::-webkit-scrollbar-thumb{background:#2a2a2a;border-radius:3px;}
-.chord-card-name{font-size:12px;font-weight:bold;color:#00cc77;}
-.chord-card-label{font-size:10px;color:#444;}
+.chord-card{transition:transform .3s cubic-bezier(0.4,0,0.2,1),opacity .3s;}
+#midiActivityLight{width:18px;height:18px;border-radius:50%;background:#222;box-shadow:0 0 0 3px rgba(0,204,119,.3);transition:all .12s ease;opacity:.3;flex-shrink:0;}
+#midiActivityLight.active{opacity:1;background:#00ff88;box-shadow:0 0 18px 12px #00ff99;transform:scale(1.3);}
 .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.96);z-index:1000;align-items:center;justify-content:center;}
-.modal-box{background:#0d0d0d;padding:24px;border-radius:11px;width:92%;max-width:800px;max-height:92vh;overflow-y:auto;box-shadow:0 0 36px rgba(0,204,119,.15);border:1px solid #1c1c1c;}
+.modal-box{background:#0d0d0d;padding:24px;border-radius:11px;width:92%;max-width:820px;max-height:92vh;overflow-y:auto;box-shadow:0 0 36px rgba(0,204,119,.15);border:1px solid #1c1c1c;}
 .modal-box label{display:block;margin:10px 0 3px;font-size:14px;font-weight:bold;color:#bbb;}
-.modal-box input,.modal-box textarea,.modal-box select{width:100%;padding:8px;background:#161616;color:#0f0;border:1px solid #2a2a2a;border-radius:5px;font-family:monospace;font-size:13px;}
+.modal-box input[type=text],.modal-box input[type=number],.modal-box textarea,.modal-box select{width:100%;padding:8px;background:#161616;color:#0f0;border:1px solid #2a2a2a;border-radius:5px;font-family:monospace;font-size:13px;}
 .modal-box textarea{height:180px;resize:vertical;}
-.songsterr-box{background:#081308;border:1px solid #0d3020;border-radius:7px;padding:12px;margin-bottom:14px;}
-
-/* MIDI Activity Light */
-#miiActivityLight{width:18px;height:18px;border-radius:50%;background:#222;box-shadow:0 0 0 3px rgba(0,204,119,.3);transition:all .12s ease;opacity:0.3;}
-#miiActivityLight.active{opacity:1;background:#00ff88;box-shadow:0 0 18px 12px #00ff99;transform:scale(1.3);}
-
-/* Status messages */
-.status{text-align:center;color:#0f0;font-size:13px;padding:8px;margin:4px 0;background:#111;border-radius:6px;}
+.msec{background:#0a0a0a;border:1px solid #1a1a1a;border-radius:7px;padding:12px;margin-bottom:14px;}
+.setup-guide{background:#040d08;border:1px solid #0d3020;border-radius:6px;padding:12px;margin-bottom:14px;font-size:12px;color:#0a8;line-height:1.7;}
+.setup-guide h4{color:#00cc77;margin:0 0 6px;font-size:13px;}
+.setup-guide code{background:#0a1a10;padding:1px 5px;border-radius:3px;color:#0f0;font-size:11px;}
 </style>
 </head>
 <body>
+
 <div id="topBar">
-  <span id="currentSong">No song loaded</span>
+  <span id="currentSong">Loading...</span>
   <span id="nextSongContainer">Next: <span id="nextSong">—</span></span>
   <span id="songTime">0:00 / 0:00</span>
   <div class="top-controls">
@@ -99,38 +91,38 @@ body{background:#000;color:#fff;font-family:Arial,sans-serif;overflow:hidden;mar
     <button onclick="toggleFullscreen()" class="btn">⛶</button>
   </div>
 </div>
+
 <div id="chordMask"></div>
 <div id="bigChordContainer">
-  <div id="bigChord"></div>
+  <div id="bigChord">—</div>
   <span id="arrowBetween">→</span>
   <div id="nextChord">—</div>
 </div>
 <div id="lyricsContainer"><div id="lyricsInner"></div></div>
-
 <div id="tabStrip">
   <div id="tabStripLabel">TAB</div>
   <div id="tabStripInner"></div>
 </div>
 
 <div id="transportBar">
-  <button onclick="previousSong()" class="btn">⏮ PREV</button>
-  <button onclick="stopSong()" class="btn">⏹ STOP</button>
-  <button onclick="togglePlayPause()" class="btn primary" id="playBtn">▶️ PLAY</button>
-  <button onclick="nextSong()" class="btn">NEXT ⏭</button>
+  <button onclick="previousSong()" class="btn">⏮</button>
+  <button onclick="stopSong()" class="btn">⏹</button>
+  <button onclick="togglePlayPause()" class="btn primary" id="playBtn">▶ PLAY</button>
+  <button onclick="nextSong()" class="btn">⏭</button>
   <div id="tempoContainer">
     <div id="tempoLight"></div>
     <button onclick="toggleTempoLight()" class="btn" id="tempoBtn" style="padding:4px 10px;font-size:12px;">TEMPO</button>
   </div>
-  <button onclick="toggleTabStrip()" class="btn" id="tabToggleBtn" style="display:none;">TAB</button>
+  <!-- TAB button is always visible; opens modal if no content, toggles strip if content exists -->
+  <button onclick="onTabBtnClick()" class="btn" id="tabToggleBtn">🎸 TAB</button>
 </div>
 
 <div id="leftPanel">
   <div id="setlistPanel">
     <div class="setlist-header">
-      <span style="font-size:11px;color:#444;letter-spacing:1px;">SETLIST</span>
-      <button onclick="reloadPlaylist()" class="btn" style="padding:2px 8px;font-size:11px;">Reload</button>
+      <span class="setlist-header-label">SETLIST</span>
+      <button onclick="openModal('importModal')" class="btn" style="padding:3px 10px;font-size:12px;">+ Add Song</button>
     </div>
-    <div id="setlistStatus" class="status" style="display:none;"></div>
     <div id="setlistItems"></div>
   </div>
   <div id="chordPanel">
@@ -142,90 +134,101 @@ body{background:#000;color:#fff;font-family:Arial,sans-serif;overflow:hidden;mar
   </div>
 </div>
 
-<!-- Import Modal -->
+<!-- IMPORT MODAL -->
 <div id="importModal" class="modal-overlay">
   <div class="modal-box">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
-      <h2 style="margin:0;color:#ddd;font-size:17px;">📥 Import Chord Chart</h2>
+      <h2 style="margin:0;color:#ddd;font-size:17px;">📥 Add Song to Setlist</h2>
       <button onclick="closeModal('importModal')" style="background:none;border:none;font-size:26px;color:#666;cursor:pointer;">×</button>
     </div>
-    <label>Song Title</label><input id="importTitle" type="text" value="New Song">
-    <label>Artist</label><input id="importArtist" type="text" value="Unknown Artist">
-    <label>BPM</label><input id="importBpm" type="number" value="120" min="40" max="240">
-    <label>Paste Chord Chart</label>
-    <textarea id="chartPaste" placeholder="Format each line as:&#10; 0:00 Am lyrics here&#10; 0:15 F next line&#10;&#10;Section headers: [Verse], [Chorus]&#10;Lines without timestamps auto-advance 4 seconds."></textarea>
-    <label>Or upload .txt file</label>
-    <input type="file" id="chartFile" accept=".txt" onchange="handleFileUpload(event)">
-    <div style="margin:14px 0;display:flex;gap:7px;flex-wrap:wrap;">
+    <div class="msec">
+      <label>Song Title</label><input id="importTitle" type="text" placeholder="My Song">
+      <label>Artist</label><input id="importArtist" type="text" placeholder="Artist Name">
+      <label>BPM</label><input id="importBpm" type="number" value="120" min="30" max="300">
+    </div>
+    <div class="msec">
+      <label>Chord Chart</label>
+      <div style="font-size:11px;color:#444;margin-bottom:6px;font-family:monospace;line-height:1.6;">
+        0:00 G   First lyric line here<br>
+        0:12 Em  Second line<br>
+        [Chorus]<br>
+        0:24 C   Chorus line (no timestamp = auto +4s)
+      </div>
+      <textarea id="chartPaste" placeholder="Paste chord chart here..."></textarea>
+      <label style="margin-top:10px;">Or upload .txt file</label>
+      <input type="file" id="chartFile" accept=".txt,.chord" onchange="handleFileUpload(event)" style="background:#111;color:#888;border:1px solid #222;">
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;">
       <button onclick="parseAndImport()" class="btn primary">Parse &amp; Preview</button>
-      <button id="downloadBtn" onclick="downloadSongJSON()" style="display:none;" class="btn">⬇️ Download JSON</button>
-      <button id="loadNowBtn" onclick="loadParsedSong()" style="display:none;" class="btn primary">▶️ Load Now</button>
+      <button id="loadNowBtn" onclick="loadParsedSong()" style="display:none;" class="btn primary">▶ Add &amp; Load</button>
+      <button id="downloadBtn" onclick="downloadSongJSON()" style="display:none;" class="btn">⬇ JSON</button>
       <button onclick="closeModal('importModal')" class="btn">Cancel</button>
     </div>
     <div id="importPreview" style="display:none;color:#0f0;font-family:monospace;font-size:11px;white-space:pre-wrap;max-height:160px;overflow-y:auto;background:#070707;padding:9px;border-radius:5px;border:1px solid #1a1a1a;"></div>
   </div>
 </div>
 
-<!-- Tab Modal -->
+<!-- TAB MODAL -->
 <div id="tabModal" class="modal-overlay">
   <div class="modal-box">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
-      <h2 style="margin:0;color:#ddd;font-size:17px;">🎸 Tab Override</h2>
+      <h2 style="margin:0;color:#ddd;font-size:17px;">🎸 Tab Viewer</h2>
       <button onclick="closeModal('tabModal')" style="background:none;border:none;font-size:26px;color:#666;cursor:pointer;">×</button>
     </div>
-    <p style="font-size:13px;color:#0f0;margin-bottom:12px;">Tabs auto-load from <code>songs/[songname]-tab.txt</code>.<br>Use this only for manual overrides.</p>
-    <label>Paste / Edit ASCII Tab (override)</label>
-    <textarea id="tabPaste" style="height:170px;color:#00cc77;" placeholder="e|--0--3--5--3--0----|&#10;B|--1--3--5--3--1----|&#10;G|--0--4--5--4--0----|&#10;D|--2--5--7--5--2----|&#10;A|--3--5--7--5--3----|&#10;E|--x--x--x--x--x----|"></textarea>
-    <label>Display string (for multi-string tab)</label>
-    <select id="tabStringSelect">
-      <option value="all">All strings (stacked, full 6-line tab)</option>
-      <option value="0">String 1 – high e</option>
-      <option value="1">String 2 – B</option>
-      <option value="2">String 3 – G</option>
-      <option value="3">String 4 – D</option>
-      <option value="4">String 5 – A</option>
-      <option value="5">String 6 – low E</option>
-    </select>
-    <div style="margin:18px 0;display:flex;gap:8px;flex-wrap:wrap;">
-      <button onclick="applyTab()" class="btn primary">Apply Override</button>
-      <button onclick="saveTabToSong()" class="btn" style="background:#006633;color:#fff;">💾 Save Override to Song</button>
-      <button onclick="clearTab()" class="btn">Clear Tab</button>
+    <p style="font-size:13px;color:#555;margin-bottom:12px;">Paste ASCII tab. Shown in the strip below the main display. Saved with current song.</p>
+    <label>ASCII Tab</label>
+    <textarea id="tabPaste" style="height:200px;color:#00cc77;font-family:'Courier New',monospace;" placeholder="e|--0--3--5--3--0----|&#10;B|--1--3--5--3--1----|&#10;G|--0--4--5--4--0----|&#10;D|--2--5--7--5--2----|&#10;A|--3--5--7--5--3----|&#10;E|--x--x--x--x--x----|"></textarea>
+    <div style="margin:14px 0;display:flex;gap:8px;flex-wrap:wrap;">
+      <button onclick="applyTab()" class="btn primary">Show Strip</button>
+      <button onclick="saveTabToSong()" class="btn lit">💾 Save with Song</button>
+      <button onclick="clearTab()" class="btn">Clear</button>
       <button onclick="closeModal('tabModal')" class="btn">Close</button>
     </div>
-    <div id="tabPreview" style="display:none;background:#050505;border:1px solid #1a1a1a;border-radius:5px;padding:9px;font-family:monospace;font-size:11px;color:#555;max-height:90px;overflow-y:auto;white-space:pre;"></div>
   </div>
 </div>
 
-<!-- MIDI Modal -->
+<!-- MIDI MODAL -->
 <div id="midiModal" class="modal-overlay">
   <div class="modal-box">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
       <h2 style="margin:0;color:#ddd;font-size:17px;">⚙️ MIDI Routing</h2>
       <button onclick="closeModal('midiModal')" style="background:none;border:none;font-size:26px;color:#666;cursor:pointer;">×</button>
     </div>
-    
-    <div style="background:#081308;border:1px solid #0d3020;border-radius:7px;padding:12px;margin-bottom:16px;">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
-        <div style="font-size:13px;color:#0f0;font-weight:bold;">MIDI STATUS</div>
+    <div class="setup-guide">
+      <h4>🔵 MidiBerry + loopMIDI Setup</h4>
+      <ol style="margin:4px 0;padding-left:18px;">
+        <li>Install <strong>loopMIDI</strong> → create virtual port: <code>loopMIDI Port</code></li>
+        <li>Install <strong>MidiBerry</strong> → pair BT foot controller → route to <code>loopMIDI Port</code></li>
+        <li>Use <strong>Chrome or Edge</strong> — Firefox does not support Web MIDI</li>
+        <li>Click <strong>Refresh Ports</strong> → select <code>loopMIDI Port</code> → Save</li>
+        <li>Step on a pedal — the green ● flashes when signal arrives</li>
+      </ol>
+    </div>
+    <div class="msec">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+        <span style="font-size:13px;color:#0f0;font-weight:bold;">MIDI STATUS</span>
         <div id="midiActivityLight"></div>
       </div>
       <label>MIDI Input Port</label>
-      <select id="midiInputSelect" style="width:100%;margin-bottom:12px;"></select>
-      <label style="display:flex;align-items:center;gap:8px;">
-        <input type="checkbox" id="midiClockSyncCheck" checked>
-        <span>Follow external MIDI Clock (tempo sync)</span>
+      <select id="midiInputSelect" style="margin-bottom:10px;"></select>
+      <label style="display:flex;align-items:center;gap:8px;font-weight:normal;cursor:pointer;">
+        <input type="checkbox" id="midiClockSyncCheck">
+        <span style="font-weight:normal;color:#888;">Sync tempo to external MIDI Clock</span>
       </label>
-      <div id="midiPortsList" style="font-size:12px;color:#0a0;line-height:1.4;margin-top:10px;"></div>
+      <div id="midiPortsList" style="font-size:12px;color:#0a8;line-height:1.7;margin-top:10px;"></div>
       <button onclick="refreshMidiPorts()" class="btn" style="margin-top:10px;padding:4px 12px;font-size:12px;">🔄 Refresh Ports</button>
     </div>
-
-    <p style="font-size:12px;color:#555;margin-bottom:14px;">CC defaults: 120=Prev • 121=Stop • 122=Play • 123=Next • 124=Click</p>
-    <label>CC PREV</label><input id="ccPrev" type="number" min="0" max="127" value="120">
-    <label>CC STOP</label><input id="ccStop" type="number" min="0" max="127" value="121">
-    <label>CC PLAY/PAUSE</label><input id="ccPlay" type="number" min="0" max="127" value="122">
-    <label>CC NEXT</label><input id="ccNext" type="number" min="0" max="127" value="123">
-    <label>CC CLICK</label><input id="ccClick" type="number" min="0" max="127" value="124">
-    <div style="margin:14px 0;display:flex;gap:7px;">
+    <div class="msec">
+      <p style="font-size:12px;color:#555;margin:0 0 10px;">CC numbers for your foot controller pedals:</p>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+        <div><label>CC — PREV</label><input id="ccPrev" type="number" min="0" max="127"></div>
+        <div><label>CC — STOP</label><input id="ccStop" type="number" min="0" max="127"></div>
+        <div><label>CC — PLAY/PAUSE</label><input id="ccPlay" type="number" min="0" max="127"></div>
+        <div><label>CC — NEXT</label><input id="ccNext" type="number" min="0" max="127"></div>
+        <div><label>CC — CLICK</label><input id="ccClick" type="number" min="0" max="127"></div>
+      </div>
+    </div>
+    <div style="display:flex;gap:7px;">
       <button onclick="saveMidiMap()" class="btn primary">Save</button>
       <button onclick="closeModal('midiModal')" class="btn">Cancel</button>
     </div>
@@ -233,208 +236,579 @@ body{background:#000;color:#fff;font-family:Arial,sans-serif;overflow:hidden;mar
 </div>
 
 <script>
-/* ====================== CHORD LIBRARY ====================== */
-const CHORDS = { /* unchanged */ };
-const ENHARMONIC = { /* unchanged */ };
-function resolveChord(raw) { /* unchanged */ }
-function chordSVG(key, frets, barreFret) { /* unchanged */ }
-function showChordDiagrams(rawChord) { /* unchanged */ }
+'use strict';
 
-/* ====================== STATE ====================== */
-let setlist = [], currentIdx = 0, song = null;
-let startTime = null, pausedElapsed = 0, playing = false;
-let audioTracks = [], audioCtx = null;
-let clickOn = true, clickVol = 0.75, clickIv = null;
-let expandedIdx = -1, currentBPM = 120, scrollMul = 11.5;
-let parsedTemp = null, lastChord = null;
-let lastShownChord = '';
-let tabVisible = false;
-let tempoLightOn = true;
-let lastBeatTime = 0;
-let midiInputs = [];
-let midiActivityTimeout = null;
-let followMidiClock = true;
-let selectedMidiInput = null;
+/* ── CHORD LIBRARY ─────────────────────────────── */
+const CHORDS={
+  'C':{frets:[0,3,2,0,1,0]},'Cm':{frets:[3,3,5,5,4,3],barreFret:3},
+  'C7':{frets:[0,3,2,3,1,0]},'Cmaj7':{frets:[0,3,2,0,0,0]},
+  'C#':{frets:[4,4,6,6,6,4],barreFret:4},'C#m':{frets:[4,4,6,6,5,4],barreFret:4},
+  'Db':{frets:[4,4,6,6,6,4],barreFret:4},
+  'D':{frets:[-1,-1,0,2,3,2]},'Dm':{frets:[-1,-1,0,2,3,1]},
+  'D7':{frets:[-1,-1,0,2,1,2]},'Dmaj7':{frets:[-1,-1,0,2,2,2]},
+  'D#':{frets:[6,6,8,8,8,6],barreFret:6},'Eb':{frets:[6,6,8,8,8,6],barreFret:6},
+  'E':{frets:[0,2,2,1,0,0]},'Em':{frets:[0,2,2,0,0,0]},
+  'E7':{frets:[0,2,0,1,0,0]},'Emaj7':{frets:[0,2,1,1,0,0]},
+  'F':{frets:[1,1,2,3,3,1],barreFret:1},'Fm':{frets:[1,1,1,3,3,1],barreFret:1},
+  'F7':{frets:[1,1,2,1,3,1],barreFret:1},
+  'F#':{frets:[2,2,3,4,4,2],barreFret:2},'F#m':{frets:[2,2,2,4,4,2],barreFret:2},
+  'Gb':{frets:[2,2,3,4,4,2],barreFret:2},
+  'G':{frets:[3,2,0,0,0,3]},'Gm':{frets:[3,3,3,5,5,3],barreFret:3},
+  'G7':{frets:[3,2,0,0,0,1]},'Gmaj7':{frets:[3,2,0,0,0,2]},
+  'G#':{frets:[4,4,4,6,6,4],barreFret:4},'Ab':{frets:[4,4,4,6,6,4],barreFret:4},
+  'A':{frets:[-1,0,2,2,2,0]},'Am':{frets:[-1,0,2,2,1,0]},
+  'A7':{frets:[-1,0,2,0,2,0]},'Am7':{frets:[-1,0,2,0,1,0]},
+  'Amaj7':{frets:[-1,0,2,1,2,0]},
+  'A#':{frets:[1,1,3,3,3,1],barreFret:1},'Bb':{frets:[1,1,3,3,3,1],barreFret:1},
+  'Bbm':{frets:[1,1,2,3,3,1],barreFret:1},
+  'B':{frets:[2,2,4,4,4,2],barreFret:2},'Bm':{frets:[2,2,3,4,4,2],barreFret:2},
+  'B7':{frets:[2,2,4,2,4,2],barreFret:2}
+};
+const ENHARMONIC={'Db':'C#','D#':'Eb','Fb':'E','Gb':'F#','G#':'Ab','A#':'Bb','C#':'Db','Eb':'D#','E#':'F','F#':'Gb','Ab':'G#','Bb':'A#'};
 
-const CC = {
+function resolveChord(raw){
+  if(!raw) return null;
+  const base=raw.split('/')[0].trim();
+  if(CHORDS[base]) return{name:base,...CHORDS[base]};
+  const enh=ENHARMONIC[base];
+  if(enh&&CHORDS[enh]) return{name:enh,...CHORDS[enh]};
+  const rm=base.match(/^[A-G][#b]?/);
+  if(!rm) return null;
+  const root=rm[0],qual=base.slice(root.length),alt=ENHARMONIC[root];
+  if(alt&&CHORDS[alt+qual]) return{name:alt+qual,...CHORDS[alt+qual]};
+  return null;
+}
+
+/* ── CHORD SVG ─────────────────────────────────── */
+function chordSVG(name,frets,barreFret){
+  const W=76,H=100,sx=12,sy=24,strings=6,fretCount=4;
+  const strSp=(W-sx*2)/(strings-1),fretSp=(H-sy-18)/fretCount;
+  let s=`<svg width="${W}" height="${H}" xmlns="http://www.w3.org/2000/svg" style="background:#111;border-radius:5px;display:block;">`;
+  for(let f=0;f<=fretCount;f++){const y=sy+f*fretSp;s+=`<line x1="${sx}" y1="${y}" x2="${sx+strSp*(strings-1)}" y2="${y}" stroke="${f===0?'#777':'#2a2a2a'}" stroke-width="${f===0?2.5:.8}"/>`;}
+  for(let i=0;i<strings;i++){const x=sx+i*strSp;s+=`<line x1="${x}" y1="${sy}" x2="${x}" y2="${sy+fretSp*fretCount}" stroke="#2a2a2a" stroke-width=".8"/>`;}
+  if(barreFret){const by=sy+(barreFret-.5)*fretSp;s+=`<rect x="${sx}" y="${by-fretSp*.28}" width="${strSp*(strings-1)}" height="${fretSp*.56}" rx="${fretSp*.28}" fill="#00cc77" opacity=".7"/>`;}
+  frets.forEach((fret,i)=>{
+    const x=sx+i*strSp;
+    if(fret<0) s+=`<text x="${x}" y="${sy-5}" text-anchor="middle" fill="#c33" font-size="11">×</text>`;
+    else if(fret===0) s+=`<circle cx="${x}" cy="${sy-7}" r="4" fill="none" stroke="#555" stroke-width="1.2"/>`;
+    else{const dy=sy+(fret-.5)*fretSp;s+=`<circle cx="${x}" cy="${dy}" r="${fretSp*.3}" fill="#00cc77"/>`;}
+  });
+  s+=`<text x="${W/2}" y="${H-2}" text-anchor="middle" fill="#00cc77" font-size="10" font-family="Arial" font-weight="bold">${name}</text>`;
+  return s+'</svg>';
+}
+
+function showChordDiagrams(rawChord){
+  const row=document.getElementById('chordDiagramsRow');
+  const nameEl=document.getElementById('chordPanelName');
+  row.innerHTML='';
+  nameEl.textContent=rawChord||'';
+  if(!rawChord){row.innerHTML='<span style="color:#222;font-size:12px;line-height:98px;display:inline-block;">Select a song to begin</span>';return;}
+  const r=resolveChord(rawChord);
+  if(!r){row.innerHTML=`<span style="color:#333;font-size:12px;line-height:98px;display:inline-block;">${rawChord} — no diagram</span>`;return;}
+  const card=document.createElement('div');card.className='chord-card';
+  card.innerHTML=chordSVG(r.name,r.frets,r.barreFret);
+  row.appendChild(card);
+}
+
+/* ── DEMO SONGS ────────────────────────────────── */
+const DEMO_SONGS=[
+  {id:'demo_1',title:'Wonderful Tonight',artist:'Eric Clapton',bpm:92,lyricOffset:0,audio:[],tab:'',
+   lines:[
+    {time:0,section:'Verse 1'},
+    {time:2,chord:'G',lyric:"It's late in the evening"},
+    {time:7,chord:'D',lyric:"She's wondering what clothes to wear"},
+    {time:12,chord:'C',lyric:"She puts on her make-up"},
+    {time:16,chord:'D',lyric:"And brushes her long blonde hair"},
+    {time:20,chord:'C',lyric:"And then she asks me"},
+    {time:24,chord:'D',lyric:"Do I look all right?"},
+    {time:28,chord:'G',lyric:"And I say yes"},
+    {time:32,chord:'D',lyric:"You look wonderful tonight"},
+    {time:36,section:'Chorus'},
+    {time:38,chord:'C',lyric:"I feel wonderful"},
+    {time:42,chord:'D',lyric:"Because I see the love light in your eyes"},
+    {time:47,chord:'G',lyric:"And the wonder of it all"},
+    {time:51,chord:'D',lyric:"Is that you just don't realize"},
+    {time:55,chord:'C',lyric:"How much I love you"}
+  ]},
+  {id:'demo_2',title:'House of the Rising Sun',artist:'The Animals',bpm:78,lyricOffset:0,audio:[],tab:'',
+   lines:[
+    {time:0,section:'Verse 1'},
+    {time:2,chord:'Am',lyric:'There is a house in New Orleans'},
+    {time:7,chord:'C',lyric:'They call the Rising Sun'},
+    {time:12,chord:'D',lyric:"And it's been the ruin of many a poor boy"},
+    {time:17,chord:'F',lyric:''},
+    {time:19,chord:'Am',lyric:"And God I know I'm one"},
+    {time:24,chord:'C',lyric:''},
+    {time:26,chord:'E',lyric:''},
+    {time:30,section:'Verse 2'},
+    {time:32,chord:'Am',lyric:'My mother was a tailor'},
+    {time:37,chord:'C',lyric:'She sewed my new blue jeans'},
+    {time:42,chord:'D',lyric:'My father was a gambling man'},
+    {time:47,chord:'F',lyric:''},
+    {time:49,chord:'Am',lyric:'Down in New Orleans'}
+  ]}
+];
+
+/* ── LOCALSTORAGE ──────────────────────────────── */
+const LS_KEY='tp_setlist_v2';
+function saveSetlist(){try{localStorage.setItem(LS_KEY,JSON.stringify(setlist));}catch(e){}}
+function loadFromStorage(){try{const r=localStorage.getItem(LS_KEY);if(r)return JSON.parse(r);}catch(e){}return null;}
+
+/* ── STATE ─────────────────────────────────────── */
+let setlist=[],currentIdx=0,song=null;
+let startTime=null,pausedElapsed=0,playing=false;
+let audioTracks=[],audioCtx=null;
+let clickOn=true,clickVol=0.75,clickIv=null;
+let expandedIdx=-1,currentBPM=120,scrollMul=11.5;
+let parsedTemp=null,lastChord=null,lastShownChord='';
+let tabVisible=false,tempoLightOn=true,lastBeatFlash=0;
+let midiAccess=null,midiInputs=[],midiActivityTimeout=null;
+let clockPulses=0,lastClockTime=0,lastBeatTime=0;
+let followMidiClock=localStorage.getItem('midiFollowClock')!=='false';
+let selectedMidiInputId=localStorage.getItem('midiSelectedInput')||'';
+const CC={
   prev: +localStorage.getItem('midiCCPrev')||120,
   stop: +localStorage.getItem('midiCCStop')||121,
   play: +localStorage.getItem('midiCCPlay')||122,
   next: +localStorage.getItem('midiCCNext')||123,
-  click: +localStorage.getItem('midiCCClick')||124
+  click:+localStorage.getItem('midiCCClick')||124
 };
 
-/* ====================== AUDIO & TRANSPORT ====================== */
-function initAudio(){ if(!audioCtx) audioCtx = new (window.AudioContext||window.webkitAudioContext)(); }
-function beep(){ /* unchanged */ }
-function startClick(){ /* unchanged */ }
-function stopClick(){ /* unchanged */ }
-function countIn(beats, cb){ /* unchanged */ }
-function startTracks(){ /* unchanged */ }
-function stopAllAudio(){ /* unchanged */ }
-function pauseAllAudio(){ /* unchanged */ }
-function loadTracks(){ /* unchanged */ }
-function startSong(){ /* unchanged */ }
-function pauseSong(){ /* unchanged */ }
-function stopSong(){ /* unchanged */ }
-function togglePlayPause(){ if(playing) pauseSong(); else startSong(); }
+/* ── AUDIO ─────────────────────────────────────── */
+function initAudio(){if(!audioCtx)audioCtx=new(window.AudioContext||window.webkitAudioContext)();}
+function beep(freq=880,dur=.05,vol=.6){
+  if(!audioCtx)return;
+  const osc=audioCtx.createOscillator(),g=audioCtx.createGain();
+  osc.connect(g);g.connect(audioCtx.destination);
+  osc.frequency.value=freq;
+  g.gain.setValueAtTime(vol,audioCtx.currentTime);
+  g.gain.exponentialRampToValueAtTime(.001,audioCtx.currentTime+dur);
+  osc.start();osc.stop(audioCtx.currentTime+dur+.02);
+}
+function startClick(){
+  stopClick();if(!clickOn)return;
+  let beat=0;
+  const tick=()=>{if(!playing)return;beep(beat%4===0?1200:800,.04,clickVol);beat++;clickIv=setTimeout(tick,60000/currentBPM);};
+  clickIv=setTimeout(tick,0);
+}
+function stopClick(){if(clickIv!==null){clearTimeout(clickIv);clickIv=null;}}
+function countIn(beats,cb){
+  let c=0;const iv=setInterval(()=>{beep(c===0?1400:1100,.06,.8);c++;if(c>=beats){clearInterval(iv);cb();}},60000/currentBPM);
+}
+function loadTracks(){
+  stopAllAudio();audioTracks=[];
+  if(!song?.audio?.length)return;
+  song.audio.forEach(t=>{const a=new Audio('songs/'+t.file);a.preload='auto';audioTracks.push({name:t.name,audio:a});});
+}
+function startTracks(){audioTracks.forEach(t=>{t.audio.currentTime=pausedElapsed;t.audio.play().catch(()=>{});});}
+function stopAllAudio(){audioTracks.forEach(t=>{t.audio.pause();t.audio.currentTime=0;});stopClick();}
+function pauseAllAudio(){audioTracks.forEach(t=>t.audio.pause());stopClick();}
 
-/* ====================== ROBUST SETLIST LOADING ====================== */
-async function loadSetlist(){
-  const statusEl = document.getElementById('setlistStatus');
-  statusEl.style.display = 'block';
-  statusEl.textContent = 'Loading playlist...';
-  statusEl.style.color = '#0f0';
+/* ── TRANSPORT ─────────────────────────────────── */
+function startSong(){
+  if(playing)return;
+  initAudio();
+  if(audioCtx.state==='suspended')audioCtx.resume();
+  playing=true;
+  document.getElementById('playBtn').textContent='⏸ PAUSE';
+  if(pausedElapsed===0){countIn(4,()=>{startTime=Date.now()-pausedElapsed*1000;startTracks();startClick();});}
+  else{startTime=Date.now()-pausedElapsed*1000;startTracks();startClick();}
+}
+function pauseSong(){
+  if(!playing)return;
+  playing=false;
+  pausedElapsed=audioTracks.length?audioTracks[0].audio.currentTime:(Date.now()-startTime)/1000;
+  pauseAllAudio();
+  document.getElementById('playBtn').textContent='▶ PLAY';
+}
+function stopSong(){
+  playing=false;pausedElapsed=0;startTime=null;
+  stopAllAudio();lastShownChord='';lastChord=null;
+  document.getElementById('playBtn').textContent='▶ PLAY';
+  document.getElementById('bigChord').textContent='—';
+  document.getElementById('nextChord').textContent='—';
+  document.getElementById('nextChord').classList.remove('active');
+  document.getElementById('songTime').textContent='0:00 / 0:00';
+  document.getElementById('lyricsInner').style.transform='translateY(0)';
+  // Restore first chord in panel when stopped
+  if(song?.lines){const fc=song.lines.find(l=>l.chord)?.chord;if(fc){showChordDiagrams(fc);document.getElementById('bigChord').textContent=fc;}}
+}
+function togglePlayPause(){if(playing)pauseSong();else startSong();}
 
-  try {
-    const r = await fetch('setlist.json', {cache: 'no-store'});
-    if (!r.ok) throw new Error('setlist.json not found');
-    setlist = await r.json();
-    statusEl.style.display = 'none';
-  } catch(e) {
-    console.error(e);
-    statusEl.textContent = '❌ No setlist.json found. Place setlist.json in root folder.';
-    statusEl.style.color = '#f66';
-    setlist = [];
-  }
+/* ── SETLIST ───────────────────────────────────── */
+function initSetlist(){
+  const saved=loadFromStorage();
+  if(saved&&saved.length){setlist=saved;}
+  else{setlist=JSON.parse(JSON.stringify(DEMO_SONGS));saveSetlist();}
+  currentIdx=0;
   renderSetlist();
-  if (setlist.length) loadSong();
+  loadSong();
 }
 
-async function reloadPlaylist(){
-  await loadSetlist();
-}
-
-/* ====================== SONG LOADING ====================== */
-async function loadSong(){
-  if(!setlist.length) return;
-  const e = setlist[currentIdx], f = e.file || e;
-  const ne = setlist[(currentIdx + 1) % setlist.length];
-  document.getElementById('nextSong').textContent = ne ? (ne.title || ne) : '—';
-
-  try {
-    const r = await fetch('songs/' + f, {cache: 'no-store'});
-    if (!r.ok) throw new Error('Song file missing');
-    song = await r.json();
-    currentBPM = song.bpm || 120;
-    document.getElementById('currentSong').textContent = [e.artist, e.title || f.replace('.json','')].filter(Boolean).join(' – ');
-    renderLyrics(); loadTracks(); recalcScroll();
-    if (song.tab) autoLoadTab(song.tab);
-  } catch(_) {
-    song = {title:'Missing', lines:[]}; currentBPM = 120;
-    document.getElementById('currentSong').textContent = (e.title || f) + ' (missing)';
-    renderLyrics();
+function loadSong(){
+  if(!setlist.length){
+    song=null;
+    document.getElementById('currentSong').textContent='No songs — click + Add Song';
+    document.getElementById('nextSong').textContent='—';
+    renderSetlist();showChordDiagrams(null);renderLyrics();
+    return;
   }
-  expandedIdx = currentIdx;
+  const e=setlist[currentIdx];
+  const ne=setlist[(currentIdx+1)%setlist.length];
+  document.getElementById('nextSong').textContent=ne?(ne.title||'Song'):'—';
+
+  song=e;
+  currentBPM=song.bpm||120;
+  document.getElementById('currentSong').textContent=[e.artist,e.title].filter(Boolean).join(' – ')||'Untitled';
+  renderLyrics();
+  loadTracks();
+  recalcScroll();
+
+  // Show tab if saved
+  if(song.tab&&song.tab.trim()){autoLoadTab(song.tab);}
+  else{clearTabStrip();}
+
+  // Show first chord immediately (no need to press play)
+  const fc=song.lines?.find(l=>l.chord)?.chord;
+  if(fc){showChordDiagrams(fc);document.getElementById('bigChord').textContent=fc;}
+  else showChordDiagrams(null);
+
+  expandedIdx=currentIdx;
   renderSetlist();
 }
 
-function nextSong(){ stopSong(); expandedIdx = -1; currentIdx = (currentIdx + 1) % setlist.length; loadSong(); }
-function previousSong(){ stopSong(); expandedIdx = -1; currentIdx = (currentIdx - 1 + setlist.length) % setlist.length; loadSong(); }
+function nextSong(){stopSong();expandedIdx=-1;currentIdx=(currentIdx+1)%setlist.length;loadSong();}
+function previousSong(){stopSong();expandedIdx=-1;currentIdx=(currentIdx-1+setlist.length)%setlist.length;loadSong();}
+
+function deleteSong(idx,evt){
+  evt.stopPropagation();
+  if(!confirm(`Remove "${setlist[idx]?.title||'this song'}"?`))return;
+  setlist.splice(idx,1);
+  if(currentIdx>=setlist.length)currentIdx=Math.max(0,setlist.length-1);
+  saveSetlist();renderSetlist();
+  if(setlist.length)loadSong();
+  else{song=null;document.getElementById('currentSong').textContent='No songs';renderLyrics();}
+}
 
 function renderSetlist(){
-  const c = document.getElementById('setlistItems'); c.innerHTML = '';
-  setlist.forEach((e,i) => {
-    const d = document.createElement('div');
-    d.className = 'setlist-item' + (i===currentIdx ? ' current' : '');
-    d.draggable = true;
-    d.dataset.index = i;
-    d.innerHTML = `<strong>${i+1}.</strong> ${e.artist||''} – ${e.title||e.file}<span class="dropdown-arrow" onclick="event.stopImmediatePropagation();toggleDrop(${i})">${i===expandedIdx?'▲':'▼'}</span>`;
-    d.ondragstart = ev => { ev.dataTransfer.setData('text/plain', i); d.classList.add('dragging'); };
-    d.ondragend = () => d.classList.remove('dragging');
-    d.ondragover = ev => ev.preventDefault();
-    d.ondrop = ev => {
+  const c=document.getElementById('setlistItems');c.innerHTML='';
+  if(!setlist.length){
+    c.innerHTML='<div class="empty-setlist">No songs yet.<br><strong>Click + Add Song above</strong><br>to get started.</div>';
+    return;
+  }
+  setlist.forEach((e,i)=>{
+    const d=document.createElement('div');
+    d.className='setlist-item'+(i===currentIdx?' current':'');
+    d.draggable=true;
+    const label=[e.artist||'',e.title||`Song ${i+1}`].filter(Boolean).join(' – ');
+    d.innerHTML=`<strong>${i+1}.</strong> ${label}
+      <div class="item-controls">
+        <span class="item-btn" onclick="event.stopImmediatePropagation();toggleDrop(${i})" title="Settings">${i===expandedIdx?'▲':'▼'}</span>
+        <span class="item-btn item-del" onclick="deleteSong(${i},event)" title="Remove">✕</span>
+      </div>`;
+    d.ondragstart=ev=>{ev.dataTransfer.setData('text/plain',i);d.classList.add('dragging');};
+    d.ondragend=()=>d.classList.remove('dragging');
+    d.ondragover=ev=>ev.preventDefault();
+    d.ondrop=ev=>{
       ev.preventDefault();
-      const fromIdx = parseInt(ev.dataTransfer.getData('text/plain'));
-      if (fromIdx === i) return;
-      const moved = setlist.splice(fromIdx, 1)[0];
-      setlist.splice(i, 0, moved);
-      renderSetlist();
+      const from=parseInt(ev.dataTransfer.getData('text/plain'));
+      if(from===i)return;
+      const moved=setlist.splice(from,1)[0];
+      setlist.splice(i,0,moved);
+      if(currentIdx===from)currentIdx=i;
+      else if(currentIdx>from&&currentIdx<=i)currentIdx--;
+      else if(currentIdx<from&&currentIdx>=i)currentIdx++;
+      saveSetlist();renderSetlist();
     };
-    d.onclick = ev => { if(ev.target.classList.contains('dropdown-arrow')) return; stopSong(); currentIdx = i; loadSong(); };
+    d.onclick=ev=>{
+      if(ev.target.classList.contains('item-btn'))return;
+      stopSong();currentIdx=i;loadSong();
+    };
     c.appendChild(d);
 
+    // Expanded sub-panel
     if(i===expandedIdx){
-      const sub = document.createElement('div'); sub.className = 'track-subpanel';
-      if(song?.audio?.length) song.audio.forEach((t,ti) => {
-        const row = document.createElement('div'); row.className = 'track-row';
-        row.innerHTML = `<label>${t.name}</label><input type="range" min="0" max="1" step=".01" value="1" style="width:80px;"><button onclick="soloTrack(${ti});event.stopImmediatePropagation()" class="btn" style="padding:2px 7px;font-size:11px;">Solo</button>`;
-        row.querySelector('input').oninput = ev => { const tr = audioTracks.find(a=>a.name===t.name); if(tr) tr.audio.volume = +ev.target.value; };
-        sub.appendChild(row);
-      });
-      const or = document.createElement('div'); or.className = 'track-row'; or.style.cssText = 'border-top:1px solid #1e1e1e;margin-top:5px;padding-top:5px;';
-      or.innerHTML = `<label>Lyric offset (s)</label><input type="number" id="voi" value="${song?.lyricOffset??0}" step=".1" style="width:64px;"><button onclick="saveOffset();event.stopImmediatePropagation()" class="btn" style="padding:2px 7px;font-size:11px;">Save</button>`;
+      const sub=document.createElement('div');sub.className='track-subpanel';
+      if(song?.audio?.length){
+        song.audio.forEach((t,ti)=>{
+          const row=document.createElement('div');row.className='track-row';
+          row.innerHTML=`<label>${t.name}</label><input type="range" min="0" max="1" step=".01" value="${audioTracks[ti]?.audio.volume??1}" style="width:70px;">
+            <button onclick="soloTrack(${ti});event.stopImmediatePropagation()" class="btn" style="padding:2px 6px;font-size:11px;">Solo</button>`;
+          row.querySelector('input').oninput=ev=>{if(audioTracks[ti])audioTracks[ti].audio.volume=+ev.target.value;};
+          sub.appendChild(row);
+        });
+      }
+      const or=document.createElement('div');or.className='track-row';or.style.cssText='border-top:1px solid #1e1e1e;margin-top:6px;padding-top:6px;';
+      or.innerHTML=`<label>Lyric offset (s)</label>
+        <input type="number" id="voi" value="${song?.lyricOffset??0}" step=".1" style="width:60px;background:#111;color:#0f0;border:1px solid #222;border-radius:4px;padding:2px 5px;font-family:monospace;">
+        <button onclick="saveOffset();event.stopImmediatePropagation()" class="btn" style="padding:2px 6px;font-size:11px;">✓</button>`;
       sub.appendChild(or);
-      const cr = document.createElement('div'); cr.className = 'track-row'; cr.style.cssText = 'border-top:1px solid #1e1e1e;margin-top:5px;padding-top:5px;';
-      cr.innerHTML = `<label>Click</label><button onclick="clickOn=!clickOn;renderSetlist();event.stopImmediatePropagation()" class="btn" style="padding:2px 7px;font-size:11px;">${clickOn?'ON':'OFF'}</button><input type="range" min="0" max="1" step=".01" value="${clickVol}" style="width:80px;">`;
-      cr.querySelector('input').oninput = ev => { clickVol = +ev.target.value; };
+      const br=document.createElement('div');br.className='track-row';
+      br.innerHTML=`<label>BPM</label>
+        <input type="number" id="bpmEdit" value="${song?.bpm??120}" min="30" max="300" style="width:60px;background:#111;color:#0f0;border:1px solid #222;border-radius:4px;padding:2px 5px;font-family:monospace;">
+        <button onclick="saveBpm();event.stopImmediatePropagation()" class="btn" style="padding:2px 6px;font-size:11px;">✓</button>`;
+      sub.appendChild(br);
+      const cr=document.createElement('div');cr.className='track-row';cr.style.cssText='border-top:1px solid #1e1e1e;margin-top:6px;padding-top:6px;';
+      cr.innerHTML=`<label>Click track</label>
+        <button onclick="clickOn=!clickOn;renderSetlist();event.stopImmediatePropagation()" class="btn${clickOn?' lit':''}" style="padding:2px 6px;font-size:11px;">${clickOn?'ON':'OFF'}</button>
+        <input type="range" min="0" max="1" step=".01" value="${clickVol}" style="width:70px;">`;
+      cr.querySelector('input').oninput=ev=>{clickVol=+ev.target.value;};
       sub.appendChild(cr);
       c.appendChild(sub);
     }
   });
 }
-function soloTrack(i){ audioTracks.forEach((t,j) => t.audio.volume = j===i ? 1 : 0); }
-function saveOffset(){ if(song) song.lyricOffset = parseFloat(document.getElementById('voi').value)||0; }
-function toggleDrop(i){
-  expandedIdx = expandedIdx===i ? -1 : i;
-  if(expandedIdx===i && currentIdx!==i){ currentIdx=i; loadSong(); return; }
-  renderSetlist();
+
+function soloTrack(idx){audioTracks.forEach((t,j)=>t.audio.volume=j===idx?1:0);}
+function saveOffset(){const v=parseFloat(document.getElementById('voi')?.value);if(song&&!isNaN(v)){song.lyricOffset=v;saveSetlist();}}
+function saveBpm(){const v=parseInt(document.getElementById('bpmEdit')?.value);if(song&&v>0){song.bpm=v;currentBPM=v;saveSetlist();}}
+function toggleDrop(i){expandedIdx=expandedIdx===i?-1:i;if(expandedIdx===i&&currentIdx!==i){currentIdx=i;loadSong();return;}renderSetlist();}
+
+/* ── LYRICS RENDERING ──────────────────────────── */
+function renderLyrics(){
+  const inner=document.getElementById('lyricsInner');
+  inner.innerHTML='';
+  if(!song?.lines?.length){inner.style.height='200px';return;}
+  song.lines.forEach((line,i)=>{
+    const div=document.createElement('div');div.className='line';
+    div.style.top=(line.time*scrollMul)+'px';
+    if(line.section){div.classList.add('section');div.textContent='— '+line.section+' —';}
+    else{
+      if(line.chord){const sp=document.createElement('span');sp.className='chord';sp.dataset.i=i;sp.textContent=line.chord;div.appendChild(sp);}
+      if(line.lyric)div.appendChild(document.createTextNode(line.lyric));
+    }
+    inner.appendChild(div);
+  });
+  const last=song.lines[song.lines.length-1];
+  inner.style.height=(last?last.time*scrollMul+400:400)+'px';
+}
+function recalcScroll(){scrollMul=11.5;renderLyrics();}
+
+/* ── MAIN LOOP ─────────────────────────────────── */
+setInterval(()=>{
+  if(!song?.lines)return;
+  let el;
+  if(playing){el=audioTracks.length?(audioTracks[0].audio.currentTime||0):(Date.now()-startTime)/1000;}
+  else el=pausedElapsed;
+  const adj=Math.max(0,el-(song.lyricOffset??0));
+  updateHL(adj);scrollLyrics(adj);updateTime(el);updateTempoLight();
+},30);
+
+function updateHL(adj){
+  if(!song?.lines)return;
+  let ai=-1;
+  for(let i=0;i<song.lines.length;i++){if(adj>=song.lines[i].time)ai=i;else break;}
+  const cur=ai>=0?(song.lines[ai].chord||''):'';
+  if(cur)lastShownChord=cur;
+  const display=cur||lastShownChord;
+  const big=document.getElementById('bigChord');
+  if(display!==lastChord){
+    big.classList.add('pulse');
+    setTimeout(()=>big.classList.remove('pulse'),200);
+    lastChord=display;showChordDiagrams(display||null);
+  }
+  big.textContent=display||'—';
+  const ni=ai+1,nextEl=document.getElementById('nextChord');
+  const nxt=ni<song.lines.length?(song.lines[ni].chord||''):'—';
+  nextEl.textContent=nxt;nextEl.classList.toggle('active',!!nxt&&nxt!=='—');
+  document.querySelectorAll('.chord').forEach(el=>el.classList.toggle('active',+el.dataset.i===ai));
+}
+function scrollLyrics(adj){document.getElementById('lyricsInner').style.transform=`translateY(-${adj*scrollMul}px)`;}
+function updateTime(el){
+  const total=audioTracks.length&&isFinite(audioTracks[0].audio.duration)?audioTracks[0].audio.duration:(song?.duration||0);
+  const fmt=s=>{if(!s||!isFinite(s))return'0:00';return Math.floor(s/60)+':'+String(Math.floor(s%60)).padStart(2,'0');};
+  document.getElementById('songTime').textContent=`${fmt(el)} / ${fmt(total)}`;
 }
 
-/* ====================== MAIN LOOP ====================== */
-setInterval(() => {
-  if(!song?.lines) return;
-  let el = playing ? (audioTracks.length ? audioTracks[0].audio.currentTime : (Date.now()-startTime)/1000) : pausedElapsed;
-  const adj = Math.max(0, el - (song.lyricOffset??0));
-  updateHL(adj);
-  scrollLyrics(adj);
-  updateTime(el);
-  updateTempoLight();
-}, 30);
+/* ── TEMPO LIGHT ───────────────────────────────── */
+function toggleTempoLight(){tempoLightOn=!tempoLightOn;document.getElementById('tempoBtn').classList.toggle('lit',tempoLightOn);if(!tempoLightOn)document.getElementById('tempoLight').classList.remove('active');}
+function updateTempoLight(){
+  if(!tempoLightOn||!playing)return;
+  const now=Date.now(),iv=60000/currentBPM;
+  if(now-lastBeatFlash>=iv){lastBeatFlash=now;const l=document.getElementById('tempoLight');l.classList.add('active');setTimeout(()=>l.classList.remove('active'),80);}
+}
 
-function updateHL(adj){ /* unchanged */ }
-function scrollLyrics(adj){ /* unchanged */ }
-function updateTime(el){ /* unchanged */ }
+/* ── TAB SYSTEM ────────────────────────────────── */
+function onTabBtnClick(){
+  const hasContent=document.getElementById('tabStripInner').textContent.trim().length>0;
+  if(hasContent)toggleTabStrip();else openModal('tabModal');
+}
+function applyTab(){
+  const text=document.getElementById('tabPaste').value.trim();if(!text)return;
+  document.getElementById('tabStripInner').textContent=text;
+  document.getElementById('tabStrip').style.display='block';
+  document.getElementById('tabToggleBtn').classList.add('lit');
+  tabVisible=true;updateLyricsBottom();closeModal('tabModal');
+}
+function saveTabToSong(){
+  const text=document.getElementById('tabPaste').value.trim();
+  if(!song)return;song.tab=text;saveSetlist();applyTab();
+}
+function autoLoadTab(savedTab){
+  if(!savedTab)return;
+  document.getElementById('tabPaste').value=savedTab;
+  document.getElementById('tabStripInner').textContent=savedTab;
+  document.getElementById('tabStrip').style.display='block';
+  document.getElementById('tabToggleBtn').classList.add('lit');
+  tabVisible=true;updateLyricsBottom();
+}
+function clearTabStrip(){
+  document.getElementById('tabStripInner').textContent='';
+  document.getElementById('tabStrip').style.display='none';
+  document.getElementById('tabToggleBtn').classList.remove('lit');
+  tabVisible=false;updateLyricsBottom();
+}
+function clearTab(){
+  document.getElementById('tabPaste').value='';
+  if(song){song.tab='';saveSetlist();}
+  clearTabStrip();closeModal('tabModal');
+}
+function toggleTabStrip(){
+  tabVisible=!tabVisible;
+  document.getElementById('tabStrip').style.display=tabVisible?'block':'none';
+  document.getElementById('tabToggleBtn').classList.toggle('lit',tabVisible);
+  updateLyricsBottom();
+}
+function updateLyricsBottom(){document.getElementById('lyricsContainer').style.bottom=tabVisible?'250px':'78px';}
 
-/* ====================== TAB SYSTEM ====================== */
-function applyTab(){ /* unchanged */ }
-function saveTabToSong(){ /* unchanged */ }
-function autoLoadTab(savedTab){ /* unchanged */ }
-function clearTab(){ /* unchanged */ }
-function toggleTabStrip(){ /* unchanged */ }
-function updateLyricsBottom(){ /* unchanged */ }
+/* ── MIDI ──────────────────────────────────────── */
+function flashMidiActivity(){
+  const l=document.getElementById('midiActivityLight');if(!l)return;
+  l.classList.add('active');clearTimeout(midiActivityTimeout);
+  midiActivityTimeout=setTimeout(()=>l.classList.remove('active'),140);
+}
+function handleMidiMessage(input,e){
+  if(selectedMidiInputId&&input.id!==selectedMidiInputId)return;
+  flashMidiActivity();
+  const status=e.data[0],data1=e.data[1];
+  if(status===0xF8&&followMidiClock){
+    const now=Date.now();clockPulses++;
+    if(now-lastClockTime>2000){clockPulses=1;lastBeatTime=now;}
+    lastClockTime=now;
+    if(clockPulses%24===0){const el=now-lastBeatTime;if(el>0){const b=Math.round(60000/el);if(b>30&&b<300)currentBPM=b;}lastBeatTime=now;}
+    return;
+  }
+  if((status&0xF0)===0xB0){
+    if(data1===CC.prev)previousSong();
+    else if(data1===CC.stop)stopSong();
+    else if(data1===CC.play)togglePlayPause();
+    else if(data1===CC.next)nextSong();
+    else if(data1===CC.click){clickOn=!clickOn;renderSetlist();}
+  }
+  if((status&0xF0)===0x90&&e.data[2]>0){
+    if(data1===CC.prev)previousSong();
+    else if(data1===CC.stop)stopSong();
+    else if(data1===CC.play)togglePlayPause();
+    else if(data1===CC.next)nextSong();
+  }
+}
+function attachInput(input){input.onmidimessage=e=>handleMidiMessage(input,e);}
+function initMIDI(){
+  if(!navigator.requestMIDIAccess){document.getElementById('midiPortsList').innerHTML='<span style="color:#f66;">Web MIDI requires Chrome or Edge.</span>';return;}
+  navigator.requestMIDIAccess({sysex:false}).then(access=>{
+    midiAccess=access;
+    midiInputs=Array.from(access.inputs.values());
+    midiInputs.forEach(attachInput);
+    updateMidiPortList();
+    access.onstatechange=ev=>{
+      if(ev.port.type!=='input')return;
+      midiInputs=Array.from(access.inputs.values());
+      updateMidiPortList();
+      if(ev.port.state==='connected')attachInput(ev.port);
+    };
+  }).catch(err=>{document.getElementById('midiPortsList').innerHTML=`<span style="color:#f66;">MIDI denied: ${err.message}</span>`;});
+}
+function refreshMidiPorts(){if(!midiAccess){initMIDI();return;}midiInputs=Array.from(midiAccess.inputs.values());midiInputs.forEach(attachInput);updateMidiPortList();}
+function updateMidiPortList(){
+  const sel=document.getElementById('midiInputSelect'),list=document.getElementById('midiPortsList');
+  if(!sel)return;
+  sel.innerHTML='<option value="">Any / All inputs</option>';
+  if(!midiInputs.length){list.innerHTML='<span style="color:#f66;">No MIDI inputs. Connect device and click Refresh.</span>';return;}
+  midiInputs.forEach(inp=>{const o=document.createElement('option');o.value=inp.id;o.textContent=inp.name;if(inp.id===selectedMidiInputId)o.selected=true;sel.appendChild(o);});
+  const loopPort=midiInputs.find(i=>/(loopmidi|loop midi|loop port)/i.test(i.name));
+  let html='<strong style="color:#0f0;">Detected:</strong><br>';
+  midiInputs.forEach(inp=>{const isL=loopPort&&inp.id===loopPort.id;html+=`${isL?'★ ':'• '}<span style="color:${isL?'#0f0':'#0a8'}">${inp.name}</span>${isL?' <em style="color:#555;font-size:10px;">(loopMIDI)</em>':''}<br>`;});
+  list.innerHTML=html;
+  if(!selectedMidiInputId&&loopPort)sel.value=loopPort.id;
+}
+function saveMidiMap(){
+  CC.prev=+document.getElementById('ccPrev').value;CC.stop=+document.getElementById('ccStop').value;
+  CC.play=+document.getElementById('ccPlay').value;CC.next=+document.getElementById('ccNext').value;
+  CC.click=+document.getElementById('ccClick').value;
+  followMidiClock=document.getElementById('midiClockSyncCheck').checked;
+  selectedMidiInputId=document.getElementById('midiInputSelect').value;
+  ['Prev','Stop','Play','Next','Click'].forEach(k=>localStorage.setItem('midiCC'+k,CC[k.toLowerCase()]));
+  localStorage.setItem('midiFollowClock',followMidiClock);
+  localStorage.setItem('midiSelectedInput',selectedMidiInputId);
+  closeModal('midiModal');
+}
 
-/* ====================== TEMPO LIGHT ====================== */
-function toggleTempoLight(){ /* unchanged */ }
-function updateTempoLight(){ /* unchanged */ }
+/* ── IMPORT ────────────────────────────────────── */
+function handleFileUpload(e){const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=ev=>{document.getElementById('chartPaste').value=ev.target.result;};r.readAsText(f);}
+function parseAndImport(){
+  const text=document.getElementById('chartPaste').value;
+  const title=document.getElementById('importTitle').value.trim()||'New Song';
+  const artist=document.getElementById('importArtist').value.trim()||'';
+  const bpm=parseInt(document.getElementById('importBpm').value)||120;
+  const lines=[];let autoTime=0;
+  text.split('\n').forEach(raw=>{
+    const line=raw.trim();if(!line){autoTime+=1;return;}
+    if(/^\[.+\]$/.test(line)){lines.push({time:autoTime,section:line.replace(/[\[\]]/g,'')});autoTime+=2;return;}
+    const tm=line.match(/^(\d+):(\d{2})(?::(\d{2}))?\s+(\S+)\s*(.*)/);
+    if(tm){const t=parseInt(tm[1])*60+parseInt(tm[2])+(tm[3]?parseInt(tm[3])/100:0);autoTime=t+4;lines.push({time:t,chord:tm[4],lyric:(tm[5]||'').trim()});return;}
+    const parts=line.split(/\s+/);lines.push({time:autoTime,chord:parts[0],lyric:parts.slice(1).join(' ')});autoTime+=4;
+  });
+  parsedTemp={id:'song_'+Date.now(),title,artist,bpm,lyricOffset:0,audio:[],tab:'',lines};
+  const prev=document.getElementById('importPreview');
+  prev.textContent=JSON.stringify(parsedTemp,null,2);prev.style.display='block';
+  document.getElementById('loadNowBtn').style.display='';document.getElementById('downloadBtn').style.display='';
+}
+function downloadSongJSON(){
+  if(!parsedTemp)return;
+  const blob=new Blob([JSON.stringify(parsedTemp,null,2)],{type:'application/json'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=(parsedTemp.title||'song').replace(/\s+/g,'_')+'.json';a.click();URL.revokeObjectURL(a.href);
+}
+function loadParsedSong(){
+  if(!parsedTemp)return;stopSong();
+  const idx=setlist.findIndex(s=>s.id===parsedTemp.id);
+  if(idx>=0)setlist[idx]=parsedTemp;else setlist.unshift(parsedTemp);
+  currentIdx=0;saveSetlist();renderSetlist();loadSong();closeModal('importModal');
+  document.getElementById('chartPaste').value='';document.getElementById('importTitle').value='';
+  document.getElementById('importArtist').value='';document.getElementById('importBpm').value='120';
+  document.getElementById('importPreview').style.display='none';
+  document.getElementById('loadNowBtn').style.display='none';document.getElementById('downloadBtn').style.display='none';
+  parsedTemp=null;
+}
 
-/* ====================== MIDI ====================== */
-function flashMidiActivity(){ /* unchanged */ }
-function refreshMidiPorts(){ /* unchanged */ }
-function updateMidiPortList(){ /* unchanged */ }
-function initMIDI(){ /* unchanged */ }
-function saveMidiMap(){ /* unchanged */ }
+/* ── MODALS & UTIL ─────────────────────────────── */
+function openModal(id){
+  document.getElementById(id).style.display='flex';
+  if(id==='midiModal'){
+    document.getElementById('ccPrev').value=CC.prev;document.getElementById('ccStop').value=CC.stop;
+    document.getElementById('ccPlay').value=CC.play;document.getElementById('ccNext').value=CC.next;
+    document.getElementById('ccClick').value=CC.click;document.getElementById('midiClockSyncCheck').checked=followMidiClock;
+    updateMidiPortList();
+  }
+  if(id==='tabModal'&&song?.tab)document.getElementById('tabPaste').value=song.tab;
+}
+function closeModal(id){document.getElementById(id).style.display='none';}
+document.querySelectorAll('.modal-overlay').forEach(el=>{el.addEventListener('click',e=>{if(e.target===el)closeModal(el.id);});});
+function toggleFullscreen(){if(!document.fullscreenElement)document.documentElement.requestFullscreen().catch(()=>{});else document.exitFullscreen().catch(()=>{});}
+document.addEventListener('keydown',e=>{
+  if(e.target.tagName==='INPUT'||e.target.tagName==='TEXTAREA')return;
+  switch(e.code){
+    case'Space':e.preventDefault();togglePlayPause();break;
+    case'ArrowRight':nextSong();break;case'ArrowLeft':previousSong();break;
+    case'KeyS':stopSong();break;case'KeyT':onTabBtnClick();break;
+    case'Escape':document.querySelectorAll('.modal-overlay').forEach(m=>m.style.display='none');break;
+  }
+});
 
-/* ====================== MODALS & UTIL ====================== */
-function openModal(id){ document.getElementById(id).style.display = 'flex'; }
-function closeModal(id){ document.getElementById(id).style.display = 'none'; }
-function handleFileUpload(e){ /* unchanged */ }
-function parseAndImport(){ /* unchanged */ }
-function downloadSongJSON(){ /* unchanged */ }
-function loadParsedSong(){ /* unchanged */ }
-function toggleFullscreen(){ /* unchanged */ }
-function openSongsterr(){ /* unchanged */ }
-
-/* ====================== STARTUP ====================== */
-window.onload = () => {
+/* ── STARTUP ───────────────────────────────────── */
+window.onload=()=>{
   initMIDI();
-  document.getElementById('ccPrev').value = CC.prev;
-  document.getElementById('ccStop').value = CC.stop;
-  document.getElementById('ccPlay').value = CC.play;
-  document.getElementById('ccNext').value = CC.next;
-  document.getElementById('ccClick').value = CC.click;
-  document.getElementById('midiClockSyncCheck').checked = followMidiClock;
-  loadSetlist();   // ← always scan and load on startup
+  initSetlist();
+  document.getElementById('tempoBtn').classList.toggle('lit',tempoLightOn);
 };
 </script>
 </body>
