@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Guitar Stage Teleprompter</title>
     <link rel="stylesheet" href="css/stage.css">
     <style>
@@ -29,7 +29,6 @@
             box-shadow: 0 4px 20px rgba(0,0,0,0.6);
         }
 
-        /* FIXED: Title area now safely expands and truncates instead of hiding behind buttons */
         #currentSongContainer {
             flex: 1;
             min-width: 0;
@@ -62,7 +61,7 @@
             gap: 10px;
         }
 
-        /* SLEEK BUTTONS – modern dark stage look (no neon green anywhere) */
+        /* SLEEK BUTTONS (unchanged – dark & modern) */
         .sleek-btn {
             background: #1f1f1f;
             color: #e5e5e5;
@@ -96,24 +95,108 @@
             transform: translateY(-1px);
         }
 
-        /* Modal styles (unchanged except button classes) */
-        #modal {
-            display: none;
-            position: fixed;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
-            background: rgba(0,0,0,0.95);
-            z-index: 1000;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-family: Arial, sans-serif;
+        /* CORE STAGE ELEMENTS – responsive base */
+        #bigChord{
+            position:fixed;
+            top:110px;
+            width:100%;
+            font-size: clamp(180px, 22vw, 340px);
+            font-weight:bold;
+            color:#00cc77;
+            text-align:center;
+            z-index:10;
+            text-shadow: 0 0 30px #00cc77;
+            pointer-events:none;
+            line-height:1;
         }
+
+        #lyricsContainer{
+            position:absolute;
+            bottom:-100vh;
+            width:100%;
+            text-align:center;
+            font-size: clamp(26px, 3.2vw, 36px);
+            line-height:1.45;
+            z-index:5;
+            padding:0 20px;
+        }
+
+        .line{
+            margin:28px 0;
+            padding:0 20px;
+        }
+
+        .chord{
+            font-weight:bold;
+            color:white;
+            display:inline-block;
+            min-width:90px;
+        }
+
+        .chord.active{
+            color:#00cc77;
+            text-shadow: 0 0 20px #00cc77;
+        }
+
+        /* PORTRAIT OPTIMIZATIONS – automatic when monitor is rotated */
+        @media (orientation: portrait), (max-width: 1100px) {
+            #topBar {
+                padding: 10px 15px;
+                gap: 12px;
+                flex-wrap: wrap;
+                font-size: 24px;
+            }
+            #currentSong { font-size: 23px; }
+            #nextSongContainer { font-size: 19px; }
+
+            .top-controls button { padding: 8px 14px; font-size: 15px; }
+
+            #bigChord {
+                top: 80px;
+                font-size: clamp(140px, 26vw, 260px);
+            }
+
+            #lyricsContainer {
+                font-size: clamp(22px, 3.8vw, 32px);
+                line-height: 1.5;
+            }
+            .line { margin: 22px 0; }
+
+            /* Setlist becomes a clean top overlay in portrait (no side panel eating width) */
+            #setlistPanel {
+                left: 15px;
+                right: 15px;
+                top: 68px;
+                width: auto;
+                max-height: 55vh;
+                border-radius: 12px;
+                padding: 15px;
+            }
+            .setlist-item {
+                font-size: 17px;
+                padding: 9px 12px;
+            }
+
+            /* MIDI panel centered at bottom for easy thumb/finger access */
+            #midiPanel {
+                left: 50%;
+                bottom: 20px;
+                transform: translateX(-50%);
+                width: 92%;
+                max-width: 420px;
+                border-radius: 20px;
+            }
+
+            /* Extra breathing room for lyrics scrolling */
+            #lyricsContainer { padding-bottom: 80px; }
+        }
+
+        /* Modal & other panels (portrait-safe) */
         #modal-content {
             background: #111;
             padding: 30px;
             border-radius: 12px;
-            width: 90%;
+            width: 92%;
             max-width: 920px;
             max-height: 94vh;
             overflow-y: auto;
@@ -126,7 +209,6 @@
         }
         #modal-content textarea { height:240px; resize:vertical; }
         #modal-content input[type="file"] { padding:10px; background:#1a1a1a; color:#0f0; cursor:pointer; }
-        #modal-content button { /* will use .sleek-btn */ }
 
         #preview { margin-top:24px; max-height:340px; overflow-y:auto; background:#1a1a1a; padding:18px; border-radius:8px; }
         #preview ul { list-style:none; padding:0; }
@@ -136,7 +218,6 @@
             white-space:pre; overflow:auto; max-height:300px; border-radius:8px; margin-top:20px;
         }
 
-        /* MIDI Panel – sleek buttons */
         #midiPanel {
             display: none;
             position: fixed;
@@ -156,12 +237,8 @@
             margin-bottom: 14px;
             color: #ddd;
         }
-        #midiPanel button {
-            flex: 1;
-            margin: 4px;
-        }
+        #midiPanel button { flex: 1; margin: 4px; }
 
-        /* Setlist Panel – sleek */
         #setlistPanel {
             position: fixed;
             left: 20px;
@@ -204,7 +281,6 @@
 </head>
 <body>
     <div id="topBar">
-        <!-- FIXED TITLE AREA -->
         <div id="currentSongContainer">
             <span id="currentSong">No song loaded</span>
         </div>
@@ -214,31 +290,23 @@
         </div>
         
         <div class="top-controls">
-            <button onclick="toggleModal()" class="sleek-btn primary">
-                📥 Import Chart
-            </button>
-            <button onclick="toggleMidiPanel()" class="sleek-btn">
-                🎹 MIDI
-            </button>
-            <button onclick="toggleSetlistPanel()" class="sleek-btn">
-                📜 Setlist
-            </button>
-            <button onclick="toggleFullscreen()" class="sleek-btn">
-                ⛶ Full
-            </button>
+            <button onclick="toggleModal()" class="sleek-btn primary">📥 Import</button>
+            <button onclick="toggleMidiPanel()" class="sleek-btn">🎹 MIDI</button>
+            <button onclick="toggleSetlistPanel()" class="sleek-btn">📜 Setlist</button>
+            <button onclick="toggleFullscreen()" class="sleek-btn">⛶ Full</button>
         </div>
     </div>
 
     <div id="bigChord"></div>
     <div id="lyricsContainer"><div id="lyrics"></div></div>
 
-    <!-- Import Modal (buttons now use sleek class) -->
+    <!-- Import Modal -->
     <div id="modal">
         <div id="modal-content">
             <h2 style="margin-top:0; color:#ddd;">🚀 Auto-Import Chord Chart</h2>
             <p style="margin-bottom:22px; opacity:0.8; line-height:1.4;">
                 Paste text OR upload a .txt file.<br>
-                <strong style="color:#ff0;">Ultimate Guitar tip:</strong> Go to <a href="https://tabs.ultimate-guitar.com" target="_blank" style="color:#0f0;">tabs.ultimate-guitar.com</a>, search your song, copy the **entire tab text**, and paste here.
+                <strong style="color:#ff0;">Ultimate Guitar tip:</strong> Copy the entire tab and paste here.
             </p>
             
             <label>Song Title</label>
@@ -247,11 +315,11 @@
             <label>Artist</label>
             <input id="importArtist" type="text" value="Unknown Artist" placeholder="Artist Name">
             
-            <label>BPM (auto-filled from file)</label>
+            <label>BPM</label>
             <input id="importBpm" type="number" value="120" min="40" max="240">
             
             <label>Paste Chord Chart</label>
-            <textarea id="chartPaste" placeholder="Paste full tab from Ultimate Guitar here..."></textarea>
+            <textarea id="chartPaste" placeholder="Paste full tab here..."></textarea>
 
             <label>Or upload .txt file</label>
             <input type="file" id="chartFile" accept=".txt" onchange="handleFileUpload(event)">
@@ -266,34 +334,26 @@
             
             <div style="margin-top:20px; display:flex; gap:12px; flex-wrap:wrap;">
                 <button id="downloadBtn" onclick="downloadSongJSON()" style="display:none;" class="sleek-btn primary">⬇️ Download song.json</button>
-                <button id="tempLoadBtn" onclick="loadTempSongNow()" style="display:none;" class="sleek-btn">▶️ Preview in Teleprompter NOW</button>
+                <button id="tempLoadBtn" onclick="loadTempSongNow()" style="display:none;" class="sleek-btn">▶️ Preview NOW</button>
                 <button onclick="closeModal()" class="sleek-btn">Close</button>
             </div>
-            
-            <small style="display:block; margin-top:24px; opacity:0.7; line-height:1.3;">
-                • Works with any text chart<br>
-                • Timings calculated from BPM
-            </small>
         </div>
     </div>
 
-    <!-- MIDI Panel (sleek buttons) -->
+    <!-- MIDI Panel -->
     <div id="midiPanel">
         <div class="header">
             <span style="font-size:22px;">🎹 MIDI Controls</span>
             <span id="liveBpm" style="margin-left:auto; font-family:monospace; background:#222; padding:4px 12px; border-radius:9999px; font-size:18px;">BPM: —</span>
         </div>
         <div style="display:flex; gap:8px;">
-            <button onclick="previousSong()" class="sleek-btn">⏮<br><small>PREV</small></button>
-            <button onclick="togglePlayPause()" class="sleek-btn" id="playPauseBtn" style="flex:1.4;">▶️<br><small>PLAY / PAUSE</small></button>
-            <button onclick="nextSong()" class="sleek-btn">⏭<br><small>NEXT</small></button>
+            <button onclick="previousSong()" class="sleek-btn">⏮ PREV</button>
+            <button onclick="togglePlayPause()" class="sleek-btn" id="playPauseBtn" style="flex:1.4;">▶️ PLAY / PAUSE</button>
+            <button onclick="nextSong()" class="sleek-btn">⏭ NEXT</button>
         </div>
-        <small style="display:block; text-align:center; margin-top:12px; opacity:0.6;">
-            On-screen MIDI simulation • Works even without pedal
-        </small>
     </div>
 
-    <!-- Setlist Panel (sleek close button) -->
+    <!-- Setlist Panel (auto-optimised for portrait) -->
     <div id="setlistPanel">
         <div class="setlist-header">
             <h3 style="margin:0;">📜 SETLIST</h3>
@@ -305,5 +365,17 @@
     <script src="js/midi.js"></script>
     <script src="js/scroll.js"></script>
     <script src="js/stage.js"></script>
+    <script>
+        // Tiny portrait helper – forces re-layout when you rotate the external monitor
+        function handleOrientationChange() {
+            // Re-render setlist so it respects the new media query instantly
+            if (typeof renderSetlist === 'function') renderSetlist();
+            console.log('%c📱 Portrait mode layout refreshed', 'color:#00cc77;font-size:13px');
+        }
+        window.addEventListener('resize', handleOrientationChange);
+        window.addEventListener('orientationchange', handleOrientationChange);
+        // Initial check
+        setTimeout(handleOrientationChange, 800);
+    </script>
 </body>
 </html>
