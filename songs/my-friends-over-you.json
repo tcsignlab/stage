@@ -3,7 +3,10 @@
   "artist": "New Found Glory",
   "bpm": 89,
   "lyricOffset": 0,
-  "audio": [],
+    "audio": [
+    {"name": "Deep Inside Of You Vocals", "file": "my-friends-over-you-vocals.mp3"},
+    {"name": "Deep Inside Of You Bass", "file": "my-friends-over-you-bass.mp3"}
+  ],
   "lines": [
     {
       "time": 0,
