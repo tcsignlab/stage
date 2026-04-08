@@ -89,6 +89,8 @@
             <input id="importArtist" type="text" value="Unknown Artist" placeholder="Artist Name">
             <label>BPM</label>
             <input id="importBpm" type="number" value="120" min="40" max="240">
+            <label>Vocals Start Offset (seconds)</label>
+            <input id="importVocalStart" type="number" value="0" step="0.1" style="width:120px;">
             <label>Paste Chord Chart</label>
             <textarea id="chartPaste" placeholder="Paste the entire chord chart here..."></textarea>
             <label>Or upload .txt file</label>
@@ -160,7 +162,6 @@
         let clickOn = true;
         let expandedSongIndex = -1;
         let currentBPM = 120;
-        let clickInterval = null;
 
         let midiCCPrev = parseInt(localStorage.getItem('midiCCPrev')) || 120;
         let midiCCStop = parseInt(localStorage.getItem('midiCCStop')) || 121;
@@ -217,31 +218,12 @@
             renderSetlist();
         }
 
-        function startContinuousClick() {
-            if (clickInterval) clearInterval(clickInterval);
-            if (!clickOn) return;
-            const interval = 60000 / currentBPM;
-            clickInterval = setInterval(() => {
-                if (!playing) {
-                    clearInterval(clickInterval);
-                    return;
-                }
-                initAudio();
-                const osc = audioContext.createOscillator();
-                const gain = audioContext.createGain();
-                osc.frequency.value = 800;
-                gain.gain.value = 0.4;
-                osc.connect(gain).connect(audioContext.destination);
-                osc.start();
-                osc.stop(audioContext.currentTime + 0.05);
-            }, interval);
-        }
-
         function playClick(count = 4) {
             if (!clickOn) return;
             initAudio();
             let clicksLeft = count;
-            const interval = 60000 / currentBPM;
+            const bpm = currentBPM;
+            const interval = 60000 / bpm;
 
             const playOne = () => {
                 const osc = audioContext.createOscillator();
@@ -263,7 +245,6 @@
                 track.audio.currentTime = 0;
                 track.audio.play().catch(() => {});
             });
-            startContinuousClick();
         }
 
         function stopAllAudio() {
@@ -271,12 +252,10 @@
                 track.audio.pause();
                 track.audio.currentTime = 0;
             });
-            if (clickInterval) clearInterval(clickInterval);
         }
 
         function pauseAllAudio() {
             audioTracks.forEach(track => track.audio.pause());
-            if (clickInterval) clearInterval(clickInterval);
         }
 
         function startSong() {
@@ -371,20 +350,18 @@
         }
 
         function scrollLyrics(elapsed) {
-            if (!song || !audioTracks[0] || !audioTracks[0].audio.duration) {
-                document.getElementById("lyricsInner").style.transform = `translateY(-${elapsed * 4}px)`;
-                return;
-            }
-            const trackDuration = audioTracks[0].audio.duration || 180;
-            const scrollSpeed = 240 / trackDuration;   // tuned for ~90% slower than before
-            document.getElementById("lyricsInner").style.transform = `translateY(-${elapsed * scrollSpeed}px)`;
+            const offset = song && song.lyricOffset !== undefined ? song.lyricOffset : 0;
+            const adjusted = Math.max(0, elapsed - offset);
+            document.getElementById("lyricsInner").style.transform = `translateY(-${adjusted * 4}px)`;
         }
 
         function updateHighlight(elapsed) {
+            const offset = song && song.lyricOffset !== undefined ? song.lyricOffset : 0;
+            const adjusted = Math.max(0, elapsed - offset);
             if (!song?.lines) return;
             let activeIndex = -1;
             for (let i = 0; i < song.lines.length; i++) {
-                if (elapsed >= song.lines[i].time) activeIndex = i;
+                if (adjusted >= song.lines[i].time) activeIndex = i;
                 else break;
             }
             if (activeIndex >= 0) document.getElementById("bigChord").innerText = song.lines[activeIndex].chord || '';
@@ -433,7 +410,7 @@
                 };
                 container.appendChild(div);
 
-                if (hasAudio && i === expandedSongIndex) {
+                if (i === expandedSongIndex) {
                     const sub = document.createElement('div');
                     sub.className = 'track-subpanel';
 
@@ -455,6 +432,19 @@
                         });
                     }
 
+                    // Vocals Start Offset row
+                    const offsetRow = document.createElement('div');
+                    offsetRow.className = 'track-row';
+                    offsetRow.style.borderTop = '1px solid #444';
+                    offsetRow.style.marginTop = '8px';
+                    offsetRow.style.paddingTop = '8px';
+                    offsetRow.innerHTML = `
+                        <label>Vocals Start Offset (sec)</label>
+                        <input type="number" id="vocalOffsetInput" value="${song && song.lyricOffset !== undefined ? song.lyricOffset : 0}" step="0.1" style="width:80px;">
+                        <button onclick="saveVocalOffset()" class="sleek-btn" style="width:60px;">Save</button>
+                    `;
+                    sub.appendChild(offsetRow);
+
                     const clickRow = document.createElement('div');
                     clickRow.className = 'track-row';
                     clickRow.style.borderTop = '1px solid #444';
@@ -470,6 +460,13 @@
                     container.appendChild(sub);
                 }
             });
+        }
+
+        function saveVocalOffset() {
+            if (!song) return;
+            const input = document.getElementById('vocalOffsetInput');
+            song.lyricOffset = parseFloat(input.value) || 0;
+            renderSetlist();
         }
 
         function toggleDropdown(index) {
@@ -522,8 +519,10 @@
             let elapsed = playing && audioTracks.length > 0 && audioTracks[0].audio 
                 ? audioTracks[0].audio.currentTime 
                 : (playing ? (Date.now() - startTime) / 1000 : pausedElapsed);
-            updateHighlight(elapsed);
-            scrollLyrics(elapsed);
+            const offset = song && song.lyricOffset !== undefined ? song.lyricOffset : 0;
+            const adjusted = Math.max(0, elapsed - offset);
+            updateHighlight(adjusted);
+            scrollLyrics(adjusted);
             updateTimeDisplay();
         }, 40);
 
@@ -531,7 +530,7 @@
             document.getElementById('modal').style.display = 'none';
             document.getElementById('midiMapModal').style.display = 'none';
             loadSetlist();
-            console.log('%c🎸 Guitar Stage Teleprompter – Click track continuous + header shifted + slower adaptive scrolling', 'color:#00cc77;font-size:18px');
+            console.log('%c🎸 Guitar Stage Teleprompter – Vocals Start Offset added for perfect sync', 'color:#00cc77;font-size:18px');
         };
     </script>
 </body>
