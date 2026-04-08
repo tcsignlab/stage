@@ -158,7 +158,7 @@
         let clickOn = true;
         let expandedSongIndex = -1;
 
-        let currentBPM = 120;   // ← NEW: always holds the current song's BPM
+        let currentBPM = 120;
 
         let midiCCPrev = parseInt(localStorage.getItem('midiCCPrev')) || 120;
         let midiCCStop = parseInt(localStorage.getItem('midiCCStop')) || 121;
@@ -219,7 +219,7 @@
             if (!clickOn) return;
             initAudio();
             let clicksLeft = count;
-            const bpm = currentBPM;   // ← Now always uses the current song's BPM
+            const bpm = currentBPM;
             const interval = 60000 / bpm;
 
             const playOne = () => {
@@ -311,7 +311,7 @@
             try {
                 const res = await fetch("songs/" + filename);
                 song = await res.json();
-                currentBPM = song.bpm || 120;   // ← UPDATE BPM for this song
+                currentBPM = song.bpm || 120;
                 document.getElementById("currentSong").innerText = `${entry.artist || ''} ${entry.title || filename.replace('.json','')}`.trim();
                 renderLyrics();
                 renderSetlist();
@@ -388,12 +388,11 @@
             const container = document.getElementById('setlistItems');
             container.innerHTML = '';
             setlist.forEach((entry, i) => {
-                const hasAudio = entry.audio && Array.isArray(entry.audio) && entry.audio.length > 0;
                 const div = document.createElement('div');
                 div.className = `setlist-item ${i === currentSongIndex ? 'current' : ''}`;
                 div.innerHTML = `
                     <strong>${i+1}.</strong> ${entry.artist} – ${entry.title}
-                    ${hasAudio ? `<span class="dropdown-arrow" onclick="event.stopImmediatePropagation();toggleDropdown(${i});">${i === expandedSongIndex ? '▲' : '▼'}</span>` : ''}
+                    <span class="dropdown-arrow" onclick="event.stopImmediatePropagation();toggleDropdown(${i});">${i === expandedSongIndex ? '▲' : '▼'}</span>
                 `;
                 div.onclick = (e) => {
                     if (e.target.classList.contains('dropdown-arrow')) return;
@@ -403,7 +402,7 @@
                 };
                 container.appendChild(div);
 
-                if (hasAudio && i === expandedSongIndex) {
+                if (i === expandedSongIndex) {
                     const sub = document.createElement('div');
                     sub.className = 'track-subpanel';
 
@@ -423,6 +422,11 @@
                             };
                             sub.appendChild(row);
                         });
+                    } else {
+                        const noTracks = document.createElement('div');
+                        noTracks.style.opacity = '0.6';
+                        noTracks.textContent = 'No backing tracks for this song';
+                        sub.appendChild(noTracks);
                     }
 
                     const clickRow = document.createElement('div');
@@ -446,7 +450,7 @@
             expandedSongIndex = (expandedSongIndex === index) ? -1 : index;
             if (expandedSongIndex === index) {
                 currentSongIndex = index;
-                loadSong();
+                loadSong();   // ← This ensures the song (and its audio array) is loaded
             } else {
                 renderSetlist();
             }
@@ -501,7 +505,7 @@
             document.getElementById('modal').style.display = 'none';
             document.getElementById('midiMapModal').style.display = 'none';
             loadSetlist();
-            console.log('%c🎸 Guitar Stage Teleprompter – Click track BPM now syncs perfectly per song', 'color:#00cc77;font-size:18px');
+            console.log('%c🎸 Guitar Stage Teleprompter – Dropdown arrows & audio mixer fixed', 'color:#00cc77;font-size:18px');
         };
     </script>
 </body>
