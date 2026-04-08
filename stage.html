@@ -6,6 +6,537 @@
     <title>Guitar Stage Teleprompter</title>
     <style>
         body{background:black;color:white;font-family:Arial;overflow:hidden;margin:0;padding:0;}
+        #topBar{position:fixed;top:0;width:100%;display:flex;align-items:center;gap:20px;padding:12px 30px 12px 20px;font-size:28px;background:rgba(0,0,0,0.95);z-index:100;box-shadow:0 4px 20px rgba(0,0,0,0.8);}
+        #chordMask{position:fixed;top:80px;left:0;width:100%;height:560px;background:linear-gradient(to bottom, black 78%, transparent 92%);z-index:90;pointer-events:none;}
+        #bigChordContainer{position:fixed;top:110px;left:60%;transform:translateX(-50%);display:flex;align-items:center;gap:60px;z-index:95;}
+        #bigChord{font-size:clamp(140px,22vw,320px);font-weight:bold;color:#00cc77;text-shadow:0 0 40px #00cc77;pointer-events:none;line-height:1;}
+        #nextChord{font-size:clamp(60px,9.6vw,132px);font-weight:bold;color:#00cc77;text-shadow:0 0 25px #00cc77;opacity:0.5;transition:opacity .4s;}
+        #nextChord.active{opacity:1;text-shadow:0 0 40px #00cc77;}
+        #arrowBetween{font-size:clamp(50px,7vw,110px);color:#00cc77;opacity:0.7;}
+        #currentSongContainer{flex:1;min-width:0;display:flex;align-items:center;}
+        #currentSong{font-size:26px;font-weight:bold;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+        #nextSongContainer{flex:0 0 auto;font-size:22px;opacity:0.85;white-space:nowrap;}
+        #songTime{font-family:monospace;font-size:22px;color:#0f0;margin-left:20px;min-width:130px;text-align:right;}
+        .sleek-btn{background:#1f1f1f;color:#e5e5e5;border:1px solid #444;padding:10px 20px;font-size:16px;font-weight:500;border-radius:9999px;cursor:pointer;transition:all .25s cubic-bezier(0.4,0,0.2,1);box-shadow:0 3px 10px rgba(0,0,0,.4);}
+        .sleek-btn:hover{background:#2a2a2a;border-color:#00cc77;color:#fff;transform:translateY(-1px);}
+        .sleek-btn.primary{background:#00aa66;color:#111;border:none;font-weight:700;}
+        #transportBar{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:rgba(15,15,15,.95);border:2px solid #222;border-radius:9999px;padding:8px 16px;display:flex;gap:8px;z-index:110;box-shadow:0 8px 30px rgba(0,0,0,.7);}
+        #lyricsContainer{position:absolute;top:560px;bottom:100px;left:380px;right:20px;overflow:hidden;text-align:center;font-size:clamp(24px,3vw,38px);line-height:1.6;padding:30px 60px;z-index:10;color:#ddd;}
+        #lyricsInner{position:relative;transition:transform .05s linear;}
+        .line{margin:26px 0;padding:8px 20px;border-radius:8px;}
+        .chord{font-weight:bold;color:#aaa;display:inline-block;min-width:120px;margin-right:18px;transition:all .2s;}
+        .chord.active{color:#00cc77;text-shadow:0 0 20px #00cc77;}
+        .section{color:#00cc77 !important;font-weight:bold;font-size:1.4em;margin:36px 0 16px 0;text-shadow:0 0 18px #00cc77;}
+        #modal,#midiMapModal{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.95);z-index:1000;align-items:center;justify-content:center;}
+        #modal-content,#midiMapContent{background:#111;padding:30px;border-radius:12px;width:92%;max-width:920px;max-height:94vh;overflow-y:auto;box-shadow:0 0 40px rgba(0,204,119,0.3);}
+        #modal-content label,#midiMapContent label{display:block;margin:14px 0 6px;font-size:18px;font-weight:bold;}
+        #modal-content input,#modal-content textarea,#midiMapContent input{width:100%;padding:12px;background:#222;color:#0f0;border:2px solid #333;border-radius:6px;font-family:monospace;font-size:16px;}
+        #modal-content textarea{height:240px;resize:vertical;}
+        #setlistPanel{position:fixed;left:20px;top:100px;width:340px;height:calc(100vh - 160px);background:rgba(15,15,15,.95);border:2px solid #222;border-radius:16px;padding:20px;overflow-y:auto;z-index:200;box-shadow:0 0 30px rgba(0,0,0,.6);color:white;display:block !important;}
+        .setlist-header{display:flex;align-items:center;margin-bottom:16px;color:#ddd;}
+        .setlist-item{padding:14px 18px;margin:6px 0;border-radius:8px;cursor:pointer;transition:all .2s ease;position:relative;}
+        .setlist-item:hover{background:#222;}
+        .setlist-item.current{background:#00aa66;color:#111;font-weight:bold;box-shadow:0 0 12px #00cc77;}
+        .dropdown-arrow{position:absolute;right:18px;top:14px;cursor:pointer;font-size:18px;color:#0f0;}
+        .track-subpanel{margin:8px 0 8px 15px;background:rgba(0,0,0,0.4);padding:18px;border-radius:8px;width:295px;}
+        .track-row{display:flex;align-items:center;gap:8px;margin:10px 0;}
+        .track-row label{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+    </style>
+</head>
+<body>
+
+    <div id="topBar">
+        <div id="currentSongContainer"><span id="currentSong">No song loaded</span></div>
+        <div id="nextSongContainer">Next: <span id="nextSong">—</span></div>
+        <div id="songTime">0:00 / 0:00</div>
+        <div class="top-controls" style="margin-left:-35px;">
+            <button onclick="toggleModal()" class="sleek-btn primary">📥 Import</button>
+            <button onclick="toggleMidiMap()" class="sleek-btn">⚙️ MIDI Map</button>
+            <button onclick="toggleLayout()" class="sleek-btn" id="layoutBtn">📐 Auto</button>
+            <button onclick="toggleFullscreen()" class="sleek-btn">⛶ Full</button>
+        </div>
+    </div>
+
+    <div id="chordMask"></div>
+    <div id="bigChordContainer">
+        <div id="bigChord"></div>
+        <span id="arrowBetween">→</span>
+        <div id="nextChord">—</div>
+    </div>
+
+    <div id="lyricsContainer"><div id="lyricsInner"></div></div>
+
+    <div id="transportBar">
+        <button onclick="previousSong()" class="sleek-btn">⏮ PREV</button>
+        <button onclick="stopSong()" class="sleek-btn">⏹ STOP</button>
+        <button onclick="togglePlayPause()" class="sleek-btn play-btn" id="transportPlayBtn">▶️ PLAY</button>
+        <button onclick="nextSong()" class="sleek-btn">⏭ NEXT</button>
+    </div>
+
+    <!-- Import Modal -->
+    <div id="modal">
+        <div id="modal-content">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+                <h2 style="margin:0;color:#ddd;">🚀 Auto-Import Chord Chart</h2>
+                <button onclick="closeModal()" style="background:none;border:none;font-size:32px;color:#aaa;cursor:pointer;line-height:1;">×</button>
+            </div>
+            <p style="margin-bottom:22px;opacity:0.8;">Paste full chord chart exactly as it appears.<br><strong>Structure is preserved 100%.</strong></p>
+            
+            <label>Song Title</label>
+            <input id="importTitle" type="text" value="New Song" placeholder="Song Title">
+            <label>Artist</label>
+            <input id="importArtist" type="text" value="Unknown Artist" placeholder="Artist Name">
+            <label>BPM</label>
+            <input id="importBpm" type="number" value="120" min="40" max="240">
+            <label>Paste Chord Chart</label>
+            <textarea id="chartPaste" placeholder="Paste the entire chord chart here..."></textarea>
+            <label>Or upload .txt file</label>
+            <input type="file" id="chartFile" accept=".txt" onchange="handleFileUpload(event)">
+            
+            <div style="margin:24px 0;display:flex;gap:12px;">
+                <button onclick="parseAndImport()" class="sleek-btn primary">Parse &amp; Preview</button>
+                <button onclick="closeModal()" class="sleek-btn">Cancel</button>
+            </div>
+            <div id="preview"></div>
+            <div id="jsonPreview" style="display:none;"></div>
+            
+            <div style="margin-top:20px;display:flex;gap:12px;flex-wrap:wrap;">
+                <button id="downloadBtn" onclick="downloadSongJSON()" style="display:none;" class="sleek-btn primary">⬇️ Download song.json</button>
+                <button id="tempLoadBtn" onclick="loadTempSongNow()" style="display:none;" class="sleek-btn">▶️ Preview NOW</button>
+                <button onclick="closeModal()" class="sleek-btn">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MIDI Map Modal -->
+    <div id="midiMapModal">
+        <div id="midiMapContent">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+                <h2 style="margin:0;color:#ddd;">⚙️ MIDI Footswitch Routing</h2>
+                <button onclick="closeMidiMap()" style="background:none;border:none;font-size:32px;color:#aaa;cursor:pointer;line-height:1;">×</button>
+            </div>
+            <p style="margin-bottom:22px;opacity:0.8;">Assign CC numbers (0-127) for your footswitch.<br>Defaults: 120=Prev • 121=Stop • 122=Play/Pause • 123=Next • 124=Click On/Off</p>
+            
+            <label>CC for PREV SONG</label>
+            <input id="ccPrev" type="number" min="0" max="127" value="120">
+            <label>CC for STOP</label>
+            <input id="ccStop" type="number" min="0" max="127" value="121">
+            <label>CC for PLAY / PAUSE</label>
+            <input id="ccPlay" type="number" min="0" max="127" value="122">
+            <label>CC for NEXT SONG</label>
+            <input id="ccNext" type="number" min="0" max="127" value="123">
+            <label>CC for CLICK ON/OFF</label>
+            <input id="ccClick" type="number" min="0" max="127" value="124">
+            
+            <div style="margin:24px 0;display:flex;gap:12px;">
+                <button onclick="saveMidiMap()" class="sleek-btn primary">Save Mapping</button>
+                <button onclick="closeMidiMap()" class="sleek-btn">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Setlist Panel -->
+    <div id="setlistPanel">
+        <div class="setlist-header">
+            <h3 style="margin:0;">📜 SETLIST</h3>
+            <button onclick="toggleSetlistPanel()" class="sleek-btn" style="margin-left:auto;background:none;border:none;color:#ddd;font-size:28px;padding:4px 12px;box-shadow:none;">✕</button>
+        </div>
+        <div id="setlistItems"></div>
+    </div>
+
+    <script>
+        let setlist = [];
+        let currentSongIndex = 0;
+        let song = null;
+        let startTime = null;
+        let pausedElapsed = 0;
+        let playing = false;
+        let currentSongData = null;
+        let layoutMode = localStorage.getItem('teleprompterLayout') || 'auto';
+
+        let audioTracks = [];
+        let audioContext = null;
+        let clickOn = true;
+        let expandedSongIndex = -1;
+        let currentBPM = 120;
+
+        let midiCCPrev = parseInt(localStorage.getItem('midiCCPrev')) || 120;
+        let midiCCStop = parseInt(localStorage.getItem('midiCCStop')) || 121;
+        let midiCCPlay = parseInt(localStorage.getItem('midiCCPlay')) || 122;
+        let midiCCNext = parseInt(localStorage.getItem('midiCCNext')) || 123;
+        let midiCCClick = parseInt(localStorage.getItem('midiCCClick')) || 124;
+        let midiClock = {bpm: 0, lastTick: 0};
+
+        function handleMidi(msg) {
+            const status = msg.data[0];
+            const data1 = msg.data[1];
+            if (status === 248) {
+                const now = performance.now();
+                if (midiClock.lastTick) midiClock.bpm = Math.round(60000 / ((now - midiClock.lastTick) * 24));
+                midiClock.lastTick = now;
+            }
+            if (status === 176) {
+                if (data1 === midiCCPrev) previousSong();
+                if (data1 === midiCCStop) pauseSong();
+                if (data1 === midiCCPlay) togglePlayPause();
+                if (data1 === midiCCNext) nextSong();
+                if (data1 === midiCCClick) toggleClickTrack();
+            }
+        }
+        navigator.requestMIDIAccess().then(midi => {
+            for (let input of midi.inputs.values()) input.onmidimessage = handleMidi;
+        }).catch(() => {});
+
+        function initAudio() {
+            if (!audioContext) audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        }
+
+        function loadAudioTracks() {
+            audioTracks.forEach(t => t.audio.pause());
+            audioTracks = [];
+            if (!song || !song.audio || !Array.isArray(song.audio) || song.audio.length === 0) return;
+
+            song.audio.forEach((track, i) => {
+                const audio = new Audio("songs/" + track.file);
+                audio.loop = true;
+                audio.volume = 1.0;
+                audioTracks.push({name: track.name, audio: audio});
+            });
+        }
+
+        function soloTrack(index) {
+            audioTracks.forEach((track, i) => {
+                track.audio.volume = (i === index) ? 1 : 0;
+            });
+        }
+
+        function toggleClickTrack() {
+            clickOn = !clickOn;
+            renderSetlist();
+        }
+
+        function playClick(count = 4) {
+            if (!clickOn) return;
+            initAudio();
+            let clicksLeft = count;
+            const bpm = currentBPM;
+            const interval = 60000 / bpm;
+
+            const playOne = () => {
+                const osc = audioContext.createOscillator();
+                const gain = audioContext.createGain();
+                osc.frequency.value = 800;
+                gain.gain.value = 0.65;
+                osc.connect(gain).connect(audioContext.destination);
+                osc.start();
+                osc.stop(audioContext.currentTime + 0.05);
+                clicksLeft--;
+                if (clicksLeft > 0) setTimeout(playOne, interval);
+                else startBackingTracks();
+            };
+            playOne();
+        }
+
+        function startBackingTracks() {
+            audioTracks.forEach(track => {
+                track.audio.currentTime = 0;
+                track.audio.play().catch(() => {});
+            });
+        }
+
+        function stopAllAudio() {
+            audioTracks.forEach(track => {
+                track.audio.pause();
+                track.audio.currentTime = 0;
+            });
+        }
+
+        function pauseAllAudio() {
+            audioTracks.forEach(track => track.audio.pause());
+        }
+
+        function startSong() {
+            initAudio();
+            pauseSong();
+            startTime = Date.now();
+            playing = true;
+            document.getElementById('transportPlayBtn').innerHTML = '⏸️ PAUSE';
+            playClick(4);
+        }
+
+        function pauseSong() {
+            playing = false;
+            pausedElapsed = (Date.now() - startTime) / 1000;
+            pauseAllAudio();
+            document.getElementById('transportPlayBtn').innerHTML = '▶️ PLAY';
+        }
+
+        function stopSong() {
+            playing = false;
+            pausedElapsed = 0;
+            startTime = null;
+            document.getElementById('transportPlayBtn').innerHTML = '▶️ PLAY';
+            document.getElementById("bigChord").innerText = '';
+            document.getElementById("nextChord").textContent = '—';
+            document.getElementById("lyricsInner").style.transform = 'translateY(0px)';
+            stopAllAudio();
+            renderLyrics();
+        }
+
+        function togglePlayPause() {
+            if (playing) pauseSong();
+            else startSong();
+        }
+
+        function previousSong() { currentSongIndex = (currentSongIndex - 1 + setlist.length) % setlist.length; loadSong(); }
+        function nextSong() { currentSongIndex = (currentSongIndex + 1) % setlist.length; loadSong(); }
+
+        async function loadSetlist() {
+            try {
+                const res = await fetch("setlist.json");
+                if (!res.ok) throw new Error();
+                setlist = await res.json();
+            } catch(e) {
+                console.error("setlist.json not found");
+                setlist = [];
+            }
+            renderSetlist();
+            loadSong();
+        }
+
+        async function loadSong() {
+            if (setlist.length === 0) return;
+            const entry = setlist[currentSongIndex];
+            const filename = entry.file || entry;
+            try {
+                const res = await fetch("songs/" + filename);
+                song = await res.json();
+                currentBPM = song.bpm || 120;
+                document.getElementById("currentSong").innerText = `${entry.artist || ''} ${entry.title || filename.replace('.json','')}`.trim();
+                renderLyrics();
+                renderSetlist();
+                loadAudioTracks();
+            } catch(e) {
+                const entry = setlist[currentSongIndex];
+                document.getElementById("currentSong").innerText = `${entry.artist || ''} ${entry.title || 'Unknown'} (chart missing)`;
+                song = {title: "Missing Chart", lines: []};
+                currentBPM = 120;
+                renderLyrics();
+                renderSetlist();
+            }
+        }
+
+        function renderLyrics() {
+            const inner = document.getElementById("lyricsInner");
+            inner.innerHTML = "";
+            if (!song?.lines || song.lines.length === 0) {
+                const msg = document.createElement("div");
+                msg.style.opacity = "0.4"; msg.style.fontStyle = "italic";
+                msg.textContent = "(no chart loaded – import one above)";
+                inner.appendChild(msg);
+                return;
+            }
+            song.lines.forEach((line, i) => {
+                const div = document.createElement("div");
+                div.className = line.isSection ? "line section" : "line";
+                div.innerHTML = line.isSection 
+                    ? `<span class="chord" data-index="${i}">${line.lyric}</span>` 
+                    : `<span class="chord" data-index="${i}">${line.chord || ''}</span> ${line.lyric || ''}`;
+                inner.appendChild(div);
+            });
+        }
+
+        function scrollLyrics(elapsed) {
+            const offset = song && song.lyricOffset !== undefined ? song.lyricOffset : 0;
+            const adjusted = Math.max(0, elapsed - offset);
+            document.getElementById("lyricsInner").style.transform = `translateY(-${adjusted * 6.4}px)`;
+        }
+
+        function updateHighlight(elapsed) {
+            const offset = song && song.lyricOffset !== undefined ? song.lyricOffset : 0;
+            const adjusted = Math.max(0, elapsed - offset);
+            if (!song?.lines) return;
+            let activeIndex = -1;
+            for (let i = 0; i < song.lines.length; i++) {
+                if (adjusted >= song.lines[i].time) activeIndex = i;
+                else break;
+            }
+            if (activeIndex >= 0) document.getElementById("bigChord").innerText = song.lines[activeIndex].chord || '';
+            const nextIndex = activeIndex + 1;
+            const nextChordEl = document.getElementById("nextChord");
+            if (nextIndex < song.lines.length) {
+                nextChordEl.textContent = song.lines[nextIndex].chord || '';
+                nextChordEl.classList.remove('active');
+            } else {
+                nextChordEl.textContent = '—';
+                nextChordEl.classList.remove('active');
+            }
+            document.querySelectorAll('.chord').forEach(chord => {
+                chord.classList.toggle('active', parseInt(chord.dataset.index) === activeIndex);
+            });
+        }
+
+        function updateTimeDisplay() {
+            if (!song) {
+                document.getElementById('songTime').textContent = "0:00 / 0:00";
+                return;
+            }
+            let elapsed = playing ? (Date.now() - startTime) / 1000 : pausedElapsed;
+            const total = song.lines.length ? song.lines[song.lines.length-1].time + 20 : 0;
+            const elapsedStr = `${Math.floor(elapsed/60)}:${(Math.floor(elapsed)%60).toString().padStart(2,'0')}`;
+            const totalStr = `${Math.floor(total/60)}:${(total%60).toString().padStart(2,'0')}`;
+            document.getElementById('songTime').textContent = `${elapsedStr} / ${totalStr}`;
+        }
+
+        function renderSetlist() {
+            const container = document.getElementById('setlistItems');
+            container.innerHTML = '';
+            setlist.forEach((entry, i) => {
+                const div = document.createElement('div');
+                div.className = `setlist-item ${i === currentSongIndex ? 'current' : ''}`;
+                div.innerHTML = `
+                    <strong>${i+1}.</strong> ${entry.artist} – ${entry.title}
+                    <span class="dropdown-arrow" onclick="event.stopImmediatePropagation();toggleDropdown(${i});">${i === expandedSongIndex ? '▲' : '▼'}</span>
+                `;
+                div.onclick = (e) => {
+                    if (e.target.classList.contains('dropdown-arrow')) return;
+                    stopSong();
+                    currentSongIndex = i;
+                    loadSong();
+                };
+                container.appendChild(div);
+
+                if (i === expandedSongIndex) {
+                    const sub = document.createElement('div');
+                    sub.className = 'track-subpanel';
+
+                    if (song && song.audio && Array.isArray(song.audio) && song.audio.length > 0) {
+                        song.audio.forEach((track, trackIdx) => {
+                            const row = document.createElement('div');
+                            row.className = 'track-row';
+                            row.innerHTML = `
+                                <label>${track.name}</label>
+                                <input type="range" min="0" max="1" step="0.01" value="1" style="width:120px;">
+                                <button onclick="this.parentElement.querySelector('input').value=0;this.parentElement.querySelector('input').dispatchEvent(new Event('input'))" style="width:40px;">Mute</button>
+                                <button onclick="soloTrack(${trackIdx});" style="width:40px;">Solo</button>
+                            `;
+                            row.querySelector('input').oninput = (e) => {
+                                const audioObj = audioTracks.find(a => a.name === track.name);
+                                if (audioObj) audioObj.audio.volume = parseFloat(e.target.value);
+                            };
+                            sub.appendChild(row);
+                        });
+                    }
+
+                    const offsetRow = document.createElement('div');
+                    offsetRow.className = 'track-row';
+                    offsetRow.style.borderTop = '1px solid #444';
+                    offsetRow.style.marginTop = '8px';
+                    offsetRow.style.paddingTop = '8px';
+                    offsetRow.innerHTML = `
+                        <label>Vocals Start Offset (sec)</label>
+                        <input type="number" id="vocalOffsetInput" value="${song && song.lyricOffset !== undefined ? song.lyricOffset : 0}" step="0.1" style="width:90px;">
+                        <button onclick="saveVocalOffset()" class="sleek-btn" style="width:60px;">Save</button>
+                    `;
+                    sub.appendChild(offsetRow);
+
+                    const clickRow = document.createElement('div');
+                    clickRow.className = 'track-row';
+                    clickRow.style.borderTop = '1px solid #444';
+                    clickRow.style.marginTop = '8px';
+                    clickRow.style.paddingTop = '8px';
+                    clickRow.innerHTML = `
+                        <label>Click Track</label>
+                        <button onclick="toggleClickTrack()" class="sleek-btn" style="width:80px;">${clickOn ? 'ON' : 'OFF'}</button>
+                        <input type="range" id="clickVolume" min="0" max="1" step="0.01" value="0.65" style="width:120px;">
+                    `;
+                    sub.appendChild(clickRow);
+
+                    container.appendChild(sub);
+                }
+            });
+        }
+
+        function saveVocalOffset() {
+            if (!song) return;
+            const input = document.getElementById('vocalOffsetInput');
+            song.lyricOffset = parseFloat(input.value) || 0;
+            renderSetlist();
+        }
+
+        function toggleDropdown(index) {
+            expandedSongIndex = (expandedSongIndex === index) ? -1 : index;
+            if (expandedSongIndex === index) {
+                currentSongIndex = index;
+                loadSong();
+            } else {
+                renderSetlist();
+            }
+        }
+
+        function toggleSetlistPanel() { const p = document.getElementById('setlistPanel'); p.style.display = p.style.display === 'none' ? 'block' : 'none'; }
+        function toggleFullscreen() { if (!document.fullscreenElement) document.documentElement.requestFullscreen(); else document.exitFullscreen(); }
+        function toggleLayout() {
+            if (layoutMode === 'auto') layoutMode = 'wide';
+            else if (layoutMode === 'wide') layoutMode = 'portrait';
+            else layoutMode = 'auto';
+            localStorage.setItem('teleprompterLayout', layoutMode);
+            document.body.classList.toggle('force-wide', layoutMode === 'wide');
+            document.body.classList.toggle('force-portrait', layoutMode === 'portrait');
+            const btn = document.getElementById('layoutBtn');
+            btn.textContent = layoutMode === 'auto' ? '📐 Auto' : layoutMode === 'wide' ? '📐 Wide' : '📐 Portrait';
+        }
+
+        function toggleModal() { document.getElementById('modal').style.display = 'flex'; }
+        function closeModal() { document.getElementById('modal').style.display = 'none'; }
+        function toggleMidiMap() { document.getElementById('midiMapModal').style.display = 'flex'; }
+        function closeMidiMap() { document.getElementById('midiMapModal').style.display = 'none'; }
+        function saveMidiMap() {
+            midiCCPrev = parseInt(document.getElementById('ccPrev').value) || 120;
+            midiCCStop = parseInt(document.getElementById('ccStop').value) || 121;
+            midiCCPlay = parseInt(document.getElementById('ccPlay').value) || 122;
+            midiCCNext = parseInt(document.getElementById('ccNext').value) || 123;
+            midiCCClick = parseInt(document.getElementById('ccClick').value) || 124;
+            localStorage.setItem('midiCCPrev', midiCCPrev);
+            localStorage.setItem('midiCCStop', midiCCStop);
+            localStorage.setItem('midiCCPlay', midiCCPlay);
+            localStorage.setItem('midiCCNext', midiCCNext);
+            localStorage.setItem('midiCCClick', midiCCClick);
+            alert("✅ MIDI CC mapping saved!");
+            closeMidiMap();
+        }
+
+        setInterval(() => {
+            if (!song?.lines) {
+                updateTimeDisplay();
+                return;
+            }
+            let elapsed = playing && audioTracks.length > 0 && audioTracks[0].audio 
+                ? audioTracks[0].audio.currentTime 
+                : (playing ? (Date.now() - startTime) / 1000 : pausedElapsed);
+            const offset = song && song.lyricOffset !== undefined ? song.lyricOffset : 0;
+            const adjusted = Math.max(0, elapsed - offset);
+            updateHighlight(adjusted);
+            scrollLyrics(adjusted);
+            updateTimeDisplay();
+        }, 40);
+
+        window.onload = () => {
+            document.getElementById('modal').style.display = 'none';
+            document.getElementById('midiMapModal').style.display = 'none';
+            loadSetlist();
+            console.log('%c🎸 Guitar Stage Teleprompter – Audio mixer fits in setlist + header shifted left 10%', 'color:#00cc77;font-size:18px');
+        };
+    </script>
+</body>
+</html><!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Guitar Stage Teleprompter</title>
+    <style>
+        body{background:black;color:white;font-family:Arial;overflow:hidden;margin:0;padding:0;}
         #topBar{position:fixed;top:0;width:100%;display:flex;align-items:center;gap:20px;padding:12px 30px;font-size:28px;background:rgba(0,0,0,0.95);z-index:100;box-shadow:0 4px 20px rgba(0,0,0,0.8);}
         #chordMask{position:fixed;top:80px;left:0;width:100%;height:560px;background:linear-gradient(to bottom, black 78%, transparent 92%);z-index:90;pointer-events:none;}
         #bigChordContainer{position:fixed;top:110px;left:60%;transform:translateX(-50%);display:flex;align-items:center;gap:60px;z-index:95;}
