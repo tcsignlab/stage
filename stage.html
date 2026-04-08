@@ -4,160 +4,34 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Guitar Stage Teleprompter</title>
-    <link rel="stylesheet" href="css/stage.css">
     <style>
-        body{
-            background:black;
-            color:white;
-            font-family:Arial;
-            overflow:hidden;
-            margin:0;
-            padding:0;
-        }
-
-        #topBar{
-            position:fixed;
-            top:0;
-            width:100%;
-            display:flex;
-            align-items:center;
-            gap:20px;
-            padding:12px 30px;
-            font-size:28px;
-            background:rgba(0,0,0,0.95);
-            z-index:100;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.8);
-        }
-        #chordMask {
-            position:fixed;
-            top:80px;
-            left:0;
-            width:100%;
-            height:420px;
-            background:linear-gradient(black, transparent 80%);
-            z-index:90;
-            pointer-events:none;
-        }
-        #bigChord{
-            position:fixed;
-            top:110px;
-            width:100%;
-            font-size: clamp(140px, 22vw, 320px);
-            font-weight:bold;
-            color:#00cc77;
-            text-align:center;
-            z-index:95;
-            text-shadow: 0 0 40px #00cc77;
-            pointer-events:none;
-            line-height:1;
-        }
-
-        #currentSongContainer { flex:1; min-width:0; display:flex; align-items:center; }
-        #currentSong { font-size:26px; font-weight:bold; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-        #nextSongContainer { flex:0 0 auto; font-size:22px; opacity:0.85; white-space:nowrap; }
-
-        .sleek-btn {
-            background:#1f1f1f;
-            color:#e5e5e5;
-            border:1px solid #444;
-            padding:10px 20px;
-            font-size:16px;
-            font-weight:500;
-            border-radius:9999px;
-            cursor:pointer;
-            transition:all .25s cubic-bezier(0.4,0,0.2,1);
-            box-shadow:0 3px 10px rgba(0,0,0,.4);
-        }
-        .sleek-btn:hover { background:#2a2a2a; border-color:#00cc77; color:#fff; transform:translateY(-1px); }
-        .sleek-btn.primary { background:#00aa66; color:#111; border:none; font-weight:700; }
-
-        #transportBar {
-            position:fixed;
-            bottom:20px;
-            left:50%;
-            transform:translateX(-50%);
-            background:rgba(15,15,15,.95);
-            border:2px solid #222;
-            border-radius:9999px;
-            padding:8px 16px;
-            display:flex;
-            gap:8px;
-            z-index:110;
-            box-shadow:0 8px 30px rgba(0,0,0,.7);
-        }
-
-        #lyricsContainer{
-            position:absolute;
-            top:520px;
-            bottom:120px;
-            left:0;
-            right:0;
-            overflow-y:auto;
-            text-align:center;
-            font-size: clamp(24px, 3vw, 38px);
-            line-height:1.55;
-            padding:0 60px 40px;
-            z-index:10;
-            color:#ddd;
-        }
-        .line{
-            margin:18px 0;
-            padding:8px 20px;
-            border-radius:8px;
-            transition:all .3s ease;
-        }
-        .line.current {
-            background:rgba(0,204,119,.15);
-            color:#fff;
-            font-weight:600;
-            box-shadow:0 0 25px rgba(0,204,119,.4);
-        }
-        .chord{
-            font-weight:bold;
-            color:#aaa;
-            display:inline-block;
-            min-width:100px;
-            margin-right:12px;
-        }
-
-        /* MODAL – FIXED & HARDENED */
-        #modal {
-            display: none !important; /* extra strong default */
-            position: fixed;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
-            background: rgba(0,0,0,0.95);
-            z-index: 1000;
-            align-items: center;
-            justify-content: center;
-        }
-        #modal-content {
-            background: #111;
-            padding: 30px;
-            border-radius: 12px;
-            width: 92%;
-            max-width: 920px;
-            max-height: 94vh;
-            overflow-y: auto;
-            box-shadow: 0 0 40px rgba(0,204,119,0.3);
-        }
-        #modal-content label { display:block; margin:14px 0 6px; font-size:18px; font-weight:bold; }
-        #modal-content input, #modal-content textarea {
-            width:100%; padding:12px; background:#222; color:#0f0; border:2px solid #333;
-            border-radius:6px; font-family:monospace; font-size:16px;
-        }
-        #modal-content textarea { height:240px; resize:vertical; }
+        body{background:black;color:white;font-family:Arial;overflow:hidden;margin:0;padding:0;}
+        #topBar{position:fixed;top:0;width:100%;display:flex;align-items:center;gap:20px;padding:12px 30px;font-size:28px;background:rgba(0,0,0,0.95);z-index:100;box-shadow:0 4px 20px rgba(0,0,0,0.8);}
+        #chordMask{position:fixed;top:80px;left:0;width:100%;height:420px;background:linear-gradient(black,transparent 80%);z-index:90;pointer-events:none;}
+        #bigChord{position:fixed;top:110px;width:100%;font-size:clamp(140px,22vw,320px);font-weight:bold;color:#00cc77;text-align:center;z-index:95;text-shadow:0 0 40px #00cc77;pointer-events:none;line-height:1;}
+        #currentSongContainer{flex:1;min-width:0;display:flex;align-items:center;}
+        #currentSong{font-size:26px;font-weight:bold;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+        #nextSongContainer{flex:0 0 auto;font-size:22px;opacity:0.85;white-space:nowrap;}
+        .sleek-btn{background:#1f1f1f;color:#e5e5e5;border:1px solid #444;padding:10px 20px;font-size:16px;font-weight:500;border-radius:9999px;cursor:pointer;transition:all .25s cubic-bezier(0.4,0,0.2,1);box-shadow:0 3px 10px rgba(0,0,0,.4);}
+        .sleek-btn:hover{background:#2a2a2a;border-color:#00cc77;color:#fff;transform:translateY(-1px);}
+        .sleek-btn.primary{background:#00aa66;color:#111;border:none;font-weight:700;}
+        #transportBar{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:rgba(15,15,15,.95);border:2px solid #222;border-radius:9999px;padding:8px 16px;display:flex;gap:8px;z-index:110;box-shadow:0 8px 30px rgba(0,0,0,.7);}
+        #lyricsContainer{position:absolute;top:520px;bottom:120px;left:0;right:0;overflow-y:auto;text-align:center;font-size:clamp(24px,3vw,38px);line-height:1.55;padding:0 60px 40px;z-index:10;color:#ddd;}
+        .line{margin:18px 0;padding:8px 20px;border-radius:8px;transition:all .3s ease;}
+        .line.current{background:rgba(0,204,119,.15);color:#fff;font-weight:600;box-shadow:0 0 25px rgba(0,204,119,.4);}
+        .chord{font-weight:bold;color:#aaa;display:inline-block;min-width:100px;margin-right:12px;}
+        #modal{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.95);z-index:1000;align-items:center;justify-content:center;}
+        #modal-content{background:#111;padding:30px;border-radius:12px;width:92%;max-width:920px;max-height:94vh;overflow-y:auto;box-shadow:0 0 40px rgba(0,204,119,0.3);}
+        #modal-content label{display:block;margin:14px 0 6px;font-size:18px;font-weight:bold;}
+        #modal-content input,#modal-content textarea{width:100%;padding:12px;background:#222;color:#0f0;border:2px solid #333;border-radius:6px;font-family:monospace;font-size:16px;}
+        #modal-content textarea{height:240px;resize:vertical;}
     </style>
 </head>
 <body>
+
     <div id="topBar">
-        <div id="currentSongContainer">
-            <span id="currentSong">No song loaded</span>
-        </div>
-        <div id="nextSongContainer">
-            Next: <span id="nextSong">—</span>
-        </div>
-        
+        <div id="currentSongContainer"><span id="currentSong">No song loaded</span></div>
+        <div id="nextSongContainer">Next: <span id="nextSong">—</span></div>
         <div class="top-controls">
             <button onclick="toggleModal()" class="sleek-btn primary">📥 Import</button>
             <button onclick="toggleMidiPanel()" class="sleek-btn">🎹 MIDI</button>
@@ -170,9 +44,7 @@
     <div id="chordMask"></div>
     <div id="bigChord"></div>
 
-    <div id="lyricsContainer">
-        <div id="lyrics"></div>
-    </div>
+    <div id="lyricsContainer"><div id="lyrics"></div></div>
 
     <div id="transportBar">
         <button onclick="previousSong()" class="sleek-btn">⏮ PREV</button>
@@ -181,42 +53,34 @@
         <button onclick="nextSong()" class="sleek-btn">⏭ NEXT</button>
     </div>
 
-    <!-- IMPORT MODAL – now guaranteed closed on startup -->
+    <!-- Import Modal -->
     <div id="modal">
         <div id="modal-content">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
-                <h2 style="margin:0; color:#ddd;">🚀 Auto-Import Chord Chart</h2>
-                <button onclick="closeModal()" style="background:none; border:none; font-size:32px; color:#aaa; cursor:pointer; line-height:1;">×</button>
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+                <h2 style="margin:0;color:#ddd;">🚀 Auto-Import Chord Chart</h2>
+                <button onclick="closeModal()" style="background:none;border:none;font-size:32px;color:#aaa;cursor:pointer;line-height:1;">×</button>
             </div>
-            <p style="margin-bottom:22px; opacity:0.8;">
-                Paste full chord chart exactly as it appears.<br>
-                <strong>Structure is preserved 100%.</strong>
-            </p>
+            <p style="margin-bottom:22px;opacity:0.8;">Paste full chord chart exactly as it appears.<br><strong>Structure is preserved 100%.</strong></p>
             
             <label>Song Title</label>
             <input id="importTitle" type="text" value="New Song" placeholder="Song Title">
-            
             <label>Artist</label>
             <input id="importArtist" type="text" value="Unknown Artist" placeholder="Artist Name">
-            
             <label>BPM</label>
             <input id="importBpm" type="number" value="120" min="40" max="240">
-            
             <label>Paste Chord Chart (exact original structure)</label>
             <textarea id="chartPaste" placeholder="Paste the entire chord chart here..."></textarea>
-
             <label>Or upload .txt file</label>
             <input type="file" id="chartFile" accept=".txt" onchange="handleFileUpload(event)">
             
-            <div style="margin:24px 0; display:flex; gap:12px;">
+            <div style="margin:24px 0;display:flex;gap:12px;">
                 <button onclick="parseAndImport()" class="sleek-btn primary">Parse &amp; Preview</button>
                 <button onclick="closeModal()" class="sleek-btn">Cancel</button>
             </div>
-
             <div id="preview"></div>
             <div id="jsonPreview" style="display:none;"></div>
             
-            <div style="margin-top:20px; display:flex; gap:12px; flex-wrap:wrap;">
+            <div style="margin-top:20px;display:flex;gap:12px;flex-wrap:wrap;">
                 <button id="downloadBtn" onclick="downloadSongJSON()" style="display:none;" class="sleek-btn primary">⬇️ Download song.json</button>
                 <button id="tempLoadBtn" onclick="loadTempSongNow()" style="display:none;" class="sleek-btn">▶️ Preview NOW</button>
                 <button onclick="closeModal()" class="sleek-btn">Close</button>
@@ -224,9 +88,12 @@
         </div>
     </div>
 
-    <!-- MIDI Panel & Setlist Panel (unchanged) -->
-    <div id="midiPanel" style="display:none;">
-        <div class="header"><span style="font-size:22px;">🎹 MIDI Controls</span><span id="liveBpm" style="margin-left:auto;font-family:monospace;background:#222;padding:4px 12px;border-radius:9999px;font-size:18px;">BPM: —</span></div>
+    <!-- MIDI Panel -->
+    <div id="midiPanel" style="display:none;position:fixed;bottom:30px;left:30px;background:rgba(15,15,15,.95);border:2px solid #222;border-radius:16px;padding:18px 22px;z-index:999;box-shadow:0 0 30px rgba(0,0,0,.6);min-width:340px;">
+        <div class="header" style="display:flex;align-items:center;margin-bottom:14px;color:#ddd;">
+            <span style="font-size:22px;">🎹 MIDI Controls</span>
+            <span id="liveBpm" style="margin-left:auto;font-family:monospace;background:#222;padding:4px 12px;border-radius:9999px;font-size:18px;">BPM: —</span>
+        </div>
         <div style="display:flex;gap:8px;">
             <button onclick="previousSong()" class="sleek-btn">⏮ PREV</button>
             <button onclick="togglePlayPause()" class="sleek-btn" id="playPauseBtn">▶️ PLAY / PAUSE</button>
@@ -234,38 +101,288 @@
         </div>
     </div>
 
-    <div id="setlistPanel">
-        <div class="setlist-header">
+    <!-- Setlist Panel -->
+    <div id="setlistPanel" style="display:none;position:fixed;left:20px;top:100px;width:340px;height:calc(100vh - 160px);background:rgba(15,15,15,.95);border:2px solid #222;border-radius:16px;padding:20px;overflow-y:auto;z-index:40;box-shadow:0 0 30px rgba(0,0,0,.6);color:white;">
+        <div class="setlist-header" style="display:flex;align-items:center;margin-bottom:16px;color:#ddd;">
             <h3 style="margin:0;">📜 SETLIST</h3>
             <button onclick="toggleSetlistPanel()" class="sleek-btn" style="margin-left:auto;background:none;border:none;color:#ddd;font-size:28px;padding:4px 12px;box-shadow:none;">✕</button>
         </div>
         <div id="setlistItems"></div>
     </div>
 
-    <script src="js/midi.js"></script>
-    <script src="js/scroll.js"></script>
-    <script src="js/stage.js"></script>
     <script>
-        // HARDENED MODAL SAFETY – runs immediately
-        function forceCloseModalOnStart() {
-            const modal = document.getElementById('modal');
-            if (modal) {
-                modal.style.display = 'none';
+        // ==================== GLOBAL VARIABLES ====================
+        let setlist = [];
+        let currentSongIndex = 0;
+        let song = null;
+        let startTime = null;
+        let playing = false;
+        let currentSongData = null;
+        let layoutMode = localStorage.getItem('teleprompterLayout') || 'auto';
+
+        // ==================== CHORD PARSER (keeps your exact structure) ====================
+        function isChordLine(line) {
+            if (!line || line.length < 1) return false;
+            const tokens = line.trim().split(/\s+/).filter(t => t);
+            if (tokens.length === 0) return false;
+            const chordRegex = /^[A-G][#b]?[mM]?[dim aug sus2-4]?[0-9]?[79]?[\/]?[A-G]?[#b]?$/i;
+            return tokens.every(token => chordRegex.test(token) || token === 'N.C.' || token === 'NC' || /^\d+$/.test(token) || token.includes('/'));
+        }
+
+        function extractMetadata(text) {
+            let title = "Untitled Song";
+            let artist = "Unknown Artist";
+            let bpm = 120;
+            const lines = text.split('\n');
+            const firstLine = lines[0] || "";
+            const byMatch = firstLine.match(/^(.*?)\s+(?:Chords)?\s*by\s+(.+?)$/i);
+            if (byMatch) {
+                title = byMatch[1].replace(/Chords/i, '').trim();
+                artist = byMatch[2].trim();
+            }
+            const bpmMatch = text.match(/(\d{2,3})\s*bpm/i);
+            if (bpmMatch) bpm = parseInt(bpmMatch[1]);
+            return {title, artist, bpm};
+        }
+
+        function parseChordChart(pastedText, bpm = 120) {
+            const rawLines = pastedText.split('\n').map(l => l.trim()).filter(l => l && !l.startsWith('#') && !l.startsWith('//'));
+            let parsedLines = [];
+            let time = 0;
+            const secondsPerBeat = 60 / bpm;
+            const secondsPerLine = 4 * secondsPerBeat;
+            let i = 0;
+            while (i < rawLines.length) {
+                let current = rawLines[i];
+                if (/^\[[^\]]+\]$/.test(current)) { i++; continue; }
+                if (isChordLine(current)) {
+                    const chordTokens = current.split(/\s+/).filter(Boolean);
+                    const nextIdx = i + 1;
+                    const hasNextLyric = nextIdx < rawLines.length && rawLines[nextIdx] && !isChordLine(rawLines[nextIdx]);
+                    if (hasNextLyric) {
+                        const mainChord = chordTokens[0] || 'N.C.';
+                        const lyric = rawLines[nextIdx];
+                        parsedLines.push({time: Math.round(time), chord: mainChord, lyric: lyric});
+                        time += secondsPerLine;
+                        i += 2;
+                    } else {
+                        chordTokens.forEach(chord => {
+                            parsedLines.push({time: Math.round(time), chord: chord, lyric: ""});
+                            time += secondsPerBeat;
+                        });
+                        i++;
+                    }
+                } else {
+                    const prevChord = parsedLines.length > 0 ? parsedLines[parsedLines.length-1].chord : "";
+                    parsedLines.push({time: Math.round(time), chord: prevChord, lyric: current});
+                    time += secondsPerLine / 2;
+                    i++;
+                }
+            }
+            return parsedLines;
+        }
+
+        // ==================== IMPORT FUNCTIONS ====================
+        function toggleModal() {
+            document.getElementById('modal').style.display = 'flex';
+        }
+        function closeModal() {
+            document.getElementById('modal').style.display = 'none';
+            document.getElementById('preview').innerHTML = '';
+            document.getElementById('jsonPreview').style.display = 'none';
+            document.getElementById('downloadBtn').style.display = 'none';
+            document.getElementById('tempLoadBtn').style.display = 'none';
+        }
+        function handleFileUpload(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = ev => {
+                const content = ev.target.result;
+                const meta = extractMetadata(content);
+                document.getElementById('importTitle').value = meta.title;
+                document.getElementById('importArtist').value = meta.artist;
+                document.getElementById('importBpm').value = meta.bpm;
+                document.getElementById('chartPaste').value = content;
+                parseAndImport();
+            };
+            reader.readAsText(file);
+        }
+        function parseAndImport() {
+            const title = (document.getElementById('importTitle').value || "Untitled").trim();
+            const artist = (document.getElementById('importArtist').value || "Unknown").trim();
+            let bpm = parseFloat(document.getElementById('importBpm').value) || 120;
+            const pasted = document.getElementById('chartPaste').value.trim();
+            if (!pasted) { alert("Paste a chord chart first!"); return; }
+            const parsed = parseChordChart(pasted, bpm);
+            currentSongData = {title, artist, bpm, lines: parsed};
+            let html = `<h3 style="color:#0f0;">✅ Parsed ${parsed.length} lines • ${title} by ${artist} (${bpm} BPM)</h3><ul>`;
+            parsed.forEach(l => html += `<li><strong style="color:#0f0;display:inline-block;width:80px;">${l.chord}</strong> ${l.lyric || '<em>[chord change]</em>'} <small style="margin-left:auto;color:#666;">${l.time}s</small></li>`);
+            html += `</ul>`;
+            document.getElementById('preview').innerHTML = html;
+            document.getElementById('jsonPreview').innerHTML = `<strong>song.json preview:</strong><br>${JSON.stringify(currentSongData, null, 2)}`;
+            document.getElementById('jsonPreview').style.display = 'block';
+            document.getElementById('downloadBtn').style.display = 'inline-block';
+            document.getElementById('tempLoadBtn').style.display = 'inline-block';
+        }
+        function downloadSongJSON() {
+            if (!currentSongData) return;
+            const safeName = (currentSongData.title.toLowerCase().replace(/[^a-z0-9]/g, '-') || 'song') + '.json';
+            const blob = new Blob([JSON.stringify(currentSongData, null, 2)], {type: 'application/json'});
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url; a.download = safeName; a.click();
+            URL.revokeObjectURL(url);
+        }
+        function loadTempSongNow() {
+            if (!currentSongData) return;
+            song = currentSongData;
+            document.getElementById("currentSong").innerText = `${song.title} (TEMP)`;
+            renderLyrics();
+            closeModal();
+            startSong();
+        }
+
+        // ==================== CORE FUNCTIONS ====================
+        async function loadSetlist() {
+            try {
+                const res = await fetch("setlist.json");
+                let raw = await res.json();
+                if (Array.isArray(raw) && typeof raw[0] === 'string') {
+                    setlist = raw.map(f => ({
+                        artist: "",
+                        title: f.replace('.json','').replace(/-/g,' ').replace(/\b\w/g,l=>l.toUpperCase()),
+                        file: f
+                    }));
+                } else {
+                    setlist = raw;
+                }
+            } catch(e) {
+                console.warn("setlist.json not found – using your full setlist");
+                setlist = [
+                    {"artist":"Goldfinger","title":"99 Red Balloons","file":"99-red-balloons.json"},
+                    {"artist":"Bouncing Souls","title":"Hopeless Romantic","file":"hopeless-romantic.json"},
+                    {"artist":"My Chemical Romance","title":"Helena","file":"helena.json"},
+                    {"artist":"Eve 6","title":"Heres To The Night","file":"heres-to-the-night.json"},
+                    {"artist":"Third Eye Blind","title":"Deep Inside of You","file":"deep-inside-of-you.json"},
+                    {"artist":"Blink 182","title":"Feeling This","file":"feeling-this.json"},
+                    {"artist":"All-American Rejects","title":"Dirty Little Secret","file":"dirty-little-secret.json"},
+                    {"artist":"New Found Glory","title":"My Friends Over You","file":"my-friends-over-you.json"},
+                    {"artist":"AFI","title":"Miss Murder","file":"miss-murder.json"},
+                    {"artist":"The Used","title":"The Taste Of Ink","file":"the-taste-of-ink.json"},
+                    {"artist":"Oasis","title":"Supersonic","file":"supersonic.json"},
+                    {"artist":"Stroke 9","title":"Little Black Backpack","file":"little-black-backpack.json"},
+                    {"artist":"Turnstile","title":"Seein Stars / Birds","file":"seein-stars-birds.json"},
+                    {"artist":"Hum","title":"Stars","file":"stars.json"},
+                    {"artist":"OK Go","title":"Get Over It","file":"get-over-it.json"},
+                    {"artist":"Taking Back Sunday","title":"Cute Without The e","file":"cute-without-the-e.json"},
+                    {"artist":"Senses Fail","title":"Buried A Lie","file":"buried-a-lie.json"},
+                    {"artist":"Mest","title":"Cadillac","file":"cadillac.json"},
+                    {"artist":"The Ataris","title":"Boys of Summer","file":"boys-of-summer.json"},
+                    {"artist":"The Used","title":"Buried Myself Alive","file":"buried-myself-alive.json"}
+                ];
+            }
+            loadSong();
+        }
+
+        async function loadSong() {
+            try {
+                const entry = setlist[currentSongIndex];
+                const filename = entry.file || entry;
+                const res = await fetch("songs/" + filename);
+                song = await res.json();
+                document.getElementById("currentSong").innerText = `${entry.artist || ''} ${entry.title || filename.replace('.json','')}`.trim();
+                renderLyrics();
+                renderSetlist();
+            } catch(e) {
+                console.error("Song load failed", e);
+                const entry = setlist[currentSongIndex];
+                document.getElementById("currentSong").innerText = `${entry.artist || ''} ${entry.title || 'Unknown'} (chart missing)`;
+                song = {title: "Missing Chart", lines: []};
+                renderLyrics();
+                renderSetlist();
             }
         }
 
-        // Make sure modal is closed as soon as possible
-        window.addEventListener('load', forceCloseModalOnStart);
-        window.addEventListener('DOMContentLoaded', forceCloseModalOnStart);
+        function renderLyrics() {
+            const container = document.getElementById("lyrics");
+            container.innerHTML = "";
+            if (!song?.lines || song.lines.length === 0) {
+                const msg = document.createElement("div");
+                msg.style.opacity = "0.4"; msg.style.fontStyle = "italic";
+                msg.textContent = "(no chart loaded – import one above)";
+                container.appendChild(msg);
+                return;
+            }
+            song.lines.forEach((line, i) => {
+                const div = document.createElement("div");
+                div.className = "line";
+                div.dataset.index = i;
+                div.innerHTML = `<span class="chord">${line.chord || ''}</span> ${line.lyric || ''}`;
+                container.appendChild(div);
+            });
+        }
 
-        // Layout system (unchanged)
-        let layoutMode = localStorage.getItem('teleprompterLayout') || 'auto';
+        function updateHighlight(elapsed) {
+            if (!song?.lines) return;
+            let activeIndex = -1;
+            for (let i = 0; i < song.lines.length; i++) {
+                if (elapsed >= song.lines[i].time) activeIndex = i;
+                else break;
+            }
+            if (activeIndex >= 0) document.getElementById("bigChord").innerText = song.lines[activeIndex].chord || '';
+            document.querySelectorAll('.line').forEach(line => {
+                line.classList.toggle('current', parseInt(line.dataset.index) === activeIndex);
+            });
+        }
+
+        function startSong() { startTime = Date.now(); playing = true; }
+        function pauseSong() { playing = false; document.getElementById('transportPlayBtn').innerHTML = '▶️ PLAY'; }
+        function togglePlayPause() {
+            if (playing) pauseSong();
+            else { startSong(); document.getElementById('transportPlayBtn').innerHTML = '⏸️ PAUSE'; }
+        }
+        function previousSong() {
+            currentSongIndex = (currentSongIndex - 1 + setlist.length) % setlist.length;
+            loadSong();
+        }
+        function nextSong() {
+            currentSongIndex = (currentSongIndex + 1) % setlist.length;
+            loadSong();
+        }
+
+        function renderSetlist() {
+            const container = document.getElementById('setlistItems');
+            container.innerHTML = '';
+            setlist.forEach((entry, i) => {
+                const div = document.createElement('div');
+                div.className = `setlist-item ${i === currentSongIndex ? 'current' : ''}`;
+                div.innerHTML = `<strong>${i+1}.</strong> ${entry.artist} – ${entry.title}`;
+                div.onclick = () => { currentSongIndex = i; loadSong(); };
+                container.appendChild(div);
+            });
+        }
+
+        function toggleMidiPanel() {
+            const panel = document.getElementById('midiPanel');
+            panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+        }
+        function toggleSetlistPanel() {
+            const panel = document.getElementById('setlistPanel');
+            panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+        }
+        function toggleFullscreen() {
+            if (!document.fullscreenElement) document.documentElement.requestFullscreen();
+            else document.exitFullscreen();
+        }
+
+        // Layout system
         function updateLayoutButton() {
             const btn = document.getElementById('layoutBtn');
             btn.textContent = layoutMode === 'auto' ? '📐 Auto' : layoutMode === 'wide' ? '📐 Wide' : '📐 Portrait';
         }
         function applyLayout() {
-            document.body.classList.remove('force-wide', 'force-portrait');
+            document.body.classList.remove('force-wide','force-portrait');
             if (layoutMode === 'wide') document.body.classList.add('force-wide');
             if (layoutMode === 'portrait') document.body.classList.add('force-portrait');
             updateLayoutButton();
@@ -278,9 +395,23 @@
             localStorage.setItem('teleprompterLayout', layoutMode);
             applyLayout();
         }
-        applyLayout();
 
-        console.log('%c🎸 Stage Teleprompter READY – Modal fixed & hidden on startup', 'color:#00cc77;font-size:18px');
+        // Main loop
+        setInterval(() => {
+            if (!playing || !song?.lines) return;
+            const elapsed = (Date.now() - startTime) / 1000;
+            updateHighlight(elapsed);
+            if (document.getElementById('midiPanel').style.display !== 'none') {
+                document.getElementById('liveBpm').innerText = `BPM: ${window.midiClock?.bpm || '—'}`;
+            }
+        }, 40);
+
+        // Boot everything
+        window.onload = () => {
+            document.getElementById('modal').style.display = 'none';
+            loadSetlist();
+            console.log('%c🎸 Guitar Stage Teleprompter – FULLY FIXED & READY', 'color:#00cc77;font-size:18px');
+        };
     </script>
 </body>
 </html>
