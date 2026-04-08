@@ -6,7 +6,7 @@
     <title>Guitar Stage Teleprompter</title>
     <style>
         body{background:black;color:white;font-family:Arial;overflow:hidden;margin:0;padding:0;}
-        #topBar{position:fixed;top:0;width:100%;display:flex;align-items:center;gap:20px;padding:12px 30px 12px 8%;font-size:28px;background:rgba(0,0,0,0.95);z-index:100;box-shadow:0 4px 20px rgba(0,0,0,0.8);}
+        #topBar{position:fixed;top:0;width:100%;display:flex;align-items:center;gap:20px;padding:12px 30px;font-size:28px;background:rgba(0,0,0,0.95);z-index:100;box-shadow:0 4px 20px rgba(0,0,0,0.8);}
         #chordMask{position:fixed;top:80px;left:0;width:100%;height:560px;background:linear-gradient(to bottom, black 78%, transparent 92%);z-index:90;pointer-events:none;}
         #bigChordContainer{position:fixed;top:110px;left:60%;transform:translateX(-50%);display:flex;align-items:center;gap:60px;z-index:95;}
         #bigChord{font-size:clamp(140px,22vw,320px);font-weight:bold;color:#00cc77;text-shadow:0 0 40px #00cc77;pointer-events:none;line-height:1;}
@@ -38,8 +38,8 @@
         .setlist-item:hover{background:#222;}
         .setlist-item.current{background:#00aa66;color:#111;font-weight:bold;box-shadow:0 0 12px #00cc77;}
         .dropdown-arrow{position:absolute;right:18px;top:14px;cursor:pointer;font-size:18px;color:#0f0;}
-        .track-subpanel{margin:8px 0 8px 40px;background:rgba(0,0,0,0.4);padding:12px;border-radius:8px;}
-        .track-row{display:flex;align-items:center;gap:8px;margin:8px 0;}
+        .track-subpanel{margin:8px 0 8px 40px;background:rgba(0,0,0,0.4);padding:18px;border-radius:8px;width:320px;}
+        .track-row{display:flex;align-items:center;gap:8px;margin:10px 0;}
         .track-row label{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
     </style>
 </head>
@@ -349,7 +349,7 @@
         function scrollLyrics(elapsed) {
             const offset = song && song.lyricOffset !== undefined ? song.lyricOffset : 0;
             const adjusted = Math.max(0, elapsed - offset);
-            document.getElementById("lyricsInner").style.transform = `translateY(-${adjusted * 4}px)`;
+            document.getElementById("lyricsInner").style.transform = `translateY(-${adjusted * 6.4}px)`;  // +60% faster
         }
 
         function updateHighlight(elapsed) {
@@ -428,6 +428,19 @@
                         });
                     }
 
+                    // Vocal Offset row
+                    const offsetRow = document.createElement('div');
+                    offsetRow.className = 'track-row';
+                    offsetRow.style.borderTop = '1px solid #444';
+                    offsetRow.style.marginTop = '8px';
+                    offsetRow.style.paddingTop = '8px';
+                    offsetRow.innerHTML = `
+                        <label>Vocals Start Offset (sec)</label>
+                        <input type="number" id="vocalOffsetInput" value="${song && song.lyricOffset !== undefined ? song.lyricOffset : 0}" step="0.1" style="width:90px;">
+                        <button onclick="saveVocalOffset()" class="sleek-btn" style="width:60px;">Save</button>
+                    `;
+                    sub.appendChild(offsetRow);
+
                     const clickRow = document.createElement('div');
                     clickRow.className = 'track-row';
                     clickRow.style.borderTop = '1px solid #444';
@@ -445,11 +458,18 @@
             });
         }
 
+        function saveVocalOffset() {
+            if (!song) return;
+            const input = document.getElementById('vocalOffsetInput');
+            song.lyricOffset = parseFloat(input.value) || 0;
+            renderSetlist();
+        }
+
         function toggleDropdown(index) {
             expandedSongIndex = (expandedSongIndex === index) ? -1 : index;
             if (expandedSongIndex === index) {
                 currentSongIndex = index;
-                loadSong();   // forces song + audio data to load
+                loadSong();
             } else {
                 renderSetlist();
             }
@@ -506,7 +526,7 @@
             document.getElementById('modal').style.display = 'none';
             document.getElementById('midiMapModal').style.display = 'none';
             loadSetlist();
-            console.log('%c🎸 Guitar Stage Teleprompter – Dropdown arrows permanently fixed + Pause/Stop behavior corrected', 'color:#00cc77;font-size:18px');
+            console.log('%c🎸 Guitar Stage Teleprompter – Vocal offset in mixer + bigger box + header left + 60% faster scroll', 'color:#00cc77;font-size:18px');
         };
     </script>
 </body>
