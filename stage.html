@@ -25,7 +25,7 @@
         #modal-content label,#midiMapContent label{display:block;margin:14px 0 6px;font-size:18px;font-weight:bold;}
         #modal-content input,#modal-content textarea,#midiMapContent input{width:100%;padding:12px;background:#222;color:#0f0;border:2px solid #333;border-radius:6px;font-family:monospace;font-size:16px;}
         #modal-content textarea{height:240px;resize:vertical;}
-        #setlistPanel{position:fixed;left:20px;top:100px;width:340px;height:calc(100vh - 160px);background:rgba(15,15,15,.95);border:2px solid #222;border-radius:16px;padding:20px;overflow-y:auto;z-index:40;box-shadow:0 0 30px rgba(0,0,0,.6);color:white;display:block;}
+        #setlistPanel{position:fixed;left:20px;top:100px;width:340px;height:calc(100vh - 160px);background:rgba(15,15,15,.95);border:2px solid #222;border-radius:16px;padding:20px;overflow-y:auto;z-index:40;box-shadow:0 0 30px rgba(0,0,0,.6);color:white;display:block !important;}
         .setlist-header{display:flex;align-items:center;margin-bottom:16px;color:#ddd;}
         .setlist-item{padding:10px 14px;margin:6px 0;border-radius:8px;cursor:pointer;transition:all .2s ease;}
         .setlist-item:hover{background:#222;}
@@ -72,7 +72,7 @@
             <input id="importArtist" type="text" value="Unknown Artist" placeholder="Artist Name">
             <label>BPM</label>
             <input id="importBpm" type="number" value="120" min="40" max="240">
-            <label>Paste Chord Chart (exact original structure)</label>
+            <label>Paste Chord Chart</label>
             <textarea id="chartPaste" placeholder="Paste the entire chord chart here..."></textarea>
             <label>Or upload .txt file</label>
             <input type="file" id="chartFile" accept=".txt" onchange="handleFileUpload(event)">
@@ -117,7 +117,7 @@
         </div>
     </div>
 
-    <!-- Setlist Panel (shown by default) -->
+    <!-- Setlist Panel – shown by default -->
     <div id="setlistPanel">
         <div class="setlist-header">
             <h3 style="margin:0;">📜 SETLIST</h3>
@@ -127,7 +127,7 @@
     </div>
 
     <script>
-        // ==================== GLOBAL STATE ====================
+        // GLOBAL STATE
         let setlist = [];
         let currentSongIndex = 0;
         let song = null;
@@ -136,14 +136,13 @@
         let currentSongData = null;
         let layoutMode = localStorage.getItem('teleprompterLayout') || 'auto';
 
-        // MIDI CC Routing
+        // MIDI CC
         let midiCCPrev = parseInt(localStorage.getItem('midiCCPrev')) || 120;
         let midiCCStop = parseInt(localStorage.getItem('midiCCStop')) || 121;
         let midiCCPlay = parseInt(localStorage.getItem('midiCCPlay')) || 122;
         let midiCCNext = parseInt(localStorage.getItem('midiCCNext')) || 123;
         let midiClock = {bpm: 0, lastTick: 0};
 
-        // MIDI Handler
         function handleMidi(msg) {
             const status = msg.data[0];
             const data1 = msg.data[1];
@@ -163,7 +162,23 @@
             for (let input of midi.inputs.values()) input.onmidimessage = handleMidi;
         }).catch(() => {});
 
-        // ==================== CHORD PARSER ====================
+        // MIDI Map
+        function toggleMidiMap() { document.getElementById('midiMapModal').style.display = 'flex'; }
+        function closeMidiMap() { document.getElementById('midiMapModal').style.display = 'none'; }
+        function saveMidiMap() {
+            midiCCPrev = parseInt(document.getElementById('ccPrev').value) || 120;
+            midiCCStop = parseInt(document.getElementById('ccStop').value) || 121;
+            midiCCPlay = parseInt(document.getElementById('ccPlay').value) || 122;
+            midiCCNext = parseInt(document.getElementById('ccNext').value) || 123;
+            localStorage.setItem('midiCCPrev', midiCCPrev);
+            localStorage.setItem('midiCCStop', midiCCStop);
+            localStorage.setItem('midiCCPlay', midiCCPlay);
+            localStorage.setItem('midiCCNext', midiCCNext);
+            alert("✅ MIDI CC mapping saved!");
+            closeMidiMap();
+        }
+
+        // Parser
         function isChordLine(line) {
             if (!line || line.length < 1) return false;
             const tokens = line.trim().split(/\s+/).filter(t => t);
@@ -171,7 +186,6 @@
             const chordRegex = /^[A-G][#b]?[mM]?[dim aug sus2-4]?[0-9]?[79]?[\/]?[A-G]?[#b]?$/i;
             return tokens.every(token => chordRegex.test(token) || token === 'N.C.' || token === 'NC' || /^\d+$/.test(token) || token.includes('/'));
         }
-
         function extractMetadata(text) {
             let title = "Untitled Song", artist = "Unknown Artist", bpm = 120;
             const lines = text.split('\n');
@@ -185,7 +199,6 @@
             if (bpmMatch) bpm = parseInt(bpmMatch[1]);
             return {title, artist, bpm};
         }
-
         function parseChordChart(pastedText, bpm = 120) {
             const rawLines = pastedText.split('\n').map(l => l.trim()).filter(l => l && !l.startsWith('#') && !l.startsWith('//'));
             let parsedLines = [], time = 0;
@@ -220,15 +233,9 @@
             return parsedLines;
         }
 
-        // ==================== IMPORT FUNCTIONS ====================
+        // Import
         function toggleModal() { document.getElementById('modal').style.display = 'flex'; }
-        function closeModal() {
-            document.getElementById('modal').style.display = 'none';
-            document.getElementById('preview').innerHTML = '';
-            document.getElementById('jsonPreview').style.display = 'none';
-            document.getElementById('downloadBtn').style.display = 'none';
-            document.getElementById('tempLoadBtn').style.display = 'none';
-        }
+        function closeModal() { document.getElementById('modal').style.display = 'none'; }
         function handleFileUpload(e) {
             const file = e.target.files[0];
             if (!file) return;
@@ -255,9 +262,7 @@
             currentSongData = {title, artist, bpm, lines: parsed};
             
             let html = `<h3 style="color:#0f0;">✅ Parsed ${parsed.length} lines • ${title} by ${artist} (${bpm} BPM)</h3><ul>`;
-            parsed.forEach(l => {
-                html += `<li><strong style="color:#0f0;display:inline-block;width:80px;">${l.chord}</strong> ${l.lyric || '<em>[chord change]</em>'} <small style="margin-left:auto;color:#666;">${l.time}s</small></li>`;
-            });
+            parsed.forEach(l => html += `<li><strong style="color:#0f0;display:inline-block;width:80px;">${l.chord}</strong> ${l.lyric || '<em>[chord change]</em>'} <small style="margin-left:auto;color:#666;">${l.time}s</small></li>`);
             html += `</ul>`;
             document.getElementById('preview').innerHTML = html;
             document.getElementById('jsonPreview').innerHTML = `<strong>song.json preview:</strong><br>${JSON.stringify(currentSongData, null, 2)}`;
@@ -282,18 +287,18 @@
             startSong();
         }
 
-        // ==================== CORE FUNCTIONS ====================
+        // Core
         async function loadSetlist() {
             try {
                 const res = await fetch("setlist.json");
                 let raw = await res.json();
-                setlist = Array.isArray(raw) && typeof raw[0] === 'string' 
-                    ? raw.map(f => ({artist:"", title:f.replace('.json','').replace(/-/g,' ').replace(/\b\w/g,l=>l.toUpperCase()), file:f}))
-                    : raw;
+                setlist = raw;   // your exact file
             } catch(e) {
-                setlist = [ /* your full setlist from before */ ];
+                console.error("Could not load setlist.json", e);
+                setlist = [];
             }
             loadSong();
+            renderSetlist();   // force render immediately
         }
 
         async function loadSong() {
@@ -360,9 +365,14 @@
         }
         function previousSong() { currentSongIndex = (currentSongIndex - 1 + setlist.length) % setlist.length; loadSong(); }
         function nextSong() { currentSongIndex = (currentSongIndex + 1) % setlist.length; loadSong(); }
+
         function renderSetlist() {
             const container = document.getElementById('setlistItems');
             container.innerHTML = '';
+            if (setlist.length === 0) {
+                container.innerHTML = '<div style="padding:20px;color:#666;">No songs in setlist</div>';
+                return;
+            }
             setlist.forEach((entry, i) => {
                 const div = document.createElement('div');
                 div.className = `setlist-item ${i === currentSongIndex ? 'current' : ''}`;
@@ -372,10 +382,15 @@
             });
         }
 
-        function toggleMidiPanel() { const p = document.getElementById('midiPanel'); p.style.display = p.style.display === 'none' ? 'block' : 'none'; }
-        function toggleSetlistPanel() { const p = document.getElementById('setlistPanel'); p.style.display = p.style.display === 'none' ? 'block' : 'none'; }
-        function toggleFullscreen() { if (!document.fullscreenElement) document.documentElement.requestFullscreen(); else document.exitFullscreen(); }
-        function toggleLayout() {
+        function toggleSetlistPanel() { 
+            const p = document.getElementById('setlistPanel'); 
+            p.style.display = p.style.display === 'none' ? 'block' : 'none'; 
+        }
+        function toggleFullscreen() { 
+            if (!document.fullscreenElement) document.documentElement.requestFullscreen(); 
+            else document.exitFullscreen(); 
+        }
+        function toggleLayout() { 
             if (layoutMode === 'auto') layoutMode = 'wide';
             else if (layoutMode === 'wide') layoutMode = 'portrait';
             else layoutMode = 'auto';
@@ -399,7 +414,7 @@
             document.getElementById('modal').style.display = 'none';
             document.getElementById('midiMapModal').style.display = 'none';
             loadSetlist();
-            console.log('%c🎸 Guitar Stage Teleprompter – Parse & Preview button is now FIXED', 'color:#00cc77;font-size:18px');
+            console.log('%c🎸 Guitar Stage Teleprompter – Setlist now showing correctly', 'color:#00cc77;font-size:18px');
         };
     </script>
 </body>
