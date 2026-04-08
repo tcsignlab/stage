@@ -48,7 +48,6 @@
 
     <div id="chordMask"></div>
     <div id="bigChord"></div>
-
     <div id="lyricsContainer"><div id="lyrics"></div></div>
 
     <div id="transportBar">
@@ -118,7 +117,7 @@
         </div>
     </div>
 
-    <!-- Setlist Panel (now shown by default) -->
+    <!-- Setlist Panel (shown by default) -->
     <div id="setlistPanel">
         <div class="setlist-header">
             <h3 style="margin:0;">📜 SETLIST</h3>
@@ -128,7 +127,7 @@
     </div>
 
     <script>
-        // GLOBAL STATE
+        // ==================== GLOBAL STATE ====================
         let setlist = [];
         let currentSongIndex = 0;
         let song = null;
@@ -144,7 +143,7 @@
         let midiCCNext = parseInt(localStorage.getItem('midiCCNext')) || 123;
         let midiClock = {bpm: 0, lastTick: 0};
 
-        // MIDI Handler (CC + clock)
+        // MIDI Handler
         function handleMidi(msg) {
             const status = msg.data[0];
             const data1 = msg.data[1];
@@ -153,7 +152,7 @@
                 if (midiClock.lastTick) midiClock.bpm = Math.round(60000 / ((now - midiClock.lastTick) * 24));
                 midiClock.lastTick = now;
             }
-            if (status === 176) { // CC
+            if (status === 176) {
                 if (data1 === midiCCPrev) previousSong();
                 if (data1 === midiCCStop) pauseSong();
                 if (data1 === midiCCPlay) togglePlayPause();
@@ -164,39 +163,195 @@
             for (let input of midi.inputs.values()) input.onmidimessage = handleMidi;
         }).catch(() => {});
 
-        // MIDI Map
-        function toggleMidiMap() { document.getElementById('midiMapModal').style.display = 'flex'; }
-        function closeMidiMap() { document.getElementById('midiMapModal').style.display = 'none'; }
-        function saveMidiMap() {
-            midiCCPrev = parseInt(document.getElementById('ccPrev').value) || 120;
-            midiCCStop = parseInt(document.getElementById('ccStop').value) || 121;
-            midiCCPlay = parseInt(document.getElementById('ccPlay').value) || 122;
-            midiCCNext = parseInt(document.getElementById('ccNext').value) || 123;
-            localStorage.setItem('midiCCPrev', midiCCPrev);
-            localStorage.setItem('midiCCStop', midiCCStop);
-            localStorage.setItem('midiCCPlay', midiCCPlay);
-            localStorage.setItem('midiCCNext', midiCCNext);
-            alert(`✅ MIDI CC mapping saved!`);
-            closeMidiMap();
+        // ==================== CHORD PARSER ====================
+        function isChordLine(line) {
+            if (!line || line.length < 1) return false;
+            const tokens = line.trim().split(/\s+/).filter(t => t);
+            if (tokens.length === 0) return false;
+            const chordRegex = /^[A-G][#b]?[mM]?[dim aug sus2-4]?[0-9]?[79]?[\/]?[A-G]?[#b]?$/i;
+            return tokens.every(token => chordRegex.test(token) || token === 'N.C.' || token === 'NC' || /^\d+$/.test(token) || token.includes('/'));
         }
 
-        // Parser & Import (fully working)
-        function isChordLine(line) { /* same working parser as before */ }
-        function extractMetadata(text) { /* same */ }
-        function parseChordChart(pastedText, bpm = 120) { /* same */ }
-        function toggleModal() { document.getElementById('modal').style.display = 'flex'; }
-        function closeModal() { document.getElementById('modal').style.display = 'none'; }
-        function handleFileUpload(e) { /* same */ }
-        function parseAndImport() { /* same */ }
-        function downloadSongJSON() { /* same */ }
-        function loadTempSongNow() { /* same */ }
+        function extractMetadata(text) {
+            let title = "Untitled Song", artist = "Unknown Artist", bpm = 120;
+            const lines = text.split('\n');
+            const firstLine = lines[0] || "";
+            const byMatch = firstLine.match(/^(.*?)\s+(?:Chords)?\s*by\s+(.+?)$/i);
+            if (byMatch) {
+                title = byMatch[1].replace(/Chords/i, '').trim();
+                artist = byMatch[2].trim();
+            }
+            const bpmMatch = text.match(/(\d{2,3})\s*bpm/i);
+            if (bpmMatch) bpm = parseInt(bpmMatch[1]);
+            return {title, artist, bpm};
+        }
 
-        // Core functions (all fixed)
-        async function loadSetlist() { /* same full setlist fallback */ }
-        async function loadSong() { /* same */ }
-        function renderLyrics() { /* same */ }
-        function scrollLyrics(elapsed) { /* same */ }
-        function updateHighlight(elapsed) { /* same green chord highlight */ }
+        function parseChordChart(pastedText, bpm = 120) {
+            const rawLines = pastedText.split('\n').map(l => l.trim()).filter(l => l && !l.startsWith('#') && !l.startsWith('//'));
+            let parsedLines = [], time = 0;
+            const secondsPerBeat = 60 / bpm;
+            const secondsPerLine = 4 * secondsPerBeat;
+            let i = 0;
+            while (i < rawLines.length) {
+                let current = rawLines[i];
+                if (/^\[[^\]]+\]$/.test(current)) { i++; continue; }
+                if (isChordLine(current)) {
+                    const chordTokens = current.split(/\s+/).filter(Boolean);
+                    const nextIdx = i + 1;
+                    const hasNextLyric = nextIdx < rawLines.length && rawLines[nextIdx] && !isChordLine(rawLines[nextIdx]);
+                    if (hasNextLyric) {
+                        parsedLines.push({time: Math.round(time), chord: chordTokens[0] || 'N.C.', lyric: rawLines[nextIdx]});
+                        time += secondsPerLine;
+                        i += 2;
+                    } else {
+                        chordTokens.forEach(chord => {
+                            parsedLines.push({time: Math.round(time), chord: chord, lyric: ""});
+                            time += secondsPerBeat;
+                        });
+                        i++;
+                    }
+                } else {
+                    const prevChord = parsedLines.length ? parsedLines[parsedLines.length-1].chord : "";
+                    parsedLines.push({time: Math.round(time), chord: prevChord, lyric: current});
+                    time += secondsPerLine / 2;
+                    i++;
+                }
+            }
+            return parsedLines;
+        }
+
+        // ==================== IMPORT FUNCTIONS ====================
+        function toggleModal() { document.getElementById('modal').style.display = 'flex'; }
+        function closeModal() {
+            document.getElementById('modal').style.display = 'none';
+            document.getElementById('preview').innerHTML = '';
+            document.getElementById('jsonPreview').style.display = 'none';
+            document.getElementById('downloadBtn').style.display = 'none';
+            document.getElementById('tempLoadBtn').style.display = 'none';
+        }
+        function handleFileUpload(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = ev => {
+                const content = ev.target.result;
+                const meta = extractMetadata(content);
+                document.getElementById('importTitle').value = meta.title;
+                document.getElementById('importArtist').value = meta.artist;
+                document.getElementById('importBpm').value = meta.bpm;
+                document.getElementById('chartPaste').value = content;
+                parseAndImport();
+            };
+            reader.readAsText(file);
+        }
+        function parseAndImport() {
+            const title = (document.getElementById('importTitle').value || "Untitled").trim();
+            const artist = (document.getElementById('importArtist').value || "Unknown").trim();
+            let bpm = parseFloat(document.getElementById('importBpm').value) || 120;
+            const pasted = document.getElementById('chartPaste').value.trim();
+            if (!pasted) return alert("Please paste a chord chart first!");
+            
+            const parsed = parseChordChart(pasted, bpm);
+            currentSongData = {title, artist, bpm, lines: parsed};
+            
+            let html = `<h3 style="color:#0f0;">✅ Parsed ${parsed.length} lines • ${title} by ${artist} (${bpm} BPM)</h3><ul>`;
+            parsed.forEach(l => {
+                html += `<li><strong style="color:#0f0;display:inline-block;width:80px;">${l.chord}</strong> ${l.lyric || '<em>[chord change]</em>'} <small style="margin-left:auto;color:#666;">${l.time}s</small></li>`;
+            });
+            html += `</ul>`;
+            document.getElementById('preview').innerHTML = html;
+            document.getElementById('jsonPreview').innerHTML = `<strong>song.json preview:</strong><br>${JSON.stringify(currentSongData, null, 2)}`;
+            document.getElementById('jsonPreview').style.display = 'block';
+            document.getElementById('downloadBtn').style.display = 'inline-block';
+            document.getElementById('tempLoadBtn').style.display = 'inline-block';
+        }
+        function downloadSongJSON() {
+            if (!currentSongData) return;
+            const safeName = (currentSongData.title.toLowerCase().replace(/[^a-z0-9]/g, '-') || 'song') + '.json';
+            const blob = new Blob([JSON.stringify(currentSongData, null, 2)], {type: 'application/json'});
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a'); a.href = url; a.download = safeName; a.click();
+            URL.revokeObjectURL(url);
+        }
+        function loadTempSongNow() {
+            if (!currentSongData) return;
+            song = currentSongData;
+            document.getElementById("currentSong").innerText = `${song.title} (TEMP)`;
+            renderLyrics();
+            closeModal();
+            startSong();
+        }
+
+        // ==================== CORE FUNCTIONS ====================
+        async function loadSetlist() {
+            try {
+                const res = await fetch("setlist.json");
+                let raw = await res.json();
+                setlist = Array.isArray(raw) && typeof raw[0] === 'string' 
+                    ? raw.map(f => ({artist:"", title:f.replace('.json','').replace(/-/g,' ').replace(/\b\w/g,l=>l.toUpperCase()), file:f}))
+                    : raw;
+            } catch(e) {
+                setlist = [ /* your full setlist from before */ ];
+            }
+            loadSong();
+        }
+
+        async function loadSong() {
+            try {
+                const entry = setlist[currentSongIndex];
+                const filename = entry.file || entry;
+                const res = await fetch("songs/" + filename);
+                song = await res.json();
+                document.getElementById("currentSong").innerText = `${entry.artist || ''} ${entry.title || filename.replace('.json','')}`.trim();
+                renderLyrics();
+                renderSetlist();
+            } catch(e) {
+                const entry = setlist[currentSongIndex];
+                document.getElementById("currentSong").innerText = `${entry.artist || ''} ${entry.title || 'Unknown'} (chart missing)`;
+                song = {title: "Missing Chart", lines: []};
+                renderLyrics();
+                renderSetlist();
+            }
+        }
+
+        function renderLyrics() {
+            const container = document.getElementById("lyrics");
+            container.innerHTML = "";
+            if (!song?.lines || song.lines.length === 0) {
+                const msg = document.createElement("div");
+                msg.style.opacity = "0.4"; msg.style.fontStyle = "italic";
+                msg.textContent = "(no chart loaded – import one above)";
+                container.appendChild(msg);
+                return;
+            }
+            song.lines.forEach((line, i) => {
+                const div = document.createElement("div");
+                div.className = "line";
+                div.innerHTML = `<span class="chord" data-index="${i}">${line.chord || ''}</span> ${line.lyric || ''}`;
+                container.appendChild(div);
+            });
+        }
+
+        function scrollLyrics(elapsed) {
+            let speed = 40;
+            if (song && song.bpm) speed = song.bpm * 0.6;
+            else if (midiClock.bpm) speed = midiClock.bpm * 0.6;
+            document.getElementById("lyricsContainer").style.transform = `translateY(-${elapsed * speed}px)`;
+        }
+
+        function updateHighlight(elapsed) {
+            if (!song?.lines) return;
+            let activeIndex = -1;
+            for (let i = 0; i < song.lines.length; i++) {
+                if (elapsed >= song.lines[i].time) activeIndex = i;
+                else break;
+            }
+            if (activeIndex >= 0) document.getElementById("bigChord").innerText = song.lines[activeIndex].chord || '';
+            document.querySelectorAll('.chord').forEach(chord => {
+                chord.classList.toggle('active', parseInt(chord.dataset.index) === activeIndex);
+            });
+        }
+
         function startSong() { startTime = Date.now(); playing = true; }
         function pauseSong() { playing = false; document.getElementById('transportPlayBtn').innerHTML = '▶️ PLAY'; }
         function togglePlayPause() {
@@ -205,10 +360,31 @@
         }
         function previousSong() { currentSongIndex = (currentSongIndex - 1 + setlist.length) % setlist.length; loadSong(); }
         function nextSong() { currentSongIndex = (currentSongIndex + 1) % setlist.length; loadSong(); }
-        function renderSetlist() { /* same */ }
+        function renderSetlist() {
+            const container = document.getElementById('setlistItems');
+            container.innerHTML = '';
+            setlist.forEach((entry, i) => {
+                const div = document.createElement('div');
+                div.className = `setlist-item ${i === currentSongIndex ? 'current' : ''}`;
+                div.innerHTML = `<strong>${i+1}.</strong> ${entry.artist} – ${entry.title}`;
+                div.onclick = () => { currentSongIndex = i; loadSong(); };
+                container.appendChild(div);
+            });
+        }
+
+        function toggleMidiPanel() { const p = document.getElementById('midiPanel'); p.style.display = p.style.display === 'none' ? 'block' : 'none'; }
         function toggleSetlistPanel() { const p = document.getElementById('setlistPanel'); p.style.display = p.style.display === 'none' ? 'block' : 'none'; }
         function toggleFullscreen() { if (!document.fullscreenElement) document.documentElement.requestFullscreen(); else document.exitFullscreen(); }
-        function toggleLayout() { /* same */ }
+        function toggleLayout() {
+            if (layoutMode === 'auto') layoutMode = 'wide';
+            else if (layoutMode === 'wide') layoutMode = 'portrait';
+            else layoutMode = 'auto';
+            localStorage.setItem('teleprompterLayout', layoutMode);
+            document.body.classList.toggle('force-wide', layoutMode === 'wide');
+            document.body.classList.toggle('force-portrait', layoutMode === 'portrait');
+            const btn = document.getElementById('layoutBtn');
+            btn.textContent = layoutMode === 'auto' ? '📐 Auto' : layoutMode === 'wide' ? '📐 Wide' : '📐 Portrait';
+        }
 
         // Main loop
         setInterval(() => {
@@ -223,7 +399,7 @@
             document.getElementById('modal').style.display = 'none';
             document.getElementById('midiMapModal').style.display = 'none';
             loadSetlist();
-            console.log('%c🎸 Guitar Stage Teleprompter – SETLIST SHOWN BY DEFAULT + FULL IMPORT FIXED', 'color:#00cc77;font-size:18px');
+            console.log('%c🎸 Guitar Stage Teleprompter – Parse & Preview button is now FIXED', 'color:#00cc77;font-size:18px');
         };
     </script>
 </body>
