@@ -4,8 +4,8 @@
   "bpm": 89,
   "lyricOffset": 0,
     "audio": [
-    {"name": "Deep Inside Of You Vocals", "file": "my-friends-over-you-vocals.mp3"},
-    {"name": "Deep Inside Of You Bass", "file": "my-friends-over-you-bass.mp3"}
+    {"name": "Vocals", "file": "my-friends-over-you-vocals.mp3"},
+    {"name": "Bass", "file": "my-friends-over-you-bass.mp3"}
   ],
   "lines": [
     {
