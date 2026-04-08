@@ -8,10 +8,11 @@
         body{background:black;color:white;font-family:Arial;overflow:hidden;margin:0;padding:0;}
         #topBar{position:fixed;top:0;width:100%;display:flex;align-items:center;gap:20px;padding:12px 30px;font-size:28px;background:rgba(0,0,0,0.95);z-index:100;box-shadow:0 4px 20px rgba(0,0,0,0.8);}
         #chordMask{position:fixed;top:80px;left:0;width:100%;height:560px;background:linear-gradient(to bottom, black 78%, transparent 92%);z-index:90;pointer-events:none;}
-        #bigChordContainer{position:fixed;top:110px;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:30px;z-index:95;}
+        #bigChordContainer{position:fixed;top:110px;left:60%;transform:translateX(-50%);display:flex;align-items:center;gap:60px;z-index:95;}
         #bigChord{font-size:clamp(140px,22vw,320px);font-weight:bold;color:#00cc77;text-shadow:0 0 40px #00cc77;pointer-events:none;line-height:1;}
         #nextChord{font-size:clamp(60px,9.6vw,132px);font-weight:bold;color:#00cc77;text-shadow:0 0 25px #00cc77;opacity:0.5;transition:opacity .4s;}
         #nextChord.active{opacity:1;text-shadow:0 0 40px #00cc77;}
+        #arrowBetween{font-size:clamp(50px,7vw,110px);color:#00cc77;opacity:0.7;}
         #currentSongContainer{flex:1;min-width:0;display:flex;align-items:center;}
         #currentSong{font-size:26px;font-weight:bold;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
         #nextSongContainer{flex:0 0 auto;font-size:22px;opacity:0.85;white-space:nowrap;}
@@ -33,9 +34,10 @@
         #modal-content textarea{height:240px;resize:vertical;}
         #setlistPanel{position:fixed;left:20px;top:100px;width:340px;height:calc(100vh - 160px);background:rgba(15,15,15,.95);border:2px solid #222;border-radius:16px;padding:20px;overflow-y:auto;z-index:200;box-shadow:0 0 30px rgba(0,0,0,.6);color:white;display:block !important;}
         .setlist-header{display:flex;align-items:center;margin-bottom:16px;color:#ddd;}
-        .setlist-item{padding:14px 18px;margin:6px 0;border-radius:8px;cursor:pointer;transition:all .2s ease;position:relative;}
+        .setlist-item{padding:14px 18px;margin:6px 0;border-radius:8px;cursor:grab;transition:all .2s ease;position:relative;}
         .setlist-item:hover{background:#222;}
         .setlist-item.current{background:#00aa66;color:#111;font-weight:bold;box-shadow:0 0 12px #00cc77;}
+        .setlist-item:active{cursor:grabbing;}
         .dropdown-arrow{position:absolute;right:18px;top:14px;cursor:pointer;font-size:18px;color:#0f0;}
         .track-subpanel{margin:8px 0 8px 40px;background:rgba(0,0,0,0.4);padding:12px;border-radius:8px;}
         .track-row{display:flex;align-items:center;gap:8px;margin:8px 0;}
@@ -60,6 +62,7 @@
     <div id="chordMask"></div>
     <div id="bigChordContainer">
         <div id="bigChord"></div>
+        <span id="arrowBetween">→</span>
         <div id="nextChord">—</div>
     </div>
 
@@ -157,7 +160,6 @@
         let audioContext = null;
         let clickOn = true;
         let expandedSongIndex = -1;
-
         let currentBPM = 120;
 
         let midiCCPrev = parseInt(localStorage.getItem('midiCCPrev')) || 120;
@@ -166,6 +168,25 @@
         let midiCCNext = parseInt(localStorage.getItem('midiCCNext')) || 123;
         let midiCCClick = parseInt(localStorage.getItem('midiCCClick')) || 124;
         let midiClock = {bpm: 0, lastTick: 0};
+
+        // Load saved setlist order if it exists
+        function loadSavedOrder() {
+            const saved = localStorage.getItem('setlistOrder');
+            if (saved) {
+                try {
+                    const orderMap = JSON.parse(saved);
+                    setlist.sort((a, b) => (orderMap[a.file || a.title] || 999) - (orderMap[b.file || b.title] || 999));
+                } catch(e) {}
+            }
+        }
+
+        function saveSetlistOrder() {
+            const orderMap = {};
+            setlist.forEach((entry, i) => {
+                orderMap[entry.file || entry.title] = i;
+            });
+            localStorage.setItem('setlistOrder', JSON.stringify(orderMap));
+        }
 
         function handleMidi(msg) {
             const status = msg.data[0];
@@ -300,6 +321,7 @@
                 console.error("setlist.json not found");
                 setlist = [];
             }
+            loadSavedOrder();
             renderSetlist();
             loadSong();
         }
@@ -390,10 +412,25 @@
             setlist.forEach((entry, i) => {
                 const div = document.createElement('div');
                 div.className = `setlist-item ${i === currentSongIndex ? 'current' : ''}`;
+                div.draggable = true;
+                div.dataset.index = i;
                 div.innerHTML = `
                     <strong>${i+1}.</strong> ${entry.artist} – ${entry.title}
                     <span class="dropdown-arrow" onclick="event.stopImmediatePropagation();toggleDropdown(${i});">${i === expandedSongIndex ? '▲' : '▼'}</span>
                 `;
+                div.ondragstart = (e) => e.dataTransfer.setData('text/plain', i);
+                div.ondragover = (e) => e.preventDefault();
+                div.ondrop = (e) => {
+                    e.preventDefault();
+                    const fromIndex = parseInt(e.dataTransfer.getData('text/plain'));
+                    const toIndex = i;
+                    if (fromIndex !== toIndex) {
+                        const [moved] = setlist.splice(fromIndex, 1);
+                        setlist.splice(toIndex, 0, moved);
+                        saveSetlistOrder();
+                        renderSetlist();
+                    }
+                };
                 div.onclick = (e) => {
                     if (e.target.classList.contains('dropdown-arrow')) return;
                     stopSong();
@@ -422,11 +459,6 @@
                             };
                             sub.appendChild(row);
                         });
-                    } else {
-                        const noTracks = document.createElement('div');
-                        noTracks.style.opacity = '0.6';
-                        noTracks.textContent = 'No backing tracks for this song';
-                        sub.appendChild(noTracks);
                     }
 
                     const clickRow = document.createElement('div');
@@ -450,7 +482,7 @@
             expandedSongIndex = (expandedSongIndex === index) ? -1 : index;
             if (expandedSongIndex === index) {
                 currentSongIndex = index;
-                loadSong();   // ← This ensures the song (and its audio array) is loaded
+                loadSong();
             } else {
                 renderSetlist();
             }
@@ -505,7 +537,7 @@
             document.getElementById('modal').style.display = 'none';
             document.getElementById('midiMapModal').style.display = 'none';
             loadSetlist();
-            console.log('%c🎸 Guitar Stage Teleprompter – Dropdown arrows & audio mixer fixed', 'color:#00cc77;font-size:18px');
+            console.log('%c🎸 Guitar Stage Teleprompter – Setlist reorder + chords shifted right + clearer click toggle', 'color:#00cc77;font-size:18px');
         };
     </script>
 </body>
