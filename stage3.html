@@ -12,19 +12,16 @@ body{background:#000;color:#fff;font-family:Arial,sans-serif;overflow:hidden;mar
 #nextSongContainer{font-size:13px;color:#888;white-space:nowrap;flex-shrink:0;}
 #songTime{font-family:monospace;font-size:15px;color:#0f0;white-space:nowrap;flex-shrink:0;min-width:90px;text-align:right;}
 .top-controls{display:flex;gap:6px;flex-shrink:0;}
-
 /* TAB STRIP - MANUAL SCROLL ONLY */
 #tabStrip{position:fixed;bottom:66px;left:368px;right:12px;height:172px;background:#060606;border-top:1px solid #1a1a1a;border-bottom:1px solid #1a1a1a;overflow:hidden;z-index:108;display:none;}
 #tabStripLabel{position:absolute;left:0;top:0;bottom:0;width:54px;display:flex;align-items:center;justify-content:center;font-size:10px;letter-spacing:1px;color:#3a3a3a;background:#060606;border-right:1px solid #1a1a1a;z-index:2;}
 #tabStripInner{position:absolute;left:54px;top:0;width:calc(100% - 54px);height:100%;overflow-y:auto;white-space:pre;font-family:'Courier New',monospace;font-size:14px;color:#00cc77;padding:14px 28px 14px 18px;line-height:1.32;letter-spacing:0.5px;background:#0a120a;scrollbar-width:thin;scrollbar-color:#00cc77 #1a1a1a;}
 #tabStripInner::-webkit-scrollbar{width:12px;}
 #tabStripInner::-webkit-scrollbar-thumb{background:#00cc77;border-radius:6px;}
-
 /* Tempo light */
 #tempoContainer{display:flex;align-items:center;gap:8px;margin-left:12px;}
 #tempoLight{width:20px;height:20px;border-radius:50%;background:#00cc77;box-shadow:0 0 0 3px rgba(0,204,119,.3);transition:all .08s ease;opacity:.4;}
 #tempoLight.active{opacity:1;box-shadow:0 0 22px 10px #00ff99;transform:scale(1.35);}
-
 /* Lyrics */
 #lyricsContainer{position:fixed;top:488px;bottom:78px;left:368px;right:12px;overflow:hidden;text-align:center;font-size:clamp(19px,2.3vw,32px);line-height:1.6;padding:18px 40px;z-index:10;color:#d4d4d4;}
 #lyricsInner{position:relative;transition:transform .05s linear;}
@@ -32,20 +29,17 @@ body{background:#000;color:#fff;font-family:Arial,sans-serif;overflow:hidden;mar
 .chord{font-weight:bold;color:#666;display:inline-block;min-width:96px;margin-right:10px;transition:color .18s;}
 .chord.active{color:#00cc77;text-shadow:0 0 12px #00cc77;}
 .section{color:#00cc77!important;font-weight:bold;font-size:1.28em;margin:26px 0 10px;text-shadow:0 0 10px #00cc77;}
-
 /* Chord display - optimized smooth transitions */
 #bigChord{font-size:clamp(100px,15vw,250px);font-weight:bold;color:#00cc77;text-shadow:0 0 24px #00cc77;line-height:1;transition:transform .25s cubic-bezier(0.4,0,0.2,1), opacity .3s ease;}
 #bigChord.pulse{transform:scale(1.12);}
 #chordDiagramsRow{display:flex;gap:10px;align-items:flex-start;overflow-x:auto;padding-bottom:2px;min-height:105px;transition:opacity .3s ease;}
 .chord-card{transition:transform .3s cubic-bezier(0.4,0,0.2,1), opacity .3s ease;opacity:1;}
 .chord-card.fade{opacity:0;transform:scale(0.92);}
-
 /* Big chord container - CENTERED using left panel as left boundary */
 #bigChordContainer{position:fixed;top:92px;left:368px;right:12px;display:flex;align-items:center;justify-content:center;gap:40px;z-index:95;pointer-events:none;}
 #arrowBetween{font-size:clamp(40px,5vw,80px);color:#00cc77;opacity:.6;}
 #nextChord{font-size:clamp(38px,5.5vw,88px);font-weight:bold;color:#00cc77;opacity:.38;transition:opacity .3s;}
 #nextChord.active{opacity:1;}
-
 /* Rest of layout */
 #chordMask{position:fixed;top:66px;left:0;right:0;height:490px;background:linear-gradient(to bottom,#000 74%,transparent 93%);z-index:90;pointer-events:none;}
 #transportBar{position:fixed;bottom:10px;left:50%;transform:translateX(-50%);background:rgba(10,10,10,.97);border:1px solid #1e1e1e;border-radius:9999px;padding:6px 14px;display:flex;gap:8px;align-items:center;z-index:110;box-shadow:0 6px 22px rgba(0,0,0,.7);}
@@ -98,12 +92,10 @@ body{background:#000;color:#fff;font-family:Arial,sans-serif;overflow:hidden;mar
   <div id="nextChord">—</div>
 </div>
 <div id="lyricsContainer"><div id="lyricsInner"></div></div>
-
 <div id="tabStrip">
   <div id="tabStripLabel">TAB</div>
   <div id="tabStripInner"></div>
 </div>
-
 <div id="transportBar">
   <button onclick="previousSong()" class="btn">⏮ PREV</button>
   <button onclick="stopSong()" class="btn">⏹ STOP</button>
@@ -115,11 +107,11 @@ body{background:#000;color:#fff;font-family:Arial,sans-serif;overflow:hidden;mar
   </div>
   <button onclick="toggleTabStrip()" class="btn" id="tabToggleBtn" style="display:none;">TAB</button>
 </div>
-
 <div id="leftPanel">
   <div id="setlistPanel">
     <div class="setlist-header">
       <span style="font-size:11px;color:#444;letter-spacing:1px;">SETLIST</span>
+      <button onclick="refreshSetlist()" class="btn" style="margin-left:auto;padding:3px 9px;font-size:11px;">🔄 Refresh</button>
     </div>
     <div id="setlistItems"></div>
   </div>
@@ -131,7 +123,6 @@ body{background:#000;color:#fff;font-family:Arial,sans-serif;overflow:hidden;mar
     <div id="chordDiagramsRow"></div>
   </div>
 </div>
-
 <!-- Import Modal -->
 <div id="importModal" class="modal-overlay">
   <div class="modal-box">
@@ -155,7 +146,6 @@ body{background:#000;color:#fff;font-family:Arial,sans-serif;overflow:hidden;mar
     <div id="importPreview" style="display:none;color:#0f0;font-family:monospace;font-size:11px;white-space:pre-wrap;max-height:160px;overflow-y:auto;background:#070707;padding:9px;border-radius:5px;border:1px solid #1a1a1a;"></div>
   </div>
 </div>
-
 <!-- Tab Modal - now for manual override only (primary tabs come from -tab.txt files) -->
 <div id="tabModal" class="modal-overlay">
   <div class="modal-box">
@@ -185,7 +175,6 @@ body{background:#000;color:#fff;font-family:Arial,sans-serif;overflow:hidden;mar
     <div id="tabPreview" style="display:none;background:#050505;border:1px solid #1a1a1a;border-radius:5px;padding:9px;font-family:monospace;font-size:11px;color:#555;max-height:90px;overflow-y:auto;white-space:pre;"></div>
   </div>
 </div>
-
 <!-- MIDI Modal -->
 <div id="midiModal" class="modal-overlay">
   <div class="modal-box">
@@ -205,7 +194,6 @@ body{background:#000;color:#fff;font-family:Arial,sans-serif;overflow:hidden;mar
     </div>
   </div>
 </div>
-
 <script>
 /* ====================== CHORD LIBRARY ====================== */
 const CHORDS = {
@@ -305,7 +293,6 @@ function showChordDiagrams(rawChord) {
       <div class="chord-card-label">${v.sub}</div>
     </div>`).join('');
 }
-
 /* ====================== STATE ====================== */
 let setlist = [], currentIdx = 0, song = null;
 let startTime = null, pausedElapsed = 0, playing = false;
@@ -317,7 +304,6 @@ let lastShownChord = '';
 let tabVisible = false;
 let tempoLightOn = true;
 let lastBeatTime = 0;
-
 const CC = {
   prev: +localStorage.getItem('midiCCPrev')||120,
   stop: +localStorage.getItem('midiCCStop')||121,
@@ -325,7 +311,6 @@ const CC = {
   next: +localStorage.getItem('midiCCNext')||123,
   click: +localStorage.getItem('midiCCClick')||124
 };
-
 /* ====================== AUDIO & TRANSPORT ====================== */
 function initAudio(){ if(!audioCtx) audioCtx = new (window.AudioContext||window.webkitAudioContext)(); }
 function beep(){
@@ -384,50 +369,68 @@ function stopSong(){
   lastChord = null; lastShownChord = '';
 }
 function togglePlayPause(){ if(playing) pauseSong(); else startSong(); }
-
-/* ====================== SETLIST & SONG (AUTO TAB LOADING) ====================== */
+/* ====================== SETLIST & SONG (AUTO TAB LOADING + CACHE BUST) ====================== */
 async function loadSetlist(){
   try {
-    const r = await fetch('setlist.json');
+    const r = await fetch(`setlist.json?t=${Date.now()}`);
     if (r.ok) setlist = await r.json();
-  } catch(e) { console.warn('setlist.json not found'); }
+    else console.warn('setlist.json returned non-OK status');
+  } catch(e) { console.warn('setlist.json not found or network error'); }
   renderSetlist();
   if (setlist.length) loadSong();
 }
+
+async function refreshSetlist(){
+  expandedIdx = -1;
+  currentIdx = 0;
+  await loadSetlist();   // forces fresh setlist + first song
+}
+
 async function loadSong(){
   if(!setlist.length) return;
-  const e = setlist[currentIdx], f = e.file || e;   // song filename
+  const e = setlist[currentIdx];
+  const f = (e && e.file) ? e.file : (typeof e === 'string' ? e : String(e || ''));
   const ne = setlist[(currentIdx + 1) % setlist.length];
-  document.getElementById('nextSong').textContent = ne ? (ne.title || ne) : '—';
+  document.getElementById('nextSong').textContent = ne ? (ne.title || (typeof ne === 'string' ? ne : ne.file || ne) || '—') : '—';
 
   try {
-    const r = await fetch('songs/' + f);
+    const songUrl = `songs/${f}?t=${Date.now()}`;
+    const r = await fetch(songUrl);
+    if (!r.ok) throw new Error(`HTTP ${r.status}`);
     song = await r.json();
     currentBPM = song.bpm || 120;
-    document.getElementById('currentSong').textContent = [e.artist, e.title || f.replace('.json','')].filter(Boolean).join(' – ');
 
-    renderLyrics(); loadTracks(); recalcScroll();
+    const displayTitle = [e?.artist || song.artist, e?.title || song.title || f.replace('.json','')].filter(Boolean).join(' – ');
+    document.getElementById('currentSong').textContent = displayTitle;
 
-    /* === AUTO-LOAD TAB FILE === */
+    renderLyrics();
+    loadTracks();
+    recalcScroll();
+
+    /* === AUTO-LOAD TAB FILE (with cache bust) === */
     const base = f.replace(/\.json$/i, '');
     try {
-      const tabResp = await fetch(`songs/${base}-tab.txt`);
+      const tabResp = await fetch(`songs/${base}-tab.txt?t=${Date.now()}`);
       if (tabResp.ok) {
         song.tab = await tabResp.text();
         autoLoadTab(song.tab);
+      } else {
+        if (song.tab) autoLoadTab(song.tab); // keep any manual tab override
       }
     } catch(e) {
       // no tab file → silent
     }
-
-  } catch(_) {
+  } catch(err) {
+    console.error('Failed to load song JSON:', f, err);
     song = {title:'Missing', lines:[]}; currentBPM = 120;
-    document.getElementById('currentSong').textContent = (e.title || f) + ' (missing)';
+    document.getElementById('currentSong').textContent = (e?.title || f) + ' (missing JSON)';
     renderLyrics();
   }
-  expandedIdx = currentIdx;   // auto-open mixer for new song
+
+  expandedIdx = currentIdx; // auto-open mixer
   renderSetlist();
 }
+
 function nextSong(){
   stopSong();
   expandedIdx = -1;
@@ -464,24 +467,46 @@ function renderSetlist(){
   setlist.forEach((e,i) => {
     const d = document.createElement('div');
     d.className = 'setlist-item' + (i===currentIdx ? ' current' : '');
-    d.innerHTML = `<strong>${i+1}.</strong> ${e.artist||''} – ${e.title||e.file}<span class="dropdown-arrow" onclick="event.stopImmediatePropagation();toggleDrop(${i})">${i===expandedIdx?'▲':'▼'}</span>`;
+    const title = e?.title || (typeof e==='string' ? e : e.file || 'Untitled');
+    const artist = e?.artist || '';
+    d.innerHTML = `<strong>${i+1}.</strong> ${artist} – ${title}<span class="dropdown-arrow" onclick="event.stopImmediatePropagation();toggleDrop(${i})">${i===expandedIdx?'▲':'▼'}</span>`;
     d.onclick = ev => { if(ev.target.classList.contains('dropdown-arrow')) return; stopSong(); currentIdx = i; loadSong(); };
     c.appendChild(d);
+
     if(i===expandedIdx){
       const sub = document.createElement('div'); sub.className = 'track-subpanel';
-      if(song?.audio?.length) song.audio.forEach((t,ti) => {
-        const row = document.createElement('div'); row.className = 'track-row';
-        row.innerHTML = `<label>${t.name}</label><input type="range" min="0" max="1" step=".01" value="1" style="width:80px;"><button onclick="soloTrack(${ti})" class="btn" style="padding:2px 7px;font-size:11px;">Solo</button>`;
-        row.querySelector('input').oninput = ev => { const tr = audioTracks.find(a=>a.name===t.name); if(tr) tr.audio.volume = +ev.target.value; };
-        sub.appendChild(row);
-      });
+
+      // === AUDIO MIXER FIX: show helpful message when no audio tracks defined ===
+      const audioList = song?.audio || [];
+      if(audioList.length === 0){
+        const msg = document.createElement('div');
+        msg.style.cssText = 'color:#888;font-size:12px;padding:8px 0;text-align:center;';
+        msg.innerHTML = `No audio tracks defined for this song.<br><small style="color:#666;">Add an <code style="background:#222;padding:1px 4px;border-radius:3px;">"audio"</code> array to the song JSON (e.g. backing tracks, click, etc.)</small>`;
+        sub.appendChild(msg);
+      } else {
+        audioList.forEach((t,ti) => {
+          const row = document.createElement('div'); row.className = 'track-row';
+          row.innerHTML = `<label>${t.name}</label><input type="range" min="0" max="1" step=".01" value="1" style="width:80px;"><button onclick="soloTrack(${ti});event.stopImmediatePropagation()" class="btn" style="padding:2px 7px;font-size:11px;">Solo</button>`;
+          const slider = row.querySelector('input');
+          slider.oninput = ev => {
+            const tr = audioTracks.find(a=>a.name===t.name);
+            if(tr) tr.audio.volume = +ev.target.value;
+          };
+          sub.appendChild(row);
+        });
+      }
+
+      // lyric offset row
       const or = document.createElement('div'); or.className = 'track-row'; or.style.cssText = 'border-top:1px solid #1e1e1e;margin-top:5px;padding-top:5px;';
       or.innerHTML = `<label>Lyric offset (s)</label><input type="number" id="voi" value="${song?.lyricOffset??0}" step=".1" style="width:64px;"><button onclick="saveOffset()" class="btn" style="padding:2px 7px;font-size:11px;">Save</button>`;
       sub.appendChild(or);
+
+      // click row
       const cr = document.createElement('div'); cr.className = 'track-row'; cr.style.cssText = 'border-top:1px solid #1e1e1e;margin-top:5px;padding-top:5px;';
       cr.innerHTML = `<label>Click</label><button onclick="clickOn=!clickOn;renderSetlist()" class="btn" style="padding:2px 7px;font-size:11px;">${clickOn?'ON':'OFF'}</button><input type="range" min="0" max="1" step=".01" value="${clickVol}" style="width:80px;">`;
       cr.querySelector('input').oninput = ev => { clickVol = +ev.target.value; };
       sub.appendChild(cr);
+
       c.appendChild(sub);
     }
   });
@@ -490,10 +515,13 @@ function soloTrack(i){ audioTracks.forEach((t,j) => t.audio.volume = j===i ? 1 :
 function saveOffset(){ if(song) song.lyricOffset = parseFloat(document.getElementById('voi').value)||0; }
 function toggleDrop(i){
   expandedIdx = expandedIdx===i ? -1 : i;
-  if(expandedIdx===i && currentIdx!==i){ currentIdx=i; loadSong(); return; }
+  if(expandedIdx===i && currentIdx!==i){
+    currentIdx = i;
+    loadSong(); // async – will call renderSetlist() when done
+    return;
+  }
   renderSetlist();
 }
-
 /* ====================== MAIN LOOP ====================== */
 setInterval(() => {
   if(!song?.lines) return;
@@ -504,7 +532,6 @@ setInterval(() => {
   updateTime(el);
   updateTempoLight();
 }, 30);
-
 function updateHL(adj){
   if(!song?.lines) return;
   let ai = -1;
@@ -512,18 +539,15 @@ function updateHL(adj){
   let currentChord = ai >= 0 ? (song.lines[ai].chord || '') : '';
   if(currentChord) lastShownChord = currentChord;
   const displayChord = currentChord || lastShownChord;
-
   const big = document.getElementById('bigChord');
   if(displayChord !== lastChord){
     big.classList.add('pulse');
     setTimeout(() => big.classList.remove('pulse'), 180);
   }
   big.textContent = displayChord || '—';
-
   const ni = ai + 1;
   document.getElementById('nextChord').textContent = ni < song.lines.length ? (song.lines[ni].chord || '') : '—';
   document.querySelectorAll('.chord').forEach(el => el.classList.toggle('active', +el.dataset.i === ai));
-
   if(displayChord !== lastChord){
     lastChord = displayChord;
     showChordDiagrams(displayChord || null);
@@ -535,8 +559,7 @@ function updateTime(el){
   const f = s => `${Math.floor(s/60)}:${String(Math.floor(s)%60).padStart(2,'0')}`;
   document.getElementById('songTime').textContent = `${f(el)} / ${f(tot)}`;
 }
-
-/* ====================== TAB SYSTEM (AUTO FROM -tab.txt + MANUAL OVERRIDE) ====================== */
+/* ====================== TAB SYSTEM ====================== */
 function applyTab(){
   const raw = document.getElementById('tabPaste').value.trim();
   if(!raw){ clearTab(); return; }
@@ -590,7 +613,6 @@ function toggleTabStrip(){
 function updateLyricsBottom(){
   document.getElementById('lyricsContainer').style.bottom = tabVisible ? '250px' : '78px';
 }
-
 /* ====================== TEMPO LIGHT ====================== */
 function toggleTempoLight(){
   tempoLightOn = !tempoLightOn;
@@ -612,7 +634,6 @@ function updateTempoLight(){
     lastBeatTime = now;
   }
 }
-
 /* ====================== MODALS & UTIL ====================== */
 function openModal(id){ document.getElementById(id).style.display = 'flex'; }
 function closeModal(id){ document.getElementById(id).style.display = 'none'; }
@@ -687,12 +708,6 @@ function initMIDI(){
   }).catch(()=>{});
 }
 function toggleFullscreen(){ if(!document.fullscreenElement) document.documentElement.requestFullscreen(); else document.exitFullscreen(); }
-function openSongsterr(){
-  const url = document.getElementById('songsterrUrl').value.trim();
-  if(!url || !url.includes('songsterr.com')){ alert('Enter a valid Songsterr URL.'); return; }
-  window.open(url, '_blank');
-}
-
 /* ====================== STARTUP ====================== */
 window.onload = () => {
   initMIDI();
