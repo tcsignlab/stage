@@ -1,150 +1,108 @@
-<!DOCTYPE html>
-<html>
-<head>
-<meta charset="UTF-8">
-<title>UG Tab → JSON</title>
-
-<style>
-body { font-family: Arial; background:#111; color:#eee; padding:20px; }
-textarea { width:100%; height:200px; }
-input { padding:6px; margin:5px; }
-button { padding:10px; margin:5px; cursor:pointer; }
-pre { background:#222; padding:10px; white-space:pre-wrap; }
-#error { color:red; }
-</style>
-</head>
-
-<body>
-
-<h2>🎸 UG Tab → JSON Converter</h2>
-
-<input id="bpm" type="number" value="120"> BPM
-<input id="offset" type="number" value="0"> Offset
-
-<br>
-
-<textarea id="input" placeholder="Paste Ultimate Guitar tab here"></textarea>
-
-<br>
-
-<button onclick="process()">Convert</button>
-<button onclick="download()">Download JSON</button>
-
-<p id="error"></p>
-
-<pre id="output"></pre>
-
 <script>
-let generated = [];
+let audio = new Audio();
+let events = [];
 
-function showError(msg) {
-  document.getElementById("error").textContent = msg;
-}
+document.getElementById("audioFile")?.addEventListener("change", e => {
+  const file = e.target.files[0];
+  if (file) audio.src = URL.createObjectURL(file);
+});
 
-function clearError() {
-  document.getElementById("error").textContent = "";
-}
-
-function isChordLine(line) {
-  const regex = /[A-G][#b]?(m|maj|min|sus|dim|aug|add)?\d*(\/[A-G][#b]?)?/g;
-  const matches = line.match(regex);
-  return matches && matches.length >= 2;
-}
-
-function process() {
-  try {
-    clearError();
-
-    const bpm = parseFloat(document.getElementById("bpm").value);
-    const offset = parseFloat(document.getElementById("offset").value) || 0;
-
-    if (!bpm || bpm <= 0) {
-      showError("Enter valid BPM");
-      return;
-    }
-
-    const beat = 60 / bpm;
-    const lines = document.getElementById("input").value.split("\n");
-
-    let time = offset;
-    generated = [];
-
-    for (let i = 0; i < lines.length; i++) {
-      let chordLine = lines[i];
-
-      if (!chordLine.trim()) continue;
-
-      if (isChordLine(chordLine)) {
-        let lyricLine = lines[i + 1] || "";
-
-        let regex = /[A-G][#b]?(m|maj|min|sus|dim|aug|add)?\d*(\/[A-G][#b]?)?/g;
-        let chords = [];
-        let match;
-
-        while ((match = regex.exec(chordLine)) !== null) {
-          chords.push({ chord: match[0], pos: match.index });
-        }
-
-        if (chords.length === 0) continue;
-
-        chords.forEach((c, idx) => {
-          let nextPos = chords[idx + 1]?.pos || lyricLine.length;
-
-          let lyric = lyricLine.substring(c.pos, nextPos).trim();
-
-          generated.push({
-            time: Number(time.toFixed(2)),
-            chord: c.chord,
-            lyric: lyric,
-            isSection: lyric.startsWith("[")
-          });
-
-          let width = Math.max(nextPos - c.pos, 4);
-          time += (width / 6) * beat;
-        });
-
-        i++; // skip lyric line
-      }
-    }
-
-    if (generated.length === 0) {
-      showError("No chords detected. Check formatting.");
-      return;
-    }
-
-    document.getElementById("output").textContent =
-      JSON.stringify(generated, null, 2);
-
-  } catch (e) {
-    showError("ERROR: " + e.message);
-    console.error(e);
-  }
-}
-
-function download() {
-  if (!generated.length) {
-    showError("Nothing to download. Click Convert first.");
+function parseUG() {
+  const bpm = parseFloat(document.getElementById("bpm").value);
+  if (!bpm || bpm <= 0) {
+    alert("Enter BPM");
     return;
   }
 
-  try {
-    const blob = new Blob(
-      [JSON.stringify(generated, null, 2)],
-      { type: "application/json" }
-    );
+  const beat = 60 / bpm;
+  const raw = document.getElementById("input").value.split("\n");
 
-    const a = document.createElement("a");
-    a.href = URL.createObjectURL(blob);
-    a.download = "song.json";
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
+  let time = 0;
+  events = [];
 
-  } catch (e) {
-    showError("Download failed: " + e.message);
+  for (let i = 0; i < raw.length; i++) {
+    let chordLine = raw[i];
+    if (!chordLine.trim()) continue;
+
+    // detect chord line (must contain multiple chords)
+    const chordRegex = /[A-G][#b]?m?(maj7|maj|min|sus|dim|aug|add)?\d*(\/[A-G][#b]?)?/g;
+    const matches = [...chordLine.matchAll(chordRegex)];
+
+    if (matches.length >= 1) {
+      let lyricLine = raw[i + 1] || "";
+
+      let chords = matches.map(m => ({
+        chord: m[0],
+        pos: m.index
+      }));
+
+      chords.forEach((c, idx) => {
+        let nextPos = chords[idx + 1]?.pos || lyricLine.length;
+
+        let lyric = lyricLine.substring(c.pos, nextPos).trim();
+
+        events.push({
+          time: Number(time.toFixed(2)),
+          chord: c.chord,
+          lyric: lyric,
+          isSection: lyric.startsWith("[")
+        });
+
+        // 🔥 THIS IS THE MAGIC
+        let spacing = Math.max(nextPos - c.pos, 4);
+        let beats = spacing / 5.5; // tuned constant
+        time += beats * beat;
+      });
+
+      i++; // skip lyric line
+    }
   }
+
+  renderEvents();
+}
+
+function renderEvents() {
+  const container = document.getElementById("lines");
+  container.innerHTML = "";
+
+  events.forEach(e => {
+    const div = document.createElement("div");
+    div.className = "line";
+
+    div.innerHTML = `
+      <input class="time" value="${e.time}">
+      <input class="chord" value="${e.chord}">
+      <input class="lyric" value="${e.lyric}">
+      <button onclick="syncTime(this)">🎧 Sync</button>
+    `;
+
+    container.appendChild(div);
+  });
+}
+
+function syncTime(btn) {
+  const row = btn.parentElement;
+  row.querySelector(".time").value = audio.currentTime.toFixed(2);
+}
+
+function exportJSON() {
+  const lines = document.querySelectorAll(".line");
+
+  const data = [];
+
+  lines.forEach(line => {
+    data.push({
+      time: parseFloat(line.querySelector(".time").value || 0),
+      chord: line.querySelector(".chord").value,
+      lyric: line.querySelector(".lyric").value,
+      isSection: line.querySelector(".lyric").value.startsWith("[")
+    });
+  });
+
+  const blob = new Blob([JSON.stringify(data, null, 2)], {type:"application/json"});
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "song.json";
+  a.click();
 }
 </script>
-
-</body>
-</html>
