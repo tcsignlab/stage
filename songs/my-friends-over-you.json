@@ -187,25 +187,7 @@
       "lyric": "that you are true",
       "isSection": false
     },
-    {
-      "time": 72.4,
-      "chord": "F#m",
-      "lyric": "",
-      "isSection": false
-    },
-    {
-      "time": 73.2,
-      "chord": "Em",
-      "lyric": "",
-      "isSection": false
-    },
-    {
-      "time": 74,
-      "chord": "D",
-      "lyric": "",
-      "isSection": false
-    },
-    {
+       {
       "time": 75.2,
       "chord": "A",
       "lyric": "I'd still pick my friends over you",
@@ -373,25 +355,7 @@
       "lyric": "that you are true",
       "isSection": false
     },
-    {
-      "time": 151.4,
-      "chord": "F#m",
-      "lyric": "",
-      "isSection": false
-    },
-    {
-      "time": 152.2,
-      "chord": "Em",
-      "lyric": "",
-      "isSection": false
-    },
-    {
-      "time": 153,
-      "chord": "D",
-      "lyric": "",
-      "isSection": false
-    },
-    {
+        {
       "time": 154.2,
       "chord": "A",
       "lyric": "I'd still pick my friends over you",
@@ -569,24 +533,6 @@
       "time": 212.6,
       "chord": "G",
       "lyric": "that you are true",
-      "isSection": false
-    },
-    {
-      "time": 214.4,
-      "chord": "F#m",
-      "lyric": "",
-      "isSection": false
-    },
-    {
-      "time": 215.2,
-      "chord": "Em",
-      "lyric": "",
-      "isSection": false
-    },
-    {
-      "time": 216,
-      "chord": "D",
-      "lyric": "",
       "isSection": false
     },
     {
