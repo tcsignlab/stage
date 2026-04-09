@@ -5,7 +5,6 @@
   "audio": [
     {"name": "Vocals", "file": "my-friends-over-you-vocals.mp3"},
     {"name": "Bass", "file": "my-friends-over-you-bass.mp3"}
-    {"name": "Drums", "file": "my-friends-over-you-drums.mp3"}
   ],
   "lines": [
     {"time":0.0,"chord":"D","lyric":"","isSection": false},
