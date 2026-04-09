@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>UG Studio Parser</title>
+<title>UG Studio Tool</title>
 
 <style>
 body { font-family: Arial; background:#111; color:#eee; padding:20px; }
@@ -12,13 +12,15 @@ input, button { margin:5px; padding:8px; }
 .time { width:80px; }
 .chord { width:80px; }
 .lyric { flex:1; }
+#error { color:red; white-space:pre-wrap; }
 </style>
-
 </head>
 
 <body>
 
-<h2>🎸 UG Tab → JSON Studio Tool</h2>
+<h2>🎸 UG Parser (Debug Safe)</h2>
+
+<div id="error"></div>
 
 <label>BPM:</label>
 <input id="bpm" type="number" value="100">
@@ -29,125 +31,148 @@ input, button { margin:5px; padding:8px; }
 
 <br>
 
-<textarea id="input" placeholder="Paste Ultimate Guitar tab here..."></textarea>
+<textarea id="input"></textarea>
 
 <br>
 
-<button onclick="parseUG()">Parse UG</button>
-<button onclick="exportJSON()">Export JSON</button>
+<button id="parseBtn">Parse UG</button>
+<button id="exportBtn">Export JSON</button>
 
 <hr>
 
 <div id="lines"></div>
 
 <script>
+window.onerror = function(msg, url, line, col, error) {
+  document.getElementById("error").textContent =
+    "ERROR:\n" + msg + "\nLine: " + line;
+};
+
+document.addEventListener("DOMContentLoaded", function() {
+
 let audio = new Audio();
 let events = [];
 
-// SAFE listener
-const audioInput = document.getElementById("audioFile");
-if (audioInput) {
-  audioInput.addEventListener("change", function(e) {
-    const file = e.target.files[0];
-    if (file) audio.src = URL.createObjectURL(file);
-  });
-}
+document.getElementById("audioFile").addEventListener("change", function(e){
+  const file = e.target.files[0];
+  if (file) audio.src = URL.createObjectURL(file);
+});
+
+document.getElementById("parseBtn").addEventListener("click", parseUG);
+document.getElementById("exportBtn").addEventListener("click", exportJSON);
 
 function parseUG() {
-  const bpmInput = document.getElementById("bpm");
-  const inputBox = document.getElementById("input");
+  try {
+    const bpm = parseFloat(document.getElementById("bpm").value);
+    const input = document.getElementById("input").value;
 
-  if (!bpmInput || !inputBox) {
-    alert("Missing UI elements");
-    return;
-  }
-
-  const bpm = parseFloat(bpmInput.value);
-  if (!bpm || bpm <= 0) {
-    alert("Enter valid BPM");
-    return;
-  }
-
-  const beat = 60 / bpm;
-  const raw = inputBox.value.split("\n");
-
-  let time = 0;
-  events = [];
-
-  for (let i = 0; i < raw.length; i++) {
-    let chordLine = raw[i];
-    if (!chordLine.trim()) continue;
-
-    const chordRegex = /[A-G][#b]?m?(maj7|maj|min|sus|dim|aug|add)?\d*(\/[A-G][#b]?)?/g;
-    const matches = [...chordLine.matchAll(chordRegex)];
-
-    if (matches.length > 0) {
-      let lyricLine = raw[i + 1] || "";
-
-      let chords = matches.map(m => ({
-        chord: m[0],
-        pos: m.index
-      }));
-
-      chords.forEach((c, idx) => {
-        let nextPos = chords[idx + 1]?.pos || lyricLine.length;
-
-        let lyric = lyricLine.substring(c.pos, nextPos).trim();
-
-        events.push({
-          time: Number(time.toFixed(2)),
-          chord: c.chord,
-          lyric: lyric,
-          isSection: lyric.startsWith("[")
-        });
-
-        let spacing = Math.max(nextPos - c.pos, 4);
-        let beats = spacing / 5.5;
-        time += beats * beat;
-      });
-
-      i++;
+    if (!input) {
+      alert("Paste UG tab");
+      return;
     }
-  }
 
-  renderEvents();
+    const beat = 60 / bpm;
+    const raw = input.split("\n");
+
+    let time = 0;
+    events = [];
+
+    for (let i = 0; i < raw.length; i++) {
+
+      let chordLine = raw[i];
+      if (!chordLine.trim()) continue;
+
+      const chordRegex = /[A-G][#b]?m?(maj7|maj|min|sus|dim|aug|add)?\d*(\/[A-G][#b]?)?/g;
+
+      let matches = [];
+      let match;
+
+      // SAFE match loop (no matchAll)
+      while ((match = chordRegex.exec(chordLine)) !== null) {
+        matches.push({
+          chord: match[0],
+          pos: match.index
+        });
+      }
+
+      if (matches.length > 0) {
+
+        let lyricLine = raw[i + 1] || "";
+
+        for (let j = 0; j < matches.length; j++) {
+          let c = matches[j];
+          let nextPos = matches[j + 1] ? matches[j + 1].pos : lyricLine.length;
+
+          let lyric = lyricLine.substring(c.pos, nextPos).trim();
+
+          events.push({
+            time: Number(time.toFixed(2)),
+            chord: c.chord,
+            lyric: lyric,
+            isSection: lyric.startsWith("[")
+          });
+
+          let spacing = Math.max(nextPos - c.pos, 4);
+          let beats = spacing / 5.5;
+          time += beats * beat;
+        }
+
+        i++; // skip lyric line
+      }
+    }
+
+    renderEvents();
+
+  } catch (err) {
+    document.getElementById("error").textContent = err.stack;
+  }
 }
 
 function renderEvents() {
   const container = document.getElementById("lines");
   container.innerHTML = "";
 
-  events.forEach(e => {
+  events.forEach(function(e) {
     const div = document.createElement("div");
     div.className = "line";
 
-    div.innerHTML = `
-      <input class="time" value="${e.time}">
-      <input class="chord" value="${e.chord}">
-      <input class="lyric" value="${e.lyric}">
-      <button onclick="syncTime(this)">🎧</button>
-    `;
+    const time = document.createElement("input");
+    time.className = "time";
+    time.value = e.time;
+
+    const chord = document.createElement("input");
+    chord.className = "chord";
+    chord.value = e.chord;
+
+    const lyric = document.createElement("input");
+    lyric.className = "lyric";
+    lyric.value = e.lyric;
+
+    const btn = document.createElement("button");
+    btn.textContent = "🎧";
+    btn.onclick = function() {
+      time.value = audio.currentTime.toFixed(2);
+    };
+
+    div.appendChild(time);
+    div.appendChild(chord);
+    div.appendChild(lyric);
+    div.appendChild(btn);
 
     container.appendChild(div);
   });
 }
 
-function syncTime(btn) {
-  const row = btn.parentElement;
-  row.querySelector(".time").value = audio.currentTime.toFixed(2);
-}
-
 function exportJSON() {
   const lines = document.querySelectorAll(".line");
-
   const data = [];
 
-  lines.forEach(line => {
+  lines.forEach(function(line) {
     data.push({
-      time: parseFloat(line.querySelector(".time").value || 0),
-      chord: line.querySelector(".chord").value,
-      lyric: line.querySelector(".lyric").value,
-      isSection: line.querySelector(".lyric").value.startsWith("[")
+      time: parseFloat(line.children[0].value || 0),
+      chord: line.children[1].value,
+      lyric: line.children[2].value,
+      isSection: line.children[2].value.startsWith("[")
     });
   });
 
@@ -157,6 +182,8 @@ function exportJSON() {
   a.download = "song.json";
   a.click();
 }
+
+});
 </script>
 
 </body>
