@@ -6,7 +6,7 @@
     {"name": "Vocals", "file": "my-friends-over-you-vocals.mp3"},
     {"name": "Bass", "file": "my-friends-over-you-bass.mp3"}
   ],
-  "lines": "lines": [
+  "lines": [
     {
       "time": 0,
       "chord": "",
