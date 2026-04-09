@@ -8,635 +8,113 @@
     {"name": "Drums", "file": "my-friends-over-you-drums.mp3"}
   ],
   "lines": [
-    {
-      "time": 0,
-      "chord": "",
-      "lyric": "[Verse 1]",
-      "isSection": true
-    },
-    {
-      "time": 0,
-      "chord": "D",
-      "lyric": "",
-      "isSection": false
-    },
-    {
-      "time": 4,
-      "chord": "",
-      "lyric": "I'm drunk off your kiss",
-      "isSection": false
-    },
-    {
-      "time": 8,
-      "chord": "G",
-      "lyric": "",
-      "isSection": false
-    },
-    {
-      "time": 12,
-      "chord": "F",
-      "lyric": "or another night in a row",
-      "isSection": false
-    },
-    {
-      "time": 16,
-      "chord": "D",
-      "lyric": "",
-      "isSection": false
-    },
-    {
-      "time": 20,
-      "chord": "",
-      "lyric": "This is becoming too routine for me",
-      "isSection": false
-    },
-    {
-      "time": 24,
-      "chord": "Em",
-      "lyric": "G",
-      "isSection": false
-    },
-    {
-      "time": 28,
-      "chord": "B",
-      "lyric": "ut I didn't mean to lead you on",
-      "isSection": false
-    },
-    {
-      "time": 32,
-      "chord": "D",
-      "lyric": "G",
-      "isSection": false
-    },
-    {
-      "time": 36,
-      "chord": "A",
-      "lyric": "nd it's alright to pretend that we still talk",
-      "isSection": false
-    },
-    {
-      "time": 40,
-      "chord": "D",
-      "lyric": "",
-      "isSection": false
-    },
-    {
-      "time": 44,
-      "chord": "",
-      "lyric": "It's just for show isn't it",
-      "isSection": false
-    },
-    {
-      "time": 48,
-      "chord": "Em",
-      "lyric": "G",
-      "isSection": false
-    },
-    {
-      "time": 52,
-      "chord": "",
-      "lyric": "It's my fault that it fell apart",
-      "isSection": false
-    },
-    {
-      "time": 56,
-      "chord": "",
-      "lyric": "[Refrain 1]",
-      "isSection": true
-    },
-    {
-      "time": 56,
-      "chord": "",
-      "lyric": "Page 1/3",
-      "isSection": false
-    },
-    {
-      "time": 60,
-      "chord": "Em",
-      "lyric": "G",
-      "isSection": false
-    },
-    {
-      "time": 64,
-      "chord": "",
-      "lyric": "Just maybe you need this",
-      "isSection": false
-    },
-    {
-      "time": 68,
-      "chord": "Em",
-      "lyric": "G       A",
-      "isSection": false
-    },
-    {
-      "time": 72,
-      "chord": "A",
-      "lyric": "nd I didn't mean to lead you on",
-      "isSection": false
-    },
-    {
-      "time": 76,
-      "chord": "",
-      "lyric": "[Chorus 1]",
-      "isSection": true
-    },
-    {
-      "time": 76,
-      "chord": "D",
-      "lyric": "G",
-      "isSection": false
-    },
-    {
-      "time": 80,
-      "chord": "",
-      "lyric": "You were everything I wanted",
-      "isSection": false
-    },
-    {
-      "time": 84,
-      "chord": "D",
-      "lyric": "G",
-      "isSection": false
-    },
-    {
-      "time": 88,
-      "chord": "B",
-      "lyric": "ut I just can't finish what I started",
-      "isSection": false
-    },
-    {
-      "time": 92,
-      "chord": "Bm",
-      "lyric": "G",
-      "isSection": false
-    },
-    {
-      "time": 96,
-      "chord": "",
-      "lyric": "There's no room left here on my back",
-      "isSection": false
-    },
-    {
-      "time": 100,
-      "chord": "Bm",
-      "lyric": "",
-      "isSection": false
-    },
-    {
-      "time": 104,
-      "chord": "",
-      "lyric": "It was damaged long ago",
-      "isSection": false
-    },
-    {
-      "time": 108,
-      "chord": "G",
-      "lyric": "",
-      "isSection": false
-    },
-    {
-      "time": 112,
-      "chord": "",
-      "lyric": "Though you swear that you are true",
-      "isSection": false
-    },
-    {
-      "time": 116,
-      "chord": "F#m",
-      "lyric": "Em    D    A               D  G",
-      "isSection": false
-    },
-    {
-      "time": 120,
-      "chord": "",
-      "lyric": "I'd still pick my friends over you",
-      "isSection": false
-    },
-    {
-      "time": 124,
-      "chord": "D",
-      "lyric": "G",
-      "isSection": false
-    },
-    {
-      "time": 128,
-      "chord": "",
-      "lyric": "My friends over you",
-      "isSection": false
-    },
-    {
-      "time": 132,
-      "chord": "",
-      "lyric": "[Verse 2]",
-      "isSection": true
-    },
-    {
-      "time": 132,
-      "chord": "D",
-      "lyric": "",
-      "isSection": false
-    },
-    {
-      "time": 136,
-      "chord": "",
-      "lyric": "Please tell me everything",
-      "isSection": false
-    },
-    {
-      "time": 140,
-      "chord": "G",
-      "lyric": "",
-      "isSection": false
-    },
-    {
-      "time": 144,
-      "chord": "",
-      "lyric": "That you think that I should know",
-      "isSection": false
-    },
-    {
-      "time": 148,
-      "chord": "D",
-      "lyric": "",
-      "isSection": false
-    },
-    {
-      "time": 152,
-      "chord": "Ab",
-      "lyric": "out all the plans you made",
-      "isSection": false
-    },
-    {
-      "time": 156,
-      "chord": "Em",
-      "lyric": "G",
-      "isSection": false
-    },
-    {
-      "time": 160,
-      "chord": "",
-      "lyric": "When I was no where to be found",
-      "isSection": false
-    },
-    {
-      "time": 164,
-      "chord": "D",
-      "lyric": "G",
-      "isSection": false
-    },
-    {
-      "time": 168,
-      "chord": "A",
-      "lyric": "nd it's all right to forget that we still talk",
-      "isSection": false
-    },
-    {
-      "time": 172,
-      "chord": "D",
-      "lyric": "",
-      "isSection": false
-    },
-    {
-      "time": 176,
-      "chord": "",
-      "lyric": "It's just for fun isn't it",
-      "isSection": false
-    },
-    {
-      "time": 180,
-      "chord": "Em",
-      "lyric": "G",
-      "isSection": false
-    },
-    {
-      "time": 184,
-      "chord": "",
-      "lyric": "It's my fault that it fell apart",
-      "isSection": false
-    },
-    {
-      "time": 188,
-      "chord": "",
-      "lyric": "[Refrain 2]",
-      "isSection": true
-    },
-    {
-      "time": 188,
-      "chord": "Em",
-      "lyric": "G",
-      "isSection": false
-    },
-    {
-      "time": 192,
-      "chord": "",
-      "lyric": "Just maybe you need this",
-      "isSection": false
-    },
-    {
-      "time": 196,
-      "chord": "Em",
-      "lyric": "G       A",
-      "isSection": false
-    },
-    {
-      "time": 200,
-      "chord": "A",
-      "lyric": "nd I didn't mean to lead you on",
-      "isSection": false
-    },
-    {
-      "time": 204,
-      "chord": "",
-      "lyric": "[Chorus 2]",
-      "isSection": true
-    },
-    {
-      "time": 204,
-      "chord": "D",
-      "lyric": "G",
-      "isSection": false
-    },
-    {
-      "time": 208,
-      "chord": "",
-      "lyric": "You were everything I wanted",
-      "isSection": false
-    },
-    {
-      "time": 212,
-      "chord": "D",
-      "lyric": "G",
-      "isSection": false
-    },
-    {
-      "time": 216,
-      "chord": "B",
-      "lyric": "ut I just can't finish what I started",
-      "isSection": false
-    },
-    {
-      "time": 220,
-      "chord": "Bm",
-      "lyric": "G",
-      "isSection": false
-    },
-    {
-      "time": 224,
-      "chord": "",
-      "lyric": "There's no room left here on my back",
-      "isSection": false
-    },
-    {
-      "time": 228,
-      "chord": "Bm",
-      "lyric": "",
-      "isSection": false
-    },
-    {
-      "time": 232,
-      "chord": "",
-      "lyric": "It was damaged long ago",
-      "isSection": false
-    },
-    {
-      "time": 236,
-      "chord": "",
-      "lyric": "Page 2/3",
-      "isSection": false
-    },
-    {
-      "time": 240,
-      "chord": "G",
-      "lyric": "",
-      "isSection": false
-    },
-    {
-      "time": 244,
-      "chord": "",
-      "lyric": "Though you swear that you are true",
-      "isSection": false
-    },
-    {
-      "time": 248,
-      "chord": "F#m",
-      "lyric": "Em    D    A",
-      "isSection": false
-    },
-    {
-      "time": 252,
-      "chord": "",
-      "lyric": "I'd still pick my friends over you",
-      "isSection": false
-    },
-    {
-      "time": 256,
-      "chord": "",
-      "lyric": "[Instrumental]",
-      "isSection": true
-    },
-    {
-      "time": 256,
-      "chord": "D",
-      "lyric": "F#m G D F#m G Bm F#m G Bm A G  x4",
-      "isSection": false
-    },
-    {
-      "time": 260,
-      "chord": "",
-      "lyric": "[Refrain 3]",
-      "isSection": true
-    },
-    {
-      "time": 260,
-      "chord": "Em",
-      "lyric": "G        Em     G",
-      "isSection": false
-    },
-    {
-      "time": 264,
-      "chord": "",
-      "lyric": "Just maybe you need this   you need this",
-      "isSection": false
-    },
-    {
-      "time": 268,
-      "chord": "Em",
-      "lyric": "G       A",
-      "isSection": false
-    },
-    {
-      "time": 272,
-      "chord": "A",
-      "lyric": "nd I didn't mean to lead you on",
-      "isSection": false
-    },
-    {
-      "time": 276,
-      "chord": "",
-      "lyric": "[Chorus 3]",
-      "isSection": true
-    },
-    {
-      "time": 276,
-      "chord": "D",
-      "lyric": "G",
-      "isSection": false
-    },
-    {
-      "time": 280,
-      "chord": "",
-      "lyric": "You were everything I wanted",
-      "isSection": false
-    },
-    {
-      "time": 284,
-      "chord": "D",
-      "lyric": "G",
-      "isSection": false
-    },
-    {
-      "time": 288,
-      "chord": "B",
-      "lyric": "ut I just can't finish what I started",
-      "isSection": false
-    },
-    {
-      "time": 292,
-      "chord": "Bm",
-      "lyric": "G",
-      "isSection": false
-    },
-    {
-      "time": 296,
-      "chord": "",
-      "lyric": "There's no room left here on my back",
-      "isSection": false
-    },
-    {
-      "time": 300,
-      "chord": "Bm",
-      "lyric": "",
-      "isSection": false
-    },
-    {
-      "time": 304,
-      "chord": "",
-      "lyric": "It was damaged long ago",
-      "isSection": false
-    },
-    {
-      "time": 308,
-      "chord": "G",
-      "lyric": "",
-      "isSection": false
-    },
-    {
-      "time": 312,
-      "chord": "",
-      "lyric": "Though you swear that you are true",
-      "isSection": false
-    },
-    {
-      "time": 316,
-      "chord": "F#m",
-      "lyric": "Em    D    A",
-      "isSection": false
-    },
-    {
-      "time": 320,
-      "chord": "",
-      "lyric": "I'd still pick my friends over you",
-      "isSection": false
-    },
-    {
-      "time": 324,
-      "chord": "",
-      "lyric": "[Chorus 4]",
-      "isSection": true
-    },
-    {
-      "time": 324,
-      "chord": "D",
-      "lyric": "G",
-      "isSection": false
-    },
-    {
-      "time": 328,
-      "chord": "",
-      "lyric": "You were everything I wanted",
-      "isSection": false
-    },
-    {
-      "time": 332,
-      "chord": "D",
-      "lyric": "G",
-      "isSection": false
-    },
-    {
-      "time": 336,
-      "chord": "B",
-      "lyric": "ut I just can't finish what I started",
-      "isSection": false
-    },
-    {
-      "time": 340,
-      "chord": "Bm",
-      "lyric": "G",
-      "isSection": false
-    },
-    {
-      "time": 344,
-      "chord": "",
-      "lyric": "There's no room left here on my back",
-      "isSection": false
-    },
-    {
-      "time": 348,
-      "chord": "Bm",
-      "lyric": "",
-      "isSection": false
-    },
-    {
-      "time": 352,
-      "chord": "",
-      "lyric": "It was damaged long ago",
-      "isSection": false
-    },
-    {
-      "time": 356,
-      "chord": "G",
-      "lyric": "",
-      "isSection": false
-    },
-    {
-      "time": 360,
-      "chord": "",
-      "lyric": "Though you swear that you are true",
-      "isSection": false
-    },
-    {
-      "time": 364,
-      "chord": "F#m",
-      "lyric": "Em    D    A               D  G",
-      "isSection": false
-    },
-    {
-      "time": 368,
-      "chord": "",
-      "lyric": "I'd still pick my friends over you",
-      "isSection": false
-    },
-    {
-      "time": 372,
-      "chord": "D",
-      "lyric": "G",
-      "isSection": false
-    },
-    {
-      "time": 376,
-      "chord": "",
-      "lyric": "My friends over you",
-      "isSection": false
-    }
+    {"time":0.0,"chord":"D","lyric":"","isSection": false},
+    {"time":1.35,"chord":"G","lyric":"","isSection": false},
+    {"time":2.7,"chord":"D","lyric":"","isSection": false},
+    {"time":4.0,"chord":"G","lyric":"","isSection": false},
+
+    {"time":8.0,"chord":"D","lyric":"I'm drunk off your kiss","isSection": false},
+    {"time":11.2,"chord":"G","lyric":"For another night in a row","isSection": false},
+    {"time":14.6,"chord":"D","lyric":"This is becoming too routine for me","isSection": false},
+    {"time":18.0,"chord":"Em","lyric":"But I didn't mean","isSection": false},
+    {"time":19.5,"chord":"G","lyric":"to lead you on","isSection": false},
+    {"time":22.8,"chord":"D","lyric":"And it's alright to pretend","isSection": false},
+    {"time":24.8,"chord":"G","lyric":"that we still talk","isSection": false},
+    {"time":27.6,"chord":"D","lyric":"It's just for show isn't it","isSection": false},
+    {"time":30.8,"chord":"Em","lyric":"It's my fault","isSection": false},
+    {"time":32.2,"chord":"G","lyric":"that it fell apart","isSection": false},
+
+    {"time":36.0,"chord":"Em","lyric":"Just maybe you need this","isSection": false},
+    {"time":39.2,"chord":"G","lyric":"","isSection": false},
+    {"time":40.8,"chord":"Em","lyric":"And I didn't mean","isSection": false},
+    {"time":42.6,"chord":"G","lyric":"to lead you","isSection": false},
+    {"time":44.2,"chord":"A","lyric":"on","isSection": false},
+
+    {"time":47.0,"chord":"D","lyric":"You were everything I wanted","isSection": false},
+    {"time":50.6,"chord":"G","lyric":"","isSection": false},
+    {"time":52.0,"chord":"D","lyric":"But I just can't finish","isSection": false},
+    {"time":54.4,"chord":"G","lyric":"what I started","isSection": false},
+    {"time":57.6,"chord":"Bm","lyric":"There's no room left","isSection": false},
+    {"time":60.0,"chord":"G","lyric":"here on my back","isSection": false},
+    {"time":63.2,"chord":"Bm","lyric":"It was damaged","isSection": false},
+    {"time":65.4,"chord":"G","lyric":"long ago","isSection": false},
+    {"time":68.6,"chord":"G","lyric":"Though you swear","isSection": false},
+    {"time":70.6,"chord":"G","lyric":"that you are true","isSection": false},
+    {"time":72.4,"chord":"F#m","lyric":"","isSection": false},
+    {"time":73.2,"chord":"Em","lyric":"","isSection": false},
+    {"time":74.0,"chord":"D","lyric":"","isSection": false},
+    {"time":75.2,"chord":"A","lyric":"I'd still pick my friends over you","isSection": false},
+    {"time":78.8,"chord":"D","lyric":"","isSection": false},
+    {"time":80.0,"chord":"G","lyric":"My friends over you","isSection": false},
+
+    {"time":86.0,"chord":"D","lyric":"Please tell me everything","isSection": false},
+    {"time":89.4,"chord":"G","lyric":"That you think that I should know","isSection": false},
+    {"time":92.8,"chord":"D","lyric":"About all the plans you made","isSection": false},
+    {"time":96.0,"chord":"Em","lyric":"When I was nowhere","isSection": false},
+    {"time":98.0,"chord":"G","lyric":"to be found","isSection": false},
+    {"time":101.2,"chord":"D","lyric":"And it's alright to forget","isSection": false},
+    {"time":103.6,"chord":"G","lyric":"that we still talk","isSection": false},
+    {"time":106.6,"chord":"D","lyric":"It's just for fun isn't it","isSection": false},
+    {"time":109.8,"chord":"Em","lyric":"It's my fault","isSection": false},
+    {"time":111.2,"chord":"G","lyric":"that it fell apart","isSection": false},
+
+    {"time":115.0,"chord":"Em","lyric":"Just maybe you need this","isSection": false},
+    {"time":118.2,"chord":"G","lyric":"","isSection": false},
+    {"time":119.8,"chord":"Em","lyric":"And I didn't mean","isSection": false},
+    {"time":121.4,"chord":"G","lyric":"to lead you","isSection": false},
+    {"time":123.2,"chord":"A","lyric":"on","isSection": false},
+
+    {"time":126.0,"chord":"D","lyric":"You were everything I wanted","isSection": false},
+    {"time":129.6,"chord":"G","lyric":"","isSection": false},
+    {"time":131.0,"chord":"D","lyric":"But I just can't finish","isSection": false},
+    {"time":133.4,"chord":"G","lyric":"what I started","isSection": false},
+    {"time":136.6,"chord":"Bm","lyric":"There's no room left","isSection": false},
+    {"time":139.0,"chord":"G","lyric":"here on my back","isSection": false},
+    {"time":142.2,"chord":"Bm","lyric":"It was damaged","isSection": false},
+    {"time":144.4,"chord":"G","lyric":"long ago","isSection": false},
+    {"time":147.6,"chord":"G","lyric":"Though you swear","isSection": false},
+    {"time":149.6,"chord":"G","lyric":"that you are true","isSection": false},
+    {"time":151.4,"chord":"F#m","lyric":"","isSection": false},
+    {"time":152.2,"chord":"Em","lyric":"","isSection": false},
+    {"time":153.0,"chord":"D","lyric":"","isSection": false},
+    {"time":154.2,"chord":"A","lyric":"I'd still pick my friends over you","isSection": false},
+
+    {"time":158.0,"chord":"D","lyric":"","isSection": false},
+    {"time":159.0,"chord":"F#m","lyric":"","isSection": false},
+    {"time":160.0,"chord":"G","lyric":"","isSection": false},
+    {"time":161.2,"chord":"D","lyric":"","isSection": false},
+    {"time":162.2,"chord":"F#m","lyric":"","isSection": false},
+    {"time":163.2,"chord":"G","lyric":"","isSection": false},
+    {"time":164.6,"chord":"Bm","lyric":"","isSection": false},
+    {"time":165.6,"chord":"F#m","lyric":"","isSection": false},
+    {"time":166.6,"chord":"G","lyric":"","isSection": false},
+    {"time":168.0,"chord":"Bm","lyric":"","isSection": false},
+    {"time":169.2,"chord":"A","lyric":"","isSection": false},
+    {"time":170.6,"chord":"G","lyric":"","isSection": false},
+
+    {"time":174.0,"chord":"Em","lyric":"Just maybe you need this","isSection": false},
+    {"time":177.2,"chord":"G","lyric":"","isSection": false},
+    {"time":178.8,"chord":"Em","lyric":"you need this","isSection": false},
+    {"time":181.2,"chord":"G","lyric":"","isSection": false},
+    {"time":182.6,"chord":"Em","lyric":"And I didn't mean","isSection": false},
+    {"time":184.6,"chord":"G","lyric":"to lead you","isSection": false},
+    {"time":186.2,"chord":"A","lyric":"on","isSection": false},
+
+    {"time":189.0,"chord":"D","lyric":"You were everything I wanted","isSection": false},
+    {"time":192.6,"chord":"G","lyric":"","isSection": false},
+    {"time":194.0,"chord":"D","lyric":"But I just can't finish","isSection": false},
+    {"time":196.4,"chord":"G","lyric":"what I started","isSection": false},
+    {"time":199.6,"chord":"Bm","lyric":"There's no room left","isSection": false},
+    {"time":202.0,"chord":"G","lyric":"here on my back","isSection": false},
+    {"time":205.2,"chord":"Bm","lyric":"It was damaged","isSection": false},
+    {"time":207.4,"chord":"G","lyric":"long ago","isSection": false},
+    {"time":210.6,"chord":"G","lyric":"Though you swear","isSection": false},
+    {"time":212.6,"chord":"G","lyric":"that you are true","isSection": false},
+    {"time":214.4,"chord":"F#m","lyric":"","isSection": false},
+    {"time":215.2,"chord":"Em","lyric":"","isSection": false},
+    {"time":216.0,"chord":"D","lyric":"","isSection": false},
+    {"time":217.2,"chord":"A","lyric":"I'd still pick my friends over you","isSection": false},
+    {"time":219.2,"chord":"D","lyric":"","isSection": false},
+    {"time":220.2,"chord":"G","lyric":"My friends over you","isSection": false}
   ]
 }
