@@ -5,6 +5,7 @@
   "audio": [
     {"name": "Vocals", "file": "my-friends-over-you-vocals.mp3"},
     {"name": "Bass", "file": "my-friends-over-you-bass.mp3"}
+    {"name": "Drums", "file": "my-friends-over-you-drums.mp3"}
   ],
   "lines": [
     {
