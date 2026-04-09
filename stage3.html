@@ -300,8 +300,6 @@ function showChordDiagrams(rawChord) {
       <div class="chord-card-label">${v.sub}</div>
     </div>`).join('');
 }
-
-/* NEW: render all unique chords used in the song */
 function renderChordsUsed() {
   const container = document.getElementById('chordsUsed');
   if (!song?.lines?.length) {
@@ -339,13 +337,15 @@ let setlist = [], currentIdx = 0, song = null;
 let startTime = null, pausedElapsed = 0, playing = false;
 let audioTracks = [], audioCtx = null;
 let clickOn = true, clickVol = 0.75, clickIv = null;
-let expandedIdx = -1, currentBPM = 120, scrollMul = 11.5;
-let scrollSpeedFactor = parseFloat(localStorage.getItem('scrollSpeedFactor')) || 1.15; // default slightly faster
+let expandedIdx = -1, currentBPM = 120;
 let parsedTemp = null, lastChord = null;
 let lastShownChord = '';
 let tabVisible = false;
 let tempoLightOn = true;
 let lastBeatTime = 0;
+
+const DEFAULT_SCROLL_FACTOR = 1.15; // fallback for brand new songs
+
 const CC = {
   prev: +localStorage.getItem('midiCCPrev')||120,
   stop: +localStorage.getItem('midiCCStop')||121,
@@ -413,7 +413,7 @@ function stopSong(){
 }
 function togglePlayPause(){ if(playing) pauseSong(); else startSong(); }
 
-/* ====================== SETLIST & SONG ====================== */
+/* ====================== SETLIST & SONG (PER-SONG SETTINGS) ====================== */
 async function loadSetlist(){
   try {
     const r = await fetch(`setlist.json?t=${Date.now()}`);
@@ -441,6 +441,10 @@ async function loadSong(){
     const r = await fetch(songUrl);
     if (!r.ok) throw new Error(`HTTP ${r.status}`);
     song = await r.json();
+
+    // === PER-SONG SETTINGS (load or set defaults) ===
+    if (typeof song.scrollSpeedFactor !== 'number') song.scrollSpeedFactor = DEFAULT_SCROLL_FACTOR;
+    if (typeof song.lyricOffset !== 'number') song.lyricOffset = 0;
     currentBPM = song.bpm || 120;
 
     const displayTitle = [e?.artist || song.artist, e?.title || song.title || f.replace('.json','')].filter(Boolean).join(' – ');
@@ -451,13 +455,12 @@ async function loadSong(){
     recalcScroll();
     renderChordsUsed();
 
-    /* AUTO-LOAD TAB FILE but DO NOT show automatically (hidden by default) */
+    /* AUTO-LOAD TAB FILE but hidden by default */
     const base = f.replace(/\.json$/i, '');
     try {
       const tabResp = await fetch(`songs/${base}-tab.txt?t=${Date.now()}`);
       if (tabResp.ok) {
         song.tab = await tabResp.text();
-        // only enable the TAB button – do not auto-show the strip
         document.getElementById('tabToggleBtn').style.display = 'inline-block';
       } else {
         document.getElementById('tabToggleBtn').style.display = song.tab ? 'inline-block' : 'none';
@@ -468,7 +471,8 @@ async function loadSong(){
 
   } catch(err) {
     console.error('Failed to load song JSON:', f, err);
-    song = {title:'Missing', lines:[]}; currentBPM = 120;
+    song = {title:'Missing', lines:[], scrollSpeedFactor: DEFAULT_SCROLL_FACTOR, lyricOffset: 0};
+    currentBPM = 120;
     document.getElementById('currentSong').textContent = (e?.title || f) + ' (missing JSON)';
     renderLyrics();
     renderChordsUsed();
@@ -493,8 +497,7 @@ function previousSong(){
 function recalcScroll(){
   if(!song?.lines?.length) return;
   const total = (song.lines[song.lines.length-1].time||0) + 15;
-  const baseMul = document.getElementById('lyricsInner').scrollHeight / total * 1.15;
-  scrollMul = baseMul;
+  // scrollMul is now just a base; final speed = song.scrollSpeedFactor
 }
 function renderLyrics(){
   const inn = document.getElementById('lyricsInner');
@@ -554,26 +557,43 @@ function renderSetlist(){
       cr.querySelector('input').oninput = ev => { clickVol = +ev.target.value; };
       sub.appendChild(cr);
 
-      // NEW: Scroll speed slider
+      // SCROLL SPEED (now per-song)
       const sr = document.createElement('div'); sr.className = 'track-row'; sr.style.cssText = 'border-top:1px solid #1e1e1e;margin-top:5px;padding-top:5px;';
       sr.innerHTML = `<label>Scroll speed</label>
-        <input type="range" id="scrollSlider" min="0.6" max="2.5" step="0.05" value="${scrollSpeedFactor}" style="width:130px;">
-        <span id="scrollVal" style="font-size:11px;color:#0f0;margin-left:8px;width:36px;display:inline-block;">${scrollSpeedFactor.toFixed(2)}x</span>`;
+        <input type="range" id="scrollSlider" min="0.6" max="2.5" step="0.05" value="${song?.scrollSpeedFactor || DEFAULT_SCROLL_FACTOR}" style="width:130px;">
+        <span id="scrollVal" style="font-size:11px;color:#0f0;margin-left:8px;width:36px;display:inline-block;">${(song?.scrollSpeedFactor || DEFAULT_SCROLL_FACTOR).toFixed(2)}x</span>`;
       const sliderEl = sr.querySelector('#scrollSlider');
       const valEl = sr.querySelector('#scrollVal');
       sliderEl.oninput = () => {
-        scrollSpeedFactor = parseFloat(sliderEl.value);
-        valEl.textContent = scrollSpeedFactor.toFixed(2) + 'x';
-        localStorage.setItem('scrollSpeedFactor', scrollSpeedFactor);
+        song.scrollSpeedFactor = parseFloat(sliderEl.value);
+        valEl.textContent = song.scrollSpeedFactor.toFixed(2) + 'x';
       };
       sub.appendChild(sr);
+
+      // === SAVE TO JSON (per-song settings) ===
+      const saveRow = document.createElement('div'); saveRow.className = 'track-row'; saveRow.style.cssText = 'border-top:2px solid #00cc77;margin-top:8px;padding-top:8px;justify-content:center;';
+      saveRow.innerHTML = `<button onclick="saveSongSettings()" class="btn primary" style="padding:6px 16px;font-weight:700;">💾 Save Settings to songs/${f}</button>`;
+      sub.appendChild(saveRow);
 
       c.appendChild(sub);
     }
   });
 }
 function soloTrack(i){ audioTracks.forEach((t,j) => t.audio.volume = j===i ? 1 : 0); }
-function saveOffset(){ if(song) song.lyricOffset = parseFloat(document.getElementById('voi').value)||0; }
+function saveOffset(){ 
+  if(song) song.lyricOffset = parseFloat(document.getElementById('voi').value)||0; 
+}
+function saveSongSettings(){
+  if(!song) return alert('No song loaded');
+  // force current values into song object
+  song.scrollSpeedFactor = parseFloat(document.getElementById('scrollSlider')?.value) || song.scrollSpeedFactor || DEFAULT_SCROLL_FACTOR;
+  const filename = (setlist[currentIdx]?.file || setlist[currentIdx]) || 'song.json';
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([JSON.stringify(song, null, 2)], {type:'application/json'}));
+  a.download = filename.endsWith('.json') ? filename : filename.replace('.json','') + '.json';
+  a.click();
+  alert('✅ JSON downloaded! Replace the file in your songs/ folder with this updated version.');
+}
 function toggleDrop(i){
   expandedIdx = expandedIdx===i ? -1 : i;
   if(expandedIdx===i && currentIdx!==i){ currentIdx=i; loadSong(); return; }
@@ -583,14 +603,13 @@ function toggleDrop(i){
 /* ====================== MAIN LOOP ====================== */
 setInterval(() => {
   if(!song?.lines) return;
-  // ALWAYS prefer the backup track (audioTracks[0]) for precise sync
   let el = playing && audioTracks.length ? audioTracks[0].audio.currentTime : (playing ? (Date.now()-startTime)/1000 : pausedElapsed);
   const adj = Math.max(0, el - (song.lyricOffset??0));
   updateHL(adj);
   scrollLyrics(adj);
   updateTime(el);
   updateTempoLight();
-}, 16); // smoother 60 fps
+}, 16);
 
 function updateHL(adj){
   if(!song?.lines) return;
@@ -614,8 +633,8 @@ function updateHL(adj){
   }
 }
 function scrollLyrics(adj){
-  // apply speed factor for user control
-  const offset = adj * scrollMul * scrollSpeedFactor;
+  // use per-song scroll speed
+  const offset = adj * (document.getElementById('lyricsInner').scrollHeight / ((song.lines[song.lines.length-1].time||0) + 15) * 1.15) * (song.scrollSpeedFactor || DEFAULT_SCROLL_FACTOR);
   document.getElementById('lyricsInner').style.transform = `translateY(-${offset}px)`;
 }
 function updateTime(el){
@@ -645,7 +664,6 @@ function saveTabToSong(){
   applyTab();
   alert('✅ Manual tab override saved to song!');
 }
-function autoLoadTab(savedTab){ /* kept for future manual use */ }
 function clearTab(){
   document.getElementById('tabStripInner').textContent = '';
   document.getElementById('tabStrip').style.display = 'none';
@@ -715,7 +733,7 @@ function parseAndImport(){
     lines.push(cm ? {time:t, chord:cm[1], lyric:cm[2].trim(), isSection:false} : {time:t, chord:'', lyric:rest, isSection:false});
     if(!tm) time += 4;
   });
-  parsedTemp = {title, artist, bpm, lyricOffset:0, audio:[], lines};
+  parsedTemp = {title, artist, bpm, lyricOffset:0, scrollSpeedFactor: DEFAULT_SCROLL_FACTOR, audio:[], lines};
   document.getElementById('importPreview').style.display = 'block';
   document.getElementById('importPreview').textContent = JSON.stringify(parsedTemp, null, 2);
   document.getElementById('downloadBtn').style.display = 'inline-block';
