@@ -431,7 +431,8 @@ async function refreshSetlist(){
 async function loadSong(){
   if(!setlist.length) return;
   const e = setlist[currentIdx];
-  const f = (e && e.file) ? e.file : (typeof e === 'string' ? e : String(e || ''));
+  const f = (e && e.file) ? e.file : (typeof e === 'string' ? e : String(e || 'unknown.json'));
+
   const ne = setlist[(currentIdx + 1) % setlist.length];
   document.getElementById('nextSong').textContent = ne ? (ne.title || (typeof ne === 'string' ? ne : ne.file || ne) || '—') : '—';
 
@@ -440,35 +441,8 @@ async function loadSong(){
     const r = await fetch(songUrl);
     if (!r.ok) throw new Error(`HTTP ${r.status}`);
     song = await r.json();
-
-    if (typeof song.scrollSpeedFactor !== 'number') song.scrollSpeedFactor = DEFAULT_SCROLL_FACTOR;
-    if (typeof song.lyricOffset !== 'number') song.lyricOffset = 0;
-    currentBPM = song.bpm || 120;
-
-    const displayTitle = [e?.artist || song.artist, e?.title || song.title || f.replace('.json','')].filter(Boolean).join(' – ');
-    document.getElementById('currentSong').textContent = displayTitle;
-
-    renderLyrics();
-    loadTracks();
-    recalcScroll();
-    renderChordsUsed();
-
-    const base = f.replace(/\.json$/i, '');
-    try {
-      const tabResp = await fetch(`songs/${base}-tab.txt?t=${Date.now()}`);
-      if (tabResp.ok) {
-        song.tab = await tabResp.text();
-        document.getElementById('tabToggleBtn').style.display = 'inline-block';
-      } else {
-        document.getElementById('tabToggleBtn').style.display = song.tab ? 'inline-block' : 'none';
-      }
-    } catch(e) {
-      document.getElementById('tabToggleBtn').style.display = song.tab ? 'inline-block' : 'none';
-    }
-
   } catch(err) {
     console.error('Failed to load song JSON:', f, err);
-    // ROBUST FALLBACK - prevents any crash
     song = {
       title: 'Missing',
       artist: '',
@@ -477,10 +451,31 @@ async function loadSong(){
       lyricOffset: 0,
       bpm: 120
     };
-    const displayTitle = (e?.title || f) + ' (missing JSON – file not found in songs/)';
-    document.getElementById('currentSong').textContent = displayTitle;
-    renderLyrics();
-    renderChordsUsed();
+  }
+
+  if (typeof song.scrollSpeedFactor !== 'number') song.scrollSpeedFactor = DEFAULT_SCROLL_FACTOR;
+  if (typeof song.lyricOffset !== 'number') song.lyricOffset = 0;
+  currentBPM = song.bpm || 120;
+
+  const displayTitle = [e?.artist || song.artist, e?.title || song.title || f.replace('.json','')].filter(Boolean).join(' – ');
+  document.getElementById('currentSong').textContent = displayTitle || '—';
+
+  renderLyrics();
+  loadTracks();
+  recalcScroll();
+  renderChordsUsed();
+
+  const base = f.replace(/\.json$/i, '');
+  try {
+    const tabResp = await fetch(`songs/${base}-tab.txt?t=${Date.now()}`);
+    if (tabResp.ok) {
+      song.tab = await tabResp.text();
+      document.getElementById('tabToggleBtn').style.display = 'inline-block';
+    } else {
+      document.getElementById('tabToggleBtn').style.display = song.tab ? 'inline-block' : 'none';
+    }
+  } catch(e) {
+    document.getElementById('tabToggleBtn').style.display = song.tab ? 'inline-block' : 'none';
   }
 
   expandedIdx = currentIdx;
@@ -499,16 +494,13 @@ function previousSong(){
   currentIdx = (currentIdx - 1 + setlist.length) % setlist.length;
   loadSong();
 }
-function recalcScroll(){
-  if(!song?.lines?.length) return;
-  const total = (song.lines[song.lines.length-1].time||0) + 15;
-}
+function recalcScroll(){}
 function renderLyrics(){
   const inn = document.getElementById('lyricsInner');
   inn.innerHTML = '';
   if(!song?.lines?.length){
     if (song?.title === 'Missing') {
-      inn.innerHTML = `<div style="opacity:.6;font-style:italic;color:#ff4444;text-align:center;padding:40px 20px;">SONG MISSING<br><small style="color:#888;">${document.getElementById('currentSong').textContent}</small></div>`;
+      inn.innerHTML = `<div style="opacity:.6;font-style:italic;color:#ff4444;text-align:center;padding:40px 20px;">SONG MISSING<br><small style="color:#888;">File not found in songs/ folder</small></div>`;
     } else {
       inn.innerHTML = '<div style="opacity:.3;font-style:italic;">(no chart – import above)</div>';
     }
@@ -522,18 +514,28 @@ function renderLyrics(){
   });
 }
 function renderSetlist(){
-  const c = document.getElementById('setlistItems'); c.innerHTML = '';
+  const c = document.getElementById('setlistItems'); 
+  c.innerHTML = '';
+
   setlist.forEach((e,i) => {
-    const d = document.createElement('div');
-    d.className = 'setlist-item' + (i===currentIdx ? ' current' : '');
+    const filename = (e && e.file) ? e.file : (typeof e === 'string' ? e : 'unknown.json');
     const title = e?.title || (typeof e==='string' ? e : e.file || 'Untitled');
     const artist = e?.artist || '';
+
+    const d = document.createElement('div');
+    d.className = 'setlist-item' + (i===currentIdx ? ' current' : '');
     d.innerHTML = `<strong>${i+1}.</strong> ${artist} – ${title}<span class="dropdown-arrow" onclick="event.stopImmediatePropagation();toggleDrop(${i})">${i===expandedIdx?'▲':'▼'}</span>`;
-    d.onclick = ev => { if(ev.target.classList.contains('dropdown-arrow')) return; stopSong(); currentIdx = i; loadSong(); };
+    d.onclick = ev => { 
+      if(ev.target.classList.contains('dropdown-arrow')) return; 
+      stopSong(); 
+      currentIdx = i; 
+      loadSong(); 
+    };
     c.appendChild(d);
 
     if(i===expandedIdx){
-      const sub = document.createElement('div'); sub.className = 'track-subpanel';
+      const sub = document.createElement('div'); 
+      sub.className = 'track-subpanel';
 
       const audioList = song?.audio || [];
       if(audioList.length === 0){
@@ -575,8 +577,10 @@ function renderSetlist(){
       };
       sub.appendChild(sr);
 
-      const saveRow = document.createElement('div'); saveRow.className = 'track-row'; saveRow.style.cssText = 'border-top:2px solid #00cc77;margin-top:8px;padding-top:8px;justify-content:center;';
-      saveRow.innerHTML = `<button onclick="saveSongSettings()" class="btn primary" style="padding:6px 16px;font-weight:700;">💾 Save Settings to songs/${f}</button>`;
+      const saveRow = document.createElement('div'); 
+      saveRow.className = 'track-row'; 
+      saveRow.style.cssText = 'border-top:2px solid #00cc77;margin-top:8px;padding-top:8px;justify-content:center;';
+      saveRow.innerHTML = `<button onclick="saveSongSettings('${filename}')" class="btn primary" style="padding:6px 16px;font-weight:700;">💾 Save Settings to songs/${filename}</button>`;
       sub.appendChild(saveRow);
 
       c.appendChild(sub);
@@ -585,15 +589,14 @@ function renderSetlist(){
 }
 function soloTrack(i){ audioTracks.forEach((t,j) => t.audio.volume = j===i ? 1 : 0); }
 function saveOffset(){ if(song) song.lyricOffset = parseFloat(document.getElementById('voi').value)||0; }
-function saveSongSettings(){
+function saveSongSettings(filename){
   if(!song) return alert('No song loaded');
   song.scrollSpeedFactor = parseFloat(document.getElementById('scrollSlider')?.value) || song.scrollSpeedFactor || DEFAULT_SCROLL_FACTOR;
-  const filename = (setlist[currentIdx]?.file || setlist[currentIdx]) || 'song.json';
   const a = document.createElement('a');
   a.href = URL.createObjectURL(new Blob([JSON.stringify(song, null, 2)], {type:'application/json'}));
   a.download = filename.endsWith('.json') ? filename : filename + '.json';
   a.click();
-  alert('✅ JSON downloaded! Replace the file in your songs/ folder.');
+  alert('✅ JSON downloaded! Replace the file in your songs/ folder with this updated version.');
 }
 function toggleDrop(i){
   expandedIdx = expandedIdx===i ? -1 : i;
