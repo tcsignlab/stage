@@ -22,13 +22,15 @@ body{background:#000;color:#fff;font-family:Arial,sans-serif;overflow:hidden;mar
 #tempoContainer{display:flex;align-items:center;gap:8px;margin-left:12px;}
 #tempoLight{width:20px;height:20px;border-radius:50%;background:#00cc77;box-shadow:0 0 0 3px rgba(0,204,119,.3);transition:all .08s ease;opacity:.4;}
 #tempoLight.active{opacity:1;box-shadow:0 0 22px 10px #00ff99;transform:scale(1.35);}
-/* Lyrics */
+/* Lyrics - CENTERED ACTIVE LINE */
 #lyricsContainer{position:fixed;top:488px;bottom:78px;left:368px;right:12px;overflow:hidden;text-align:center;font-size:clamp(19px,2.3vw,32px);line-height:1.6;padding:18px 40px;z-index:10;color:#d4d4d4;}
-#lyricsInner{position:relative;transition:transform .05s linear;}
-.line{margin:18px 0;padding:4px 12px;border-radius:5px;}
+#lyricsInner{position:relative;transition:transform .08s cubic-bezier(0.4,0,0.2,1);}
+.line{margin:18px 0;padding:4px 12px;border-radius:5px;transition:all .15s ease;}
 .chord{font-weight:bold;color:#666;display:inline-block;min-width:96px;margin-right:10px;transition:color .18s;}
 .chord.active{color:#00cc77;text-shadow:0 0 12px #00cc77;}
 .section{color:#00cc77!important;font-weight:bold;font-size:1.28em;margin:26px 0 10px;text-shadow:0 0 10px #00cc77;}
+/* Strong centered highlight */
+.line.active{background:rgba(0,204,119,.18);border:2px solid #00cc77;box-shadow:0 0 22px #00cc77;}
 /* Chord display - optimized smooth transitions */
 #bigChord{font-size:clamp(100px,15vw,250px);font-weight:bold;color:#00cc77;text-shadow:0 0 24px #00cc77;line-height:1;transition:transform .25s cubic-bezier(0.4,0,0.2,1), opacity .3s ease;}
 #bigChord.pulse{transform:scale(1.12);}
@@ -158,7 +160,7 @@ body{background:#000;color:#fff;font-family:Arial,sans-serif;overflow:hidden;mar
       <h2 style="margin:0;color:#ddd;font-size:17px;">🎸 Tab Override</h2>
       <button onclick="closeModal('tabModal')" style="background:none;border:none;font-size:26px;color:#666;cursor:pointer;">×</button>
     </div>
-    <p style="font-size:13px;color:#0f0;margin-bottom:12px;">Tabs now auto-load from <code>songs/[songname]-tab.txt</code>.<br>Only use this for manual overrides.</p>
+    <p style="font-size:13px;color:#0f0;margin-bottom:12px;">Tabs now auto-load from <code>songs/[songname]-tab.txt</code> or from the song JSON.<br>Only use this for manual overrides.</p>
     <label>Paste / Edit ASCII Tab (override)</label>
     <textarea id="tabPaste" style="height:170px;color:#00cc77;" placeholder="e|--0--3--5--3--0----|&#10;B|--1--3--5--3--1----|&#10;G|--0--4--5--4--0----|&#10;D|--2--5--7--5--2----|&#10;A|--3--5--7--5--3----|&#10;E|--x--x--x--x--x----|"></textarea>
     <label>Display string (for multi-string tab)</label>
@@ -301,22 +303,12 @@ function showChordDiagrams(rawChord) {
 }
 function renderChordsUsed() {
   const container = document.getElementById('chordsUsed');
-  if (!song?.lines?.length) {
-    container.innerHTML = '';
-    return;
-  }
+  if (!song?.lines?.length) { container.innerHTML = ''; return; }
   const unique = new Set();
-  song.lines.forEach(l => {
-    if (l.chord && l.chord.trim()) unique.add(l.chord.trim());
-  });
-  if (unique.size === 0) {
-    container.innerHTML = '<span style="color:#555;">— no chords</span>';
-    return;
-  }
+  song.lines.forEach(l => { if (l.chord && l.chord.trim()) unique.add(l.chord.trim()); });
+  if (unique.size === 0) { container.innerHTML = '<span style="color:#555;">— no chords</span>'; return; }
   let html = `<span style="margin-right:8px;color:#666;font-size:10px;letter-spacing:1px;align-self:center;">CHORDS IN SONG</span>`;
-  Array.from(unique).sort().forEach(ch => {
-    html += `<span class="chord-pill" onclick="jumpToChord('${ch}')">${ch}</span>`;
-  });
+  Array.from(unique).sort().forEach(ch => { html += `<span class="chord-pill" onclick="jumpToChord('${ch}')">${ch}</span>`; });
   container.innerHTML = html;
 }
 function jumpToChord(chord) {
@@ -342,6 +334,7 @@ let lastShownChord = '';
 let tabVisible = false;
 let tempoLightOn = true;
 let lastBeatTime = 0;
+let lineElements = [];   // ← NEW: stores all line DOM elements for centering
 
 const DEFAULT_SCROLL_FACTOR = 1.15;
 
@@ -355,84 +348,31 @@ const CC = {
 
 /* ====================== AUDIO & TRANSPORT ====================== */
 function initAudio(){ if(!audioCtx) audioCtx = new (window.AudioContext||window.webkitAudioContext)(); }
-function beep(){
-  initAudio();
-  const o = audioCtx.createOscillator(), g = audioCtx.createGain();
-  o.frequency.value = 800; g.gain.value = clickVol;
-  o.connect(g).connect(audioCtx.destination);
-  o.start(); o.stop(audioCtx.currentTime + 0.05);
-}
+function beep(){ initAudio(); const o = audioCtx.createOscillator(), g = audioCtx.createGain(); o.frequency.value = 800; g.gain.value = clickVol; o.connect(g).connect(audioCtx.destination); o.start(); o.stop(audioCtx.currentTime + 0.05); }
 function startClick(){ stopClick(); if(!clickOn || !playing) return; clickIv = setInterval(()=>{ if(playing && clickOn) beep(); }, 60000/currentBPM); }
 function stopClick(){ clearInterval(clickIv); clickIv = null; }
-function countIn(beats, cb){
-  if(!clickOn){ cb(); return; }
-  initAudio();
-  let n = beats; const ms = 60000/currentBPM;
-  const t = ()=>{ beep(); if(--n > 0) setTimeout(t, ms); else setTimeout(cb, ms); };
-  t();
-}
+function countIn(beats, cb){ if(!clickOn){ cb(); return; } initAudio(); let n = beats; const ms = 60000/currentBPM; const t = ()=>{ beep(); if(--n > 0) setTimeout(t, ms); else setTimeout(cb, ms); }; t(); }
 function startTracks(){ audioTracks.forEach(t => { t.audio.currentTime = 0; t.audio.play().catch(()=>{}); }); }
 function stopAllAudio(){ audioTracks.forEach(t => { t.audio.pause(); t.audio.currentTime = 0; }); stopClick(); }
 function pauseAllAudio(){ audioTracks.forEach(t => t.audio.pause()); stopClick(); }
-function loadTracks(){
-  stopAllAudio(); audioTracks = [];
-  if(!song?.audio?.length) return;
-  song.audio.forEach(t => {
-    const a = new Audio('songs/'+t.file);
-    a.loop = false;
-    a.onended = () => { if(playing){ pauseSong(); nextSong(); } };
-    audioTracks.push({name:t.name, audio:a});
-  });
-}
-function startSong(){
-  initAudio(); playing = true;
-  document.getElementById('playBtn').textContent = '⏸️ PAUSE';
-  countIn(4, () => {
-    startTracks();
-    startTime = Date.now() - pausedElapsed * 1000;
-    startClick();
-  });
-}
-function pauseSong(){
-  playing = false;
-  pausedElapsed = startTime ? (Date.now() - startTime)/1000 : pausedElapsed;
-  pauseAllAudio();
-  document.getElementById('playBtn').textContent = '▶️ PLAY';
-}
-function stopSong(){
-  playing = false; pausedElapsed = 0; startTime = null;
-  document.getElementById('playBtn').textContent = '▶️ PLAY';
-  document.getElementById('bigChord').textContent = '';
-  document.getElementById('nextChord').textContent = '—';
-  document.getElementById('lyricsInner').style.transform = 'translateY(0)';
-  stopAllAudio();
-  renderLyrics();
-  showChordDiagrams(null);
-  lastChord = null; lastShownChord = '';
-}
+function loadTracks(){ stopAllAudio(); audioTracks = []; if(!song?.audio?.length) return; song.audio.forEach(t => { const a = new Audio('songs/'+t.file); a.loop = false; a.onended = () => { if(playing){ pauseSong(); nextSong(); } }; audioTracks.push({name:t.name, audio:a}); }); }
+function startSong(){ initAudio(); playing = true; document.getElementById('playBtn').textContent = '⏸️ PAUSE'; countIn(4, () => { startTracks(); startTime = Date.now() - pausedElapsed * 1000; startClick(); }); }
+function pauseSong(){ playing = false; pausedElapsed = startTime ? (Date.now() - startTime)/1000 : pausedElapsed; pauseAllAudio(); document.getElementById('playBtn').textContent = '▶️ PLAY'; }
+function stopSong(){ playing = false; pausedElapsed = 0; startTime = null; document.getElementById('playBtn').textContent = '▶️ PLAY'; document.getElementById('bigChord').textContent = ''; document.getElementById('nextChord').textContent = '—'; document.getElementById('lyricsInner').style.transform = 'translateY(0)'; stopAllAudio(); renderLyrics(); showChordDiagrams(null); lastChord = null; lastShownChord = ''; }
 function togglePlayPause(){ if(playing) pauseSong(); else startSong(); }
 
 /* ====================== SETLIST & SONG ====================== */
 async function loadSetlist(){
-  try {
-    const r = await fetch(`setlist.json?t=${Date.now()}`);
-    if (r.ok) setlist = await r.json();
-  } catch(e) { console.warn('setlist.json not found'); }
+  try { const r = await fetch(`setlist.json?t=${Date.now()}`); if (r.ok) setlist = await r.json(); } catch(e) { console.warn('setlist.json not found'); }
   renderSetlist();
   if (setlist.length) loadSong();
 }
-
-async function refreshSetlist(){
-  expandedIdx = -1;
-  currentIdx = 0;
-  await loadSetlist();
-}
+async function refreshSetlist(){ expandedIdx = -1; currentIdx = 0; await loadSetlist(); }
 
 async function loadSong(){
   if(!setlist.length) return;
   const e = setlist[currentIdx];
   const f = (e && e.file) ? e.file : (typeof e === 'string' ? e : String(e || 'unknown.json'));
-
   const ne = setlist[(currentIdx + 1) % setlist.length];
   document.getElementById('nextSong').textContent = ne ? (ne.title || (typeof ne === 'string' ? ne : ne.file || ne) || '—') : '—';
 
@@ -443,14 +383,7 @@ async function loadSong(){
     song = await r.json();
   } catch(err) {
     console.error('Failed to load song JSON:', f, err);
-    song = {
-      title: 'Missing',
-      artist: '',
-      lines: [],
-      scrollSpeedFactor: DEFAULT_SCROLL_FACTOR,
-      lyricOffset: 0,
-      bpm: 120
-    };
+    song = { title: 'Missing', artist: '', lines: [], scrollSpeedFactor: DEFAULT_SCROLL_FACTOR, lyricOffset: 0, bpm: 120 };
   }
 
   if (typeof song.scrollSpeedFactor !== 'number') song.scrollSpeedFactor = DEFAULT_SCROLL_FACTOR;
@@ -466,38 +399,29 @@ async function loadSong(){
   renderChordsUsed();
 
   const base = f.replace(/\.json$/i, '');
+  song.tab = song.tab || '';
   try {
     const tabResp = await fetch(`songs/${base}-tab.txt?t=${Date.now()}`);
-    if (tabResp.ok) {
-      song.tab = await tabResp.text();
-      document.getElementById('tabToggleBtn').style.display = 'inline-block';
-    } else {
-      document.getElementById('tabToggleBtn').style.display = song.tab ? 'inline-block' : 'none';
-    }
-  } catch(e) {
-    document.getElementById('tabToggleBtn').style.display = song.tab ? 'inline-block' : 'none';
-  }
+    if (tabResp.ok) song.tab = await tabResp.text();
+  } catch(e){}
+  const hasTab = song.tab && song.tab.trim().length > 0;
+  document.getElementById('tabToggleBtn').style.display = hasTab ? 'inline-block' : 'none';
+
+  tabVisible = false;
+  document.getElementById('tabStrip').style.display = 'none';
+  document.getElementById('tabToggleBtn').classList.remove('lit');
 
   expandedIdx = currentIdx;
   renderSetlist();
 }
 
-function nextSong(){
-  stopSong();
-  expandedIdx = -1;
-  currentIdx = (currentIdx + 1) % setlist.length;
-  loadSong();
-}
-function previousSong(){
-  stopSong();
-  expandedIdx = -1;
-  currentIdx = (currentIdx - 1 + setlist.length) % setlist.length;
-  loadSong();
-}
+function nextSong(){ stopSong(); expandedIdx = -1; currentIdx = (currentIdx + 1) % setlist.length; loadSong(); }
+function previousSong(){ stopSong(); expandedIdx = -1; currentIdx = (currentIdx - 1 + setlist.length) % setlist.length; loadSong(); }
 function recalcScroll(){}
 function renderLyrics(){
   const inn = document.getElementById('lyricsInner');
   inn.innerHTML = '';
+  lineElements = [];
   if(!song?.lines?.length){
     if (song?.title === 'Missing') {
       inn.innerHTML = `<div style="opacity:.6;font-style:italic;color:#ff4444;text-align:center;padding:40px 20px;">SONG MISSING<br><small style="color:#888;">File not found in songs/ folder</small></div>`;
@@ -511,36 +435,26 @@ function renderLyrics(){
     d.className = l.isSection ? 'line section' : 'line';
     d.innerHTML = l.isSection ? `<span class="chord" data-i="${i}">${l.lyric}</span>` : `<span class="chord" data-i="${i}">${l.chord||''}</span> ${l.lyric||''}`;
     inn.appendChild(d);
+    lineElements.push(d);
   });
 }
 function renderSetlist(){
-  const c = document.getElementById('setlistItems'); 
-  c.innerHTML = '';
-
+  const c = document.getElementById('setlistItems'); c.innerHTML = '';
   setlist.forEach((e,i) => {
     const filename = (e && e.file) ? e.file : (typeof e === 'string' ? e : 'unknown.json');
     const title = e?.title || (typeof e==='string' ? e : e.file || 'Untitled');
     const artist = e?.artist || '';
-
     const d = document.createElement('div');
     d.className = 'setlist-item' + (i===currentIdx ? ' current' : '');
     d.innerHTML = `<strong>${i+1}.</strong> ${artist} – ${title}<span class="dropdown-arrow" onclick="event.stopImmediatePropagation();toggleDrop(${i})">${i===expandedIdx?'▲':'▼'}</span>`;
-    d.onclick = ev => { 
-      if(ev.target.classList.contains('dropdown-arrow')) return; 
-      stopSong(); 
-      currentIdx = i; 
-      loadSong(); 
-    };
+    d.onclick = ev => { if(ev.target.classList.contains('dropdown-arrow')) return; stopSong(); currentIdx = i; loadSong(); };
     c.appendChild(d);
 
     if(i===expandedIdx){
-      const sub = document.createElement('div'); 
-      sub.className = 'track-subpanel';
-
+      const sub = document.createElement('div'); sub.className = 'track-subpanel';
       const audioList = song?.audio || [];
       if(audioList.length === 0){
-        const msg = document.createElement('div');
-        msg.style.cssText = 'color:#888;font-size:12px;padding:8px 0;text-align:center;';
+        const msg = document.createElement('div'); msg.style.cssText = 'color:#888;font-size:12px;padding:8px 0;text-align:center;';
         msg.innerHTML = `No audio tracks defined for this song.<br><small style="color:#666;">Add an <code style="background:#222;padding:1px 4px;border-radius:3px;">"audio"</code> array to the song JSON</small>`;
         sub.appendChild(msg);
       } else {
@@ -548,41 +462,25 @@ function renderSetlist(){
           const row = document.createElement('div'); row.className = 'track-row';
           row.innerHTML = `<label>${t.name}</label><input type="range" min="0" max="1" step=".01" value="1" style="width:80px;"><button onclick="soloTrack(${ti});event.stopImmediatePropagation()" class="btn" style="padding:2px 7px;font-size:11px;">Solo</button>`;
           const slider = row.querySelector('input');
-          slider.oninput = ev => {
-            const tr = audioTracks.find(a=>a.name===t.name);
-            if(tr) tr.audio.volume = +ev.target.value;
-          };
+          slider.oninput = ev => { const tr = audioTracks.find(a=>a.name===t.name); if(tr) tr.audio.volume = +ev.target.value; };
           sub.appendChild(row);
         });
       }
-
       const or = document.createElement('div'); or.className = 'track-row'; or.style.cssText = 'border-top:1px solid #1e1e1e;margin-top:5px;padding-top:5px;';
       or.innerHTML = `<label>Lyric offset (s)</label><input type="number" id="voi" value="${song?.lyricOffset??0}" step=".1" style="width:64px;"><button onclick="saveOffset()" class="btn" style="padding:2px 7px;font-size:11px;">Save</button>`;
       sub.appendChild(or);
-
       const cr = document.createElement('div'); cr.className = 'track-row'; cr.style.cssText = 'border-top:1px solid #1e1e1e;margin-top:5px;padding-top:5px;';
       cr.innerHTML = `<label>Click</label><button onclick="clickOn=!clickOn;renderSetlist()" class="btn" style="padding:2px 7px;font-size:11px;">${clickOn?'ON':'OFF'}</button><input type="range" min="0" max="1" step=".01" value="${clickVol}" style="width:80px;">`;
       cr.querySelector('input').oninput = ev => { clickVol = +ev.target.value; };
       sub.appendChild(cr);
-
       const sr = document.createElement('div'); sr.className = 'track-row'; sr.style.cssText = 'border-top:1px solid #1e1e1e;margin-top:5px;padding-top:5px;';
-      sr.innerHTML = `<label>Scroll speed</label>
-        <input type="range" id="scrollSlider" min="0.6" max="2.5" step="0.05" value="${song?.scrollSpeedFactor || DEFAULT_SCROLL_FACTOR}" style="width:130px;">
-        <span id="scrollVal" style="font-size:11px;color:#0f0;margin-left:8px;width:36px;display:inline-block;">${(song?.scrollSpeedFactor || DEFAULT_SCROLL_FACTOR).toFixed(2)}x</span>`;
-      const sliderEl = sr.querySelector('#scrollSlider');
-      const valEl = sr.querySelector('#scrollVal');
-      sliderEl.oninput = () => {
-        song.scrollSpeedFactor = parseFloat(sliderEl.value);
-        valEl.textContent = song.scrollSpeedFactor.toFixed(2) + 'x';
-      };
+      sr.innerHTML = `<label>Scroll speed</label><input type="range" id="scrollSlider" min="0.6" max="2.5" step="0.05" value="${song?.scrollSpeedFactor || DEFAULT_SCROLL_FACTOR}" style="width:130px;"><span id="scrollVal" style="font-size:11px;color:#0f0;margin-left:8px;width:36px;display:inline-block;">${(song?.scrollSpeedFactor || DEFAULT_SCROLL_FACTOR).toFixed(2)}x</span>`;
+      const sliderEl = sr.querySelector('#scrollSlider'); const valEl = sr.querySelector('#scrollVal');
+      sliderEl.oninput = () => { song.scrollSpeedFactor = parseFloat(sliderEl.value); valEl.textContent = song.scrollSpeedFactor.toFixed(2) + 'x'; };
       sub.appendChild(sr);
-
-      const saveRow = document.createElement('div'); 
-      saveRow.className = 'track-row'; 
-      saveRow.style.cssText = 'border-top:2px solid #00cc77;margin-top:8px;padding-top:8px;justify-content:center;';
+      const saveRow = document.createElement('div'); saveRow.className = 'track-row'; saveRow.style.cssText = 'border-top:2px solid #00cc77;margin-top:8px;padding-top:8px;justify-content:center;';
       saveRow.innerHTML = `<button onclick="saveSongSettings('${filename}')" class="btn primary" style="padding:6px 16px;font-weight:700;">💾 Save Settings to songs/${filename}</button>`;
       sub.appendChild(saveRow);
-
       c.appendChild(sub);
     }
   });
@@ -596,7 +494,7 @@ function saveSongSettings(filename){
   a.href = URL.createObjectURL(new Blob([JSON.stringify(song, null, 2)], {type:'application/json'}));
   a.download = filename.endsWith('.json') ? filename : filename + '.json';
   a.click();
-  alert('✅ JSON downloaded! Replace the file in your songs/ folder with this updated version.');
+  alert('✅ JSON downloaded! Replace the file in your songs/ folder.');
 }
 function toggleDrop(i){
   expandedIdx = expandedIdx===i ? -1 : i;
@@ -616,36 +514,62 @@ setInterval(() => {
 }, 16);
 
 function updateHL(adj){
-  if(!song?.lines?.length) return;
+  if(!song?.lines?.length || !lineElements.length) return;
   let ai = -1;
   for(let i=0; i<song.lines.length; i++){ if(adj >= song.lines[i].time) ai = i; else break; }
+
+  // Highlight the active line (centered)
+  lineElements.forEach((el, i) => el.classList.toggle('active', i === ai));
+
   let currentChord = ai >= 0 ? (song.lines[ai].chord || '') : '';
   if(currentChord) lastShownChord = currentChord;
   const displayChord = currentChord || lastShownChord;
+
   const big = document.getElementById('bigChord');
   if(displayChord !== lastChord){
     big.classList.add('pulse');
     setTimeout(() => big.classList.remove('pulse'), 180);
   }
   big.textContent = displayChord || '—';
+
   const ni = ai + 1;
   document.getElementById('nextChord').textContent = ni < song.lines.length ? (song.lines[ni].chord || '') : '—';
+
   document.querySelectorAll('.chord').forEach(el => el.classList.toggle('active', +el.dataset.i === ai));
+
   if(displayChord !== lastChord){
     lastChord = displayChord;
     showChordDiagrams(displayChord || null);
   }
 }
+
 function scrollLyrics(adj){
-  if(!song?.lines?.length) {
+  if(!song?.lines?.length || !lineElements.length) {
     document.getElementById('lyricsInner').style.transform = 'translateY(0)';
     return;
   }
-  const lastTime = song.lines[song.lines.length-1].time || 0;
-  const baseMul = document.getElementById('lyricsInner').scrollHeight / (lastTime + 15) * 1.15;
-  const offset = adj * baseMul * (song.scrollSpeedFactor || DEFAULT_SCROLL_FACTOR);
-  document.getElementById('lyricsInner').style.transform = `translateY(-${offset}px)`;
+
+  let ai = -1;
+  for(let i=0; i<song.lines.length; i++){ if(adj >= song.lines[i].time) ai = i; else break; }
+  if(ai < 0) ai = 0;
+
+  const container = document.getElementById('lyricsContainer');
+  const containerHeight = container.clientHeight;
+
+  const activeLine = lineElements[ai];
+  if(!activeLine) return;
+
+  const lineTop = activeLine.offsetTop;
+  const lineHeight = activeLine.offsetHeight;
+  const lineCenter = lineTop + (lineHeight / 2);
+
+  // Desired center of container
+  const targetOffset = (containerHeight / 2) - lineCenter;
+
+  // Apply smooth centering
+  document.getElementById('lyricsInner').style.transform = `translateY(${targetOffset}px)`;
 }
+
 function updateTime(el){
   const tot = song?.lines?.length ? (song.lines[song.lines.length-1].time + 20) : 0;
   const f = s => `${Math.floor(s/60)}:${String(Math.floor(s)%60).padStart(2,'0')}`;
@@ -699,10 +623,7 @@ function toggleTempoLight(){
   if(!tempoLightOn) document.getElementById('tempoLight').classList.remove('active');
 }
 function updateTempoLight(){
-  if(!tempoLightOn || !playing){
-    document.getElementById('tempoLight').classList.remove('active');
-    return;
-  }
+  if(!tempoLightOn || !playing){ document.getElementById('tempoLight').classList.remove('active'); return; }
   const beatInterval = 60000 / currentBPM;
   const now = Date.now();
   if(now - lastBeatTime > beatInterval){
