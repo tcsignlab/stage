@@ -3,8 +3,9 @@
   "artist": "Third Eye Blind",
   "bpm": 108,
   "audio": [
-    {"name": "Deep Inside Of You Vocals", "file": "deep-inside-of-you-vocals.mp3"},
-    {"name": "Deep Inside Of You Bass", "file": "deep-inside-of-you-bass.mp3"}
+    {"name": "Vocals", "file": "deep-inside-of-you-vocals.mp3"},
+    {"name": "Bass", "file": "deep-inside-of-you-bass.mp3"},
+     {"name": "Drums", "file": "deep-inside-of-you-drums.mp3"}
   ],
   "lines": [
     {"time":0,"chord":"","lyric":"[Intro]"},
