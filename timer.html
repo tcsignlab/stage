@@ -1,21 +1,75 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>UG Studio Parser</title>
+
+<style>
+body { font-family: Arial; background:#111; color:#eee; padding:20px; }
+textarea { width:100%; height:200px; }
+input, button { margin:5px; padding:8px; }
+.line { display:flex; gap:10px; margin:5px 0; }
+.time { width:80px; }
+.chord { width:80px; }
+.lyric { flex:1; }
+</style>
+
+</head>
+
+<body>
+
+<h2>🎸 UG Tab → JSON Studio Tool</h2>
+
+<label>BPM:</label>
+<input id="bpm" type="number" value="100">
+
+<br>
+
+<input type="file" id="audioFile" accept="audio/*">
+
+<br>
+
+<textarea id="input" placeholder="Paste Ultimate Guitar tab here..."></textarea>
+
+<br>
+
+<button onclick="parseUG()">Parse UG</button>
+<button onclick="exportJSON()">Export JSON</button>
+
+<hr>
+
+<div id="lines"></div>
+
 <script>
 let audio = new Audio();
 let events = [];
 
-document.getElementById("audioFile")?.addEventListener("change", e => {
-  const file = e.target.files[0];
-  if (file) audio.src = URL.createObjectURL(file);
-});
+// SAFE listener
+const audioInput = document.getElementById("audioFile");
+if (audioInput) {
+  audioInput.addEventListener("change", function(e) {
+    const file = e.target.files[0];
+    if (file) audio.src = URL.createObjectURL(file);
+  });
+}
 
 function parseUG() {
-  const bpm = parseFloat(document.getElementById("bpm").value);
+  const bpmInput = document.getElementById("bpm");
+  const inputBox = document.getElementById("input");
+
+  if (!bpmInput || !inputBox) {
+    alert("Missing UI elements");
+    return;
+  }
+
+  const bpm = parseFloat(bpmInput.value);
   if (!bpm || bpm <= 0) {
-    alert("Enter BPM");
+    alert("Enter valid BPM");
     return;
   }
 
   const beat = 60 / bpm;
-  const raw = document.getElementById("input").value.split("\n");
+  const raw = inputBox.value.split("\n");
 
   let time = 0;
   events = [];
@@ -24,11 +78,10 @@ function parseUG() {
     let chordLine = raw[i];
     if (!chordLine.trim()) continue;
 
-    // detect chord line (must contain multiple chords)
     const chordRegex = /[A-G][#b]?m?(maj7|maj|min|sus|dim|aug|add)?\d*(\/[A-G][#b]?)?/g;
     const matches = [...chordLine.matchAll(chordRegex)];
 
-    if (matches.length >= 1) {
+    if (matches.length > 0) {
       let lyricLine = raw[i + 1] || "";
 
       let chords = matches.map(m => ({
@@ -48,13 +101,12 @@ function parseUG() {
           isSection: lyric.startsWith("[")
         });
 
-        // 🔥 THIS IS THE MAGIC
         let spacing = Math.max(nextPos - c.pos, 4);
-        let beats = spacing / 5.5; // tuned constant
+        let beats = spacing / 5.5;
         time += beats * beat;
       });
 
-      i++; // skip lyric line
+      i++;
     }
   }
 
@@ -73,7 +125,7 @@ function renderEvents() {
       <input class="time" value="${e.time}">
       <input class="chord" value="${e.chord}">
       <input class="lyric" value="${e.lyric}">
-      <button onclick="syncTime(this)">🎧 Sync</button>
+      <button onclick="syncTime(this)">🎧</button>
     `;
 
     container.appendChild(div);
@@ -106,3 +158,6 @@ function exportJSON() {
   a.click();
 }
 </script>
+
+</body>
+</html>
