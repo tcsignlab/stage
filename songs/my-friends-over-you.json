@@ -12,6 +12,11 @@
       "file": "my-friends-over-you-bass.mp3"
     }
   ],
+      {
+      "name": "Drums",
+      "file": "my-friends-over-you-drums.mp3"
+    }
+  ],
   "lines": [
     {
       "time": 0,
