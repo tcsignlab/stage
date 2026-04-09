@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>UG Tab → Teleprompter JSON</title>
+<style>
+body { font-family: Arial; background:#111; color:#eee; padding:20px; }
+textarea { width:100%; height:200px; }
+input { padding:6px; margin:5px; }
+button { padding:10px; margin:5px; cursor:pointer; }
+pre { background:#222; padding:10px; overflow:auto; }
+</style>
+</head>
+
+<body>
+
+<h2>🎸 UG Tab → JSON Converter</h2>
+
+<input id="bpm" type="number" value="120"> BPM
+<input id="offset" type="number" value="0"> Start Offset (sec)
+
+<br>
+
+<textarea id="input" placeholder="Paste Ultimate Guitar tab here..."></textarea>
+
+<br>
+
+<button onclick="process()">Convert</button>
+<button onclick="download()">Download JSON</button>
+
+<pre id="output"></pre>
+
+<script>
+function process() {
+  const bpm = parseFloat(document.getElementById("bpm").value);
+  const offset = parseFloat(document.getElementById("offset").value);
+
+  const beatDuration = 60 / bpm;
+
+  const raw = document.getElementById("input").value.split("\n");
+
+  let time = offset;
+  let result = [];
+
+  for (let i = 0; i < raw.length; i++) {
+    let line = raw[i];
+
+    if (!line.trim()) continue;
+
+    // Detect chord line (contains chord-like patterns)
+    if (/[A-G][#bm7susadd0-9]*/.test(line) && !line.match(/[a-z]/i)) {
+
+      let chordLine = line;
+      let lyricLine = raw[i+1] || "";
+
+      let chords = [];
+      let regex = /[A-G][#bm7susadd0-9]*/g;
+      let match;
+
+      while ((match = regex.exec(chordLine)) !== null) {
+        chords.push({
+          chord: match[0],
+          pos: match.index
+        });
+      }
+
+      chords.forEach((c, idx) => {
+        let nextPos = chords[idx+1]?.pos || lyricLine.length;
+
+        let lyricSegment = lyricLine.substring(c.pos, nextPos).trim();
+
+        result.push({
+          time: parseFloat(time.toFixed(2)),
+          chord: c.chord,
+          lyric: lyricSegment,
+          isSection: lyricSegment.startsWith("[")
+        });
+
+        // Timing estimate based on character width
+        let length = (nextPos - c.pos) || 5;
+        let beats = length / 6; // tweakable magic number
+        time += beats * beatDuration;
+      });
+
+      i++; // skip lyric line
+    }
+  }
+
+  document.getElementById("output").textContent =
+    JSON.stringify(result, null, 2);
+
+  window.generated = result;
+}
+
+function download() {
+  if (!window.generated) return;
+
+  const blob = new Blob(
+    [JSON.stringify(window.generated, null, 2)],
+    {type:"application/json"}
+  );
+
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "song.json";
+  a.click();
+}
+</script>
+
+</body>
+</html>
