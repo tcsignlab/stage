@@ -11,6 +11,7 @@
   {"time":"00:01.350","chord":"G","lyric":""},
   {"time":"00:02.700","chord":"D","lyric":""},
   {"time":"00:04.000","chord":"G","lyric":""},
+
   {"time":"00:08.000","chord":"D","lyric":"I'm drunk off your kiss"},
   {"time":"00:11.200","chord":"G","lyric":"For another night in a row"},
   {"time":"00:14.600","chord":"D","lyric":"This is becoming too routine for me"},
@@ -21,11 +22,13 @@
   {"time":"00:27.600","chord":"D","lyric":"It's just for show isn't it"},
   {"time":"00:30.800","chord":"Em","lyric":"It's my fault"},
   {"time":"00:32.200","chord":"G","lyric":"that it fell apart"},
+
   {"time":"00:36.000","chord":"Em","lyric":"Just maybe you need this"},
   {"time":"00:39.200","chord":"G","lyric":""},
   {"time":"00:40.800","chord":"Em","lyric":"And I didn't mean"},
   {"time":"00:42.600","chord":"G","lyric":"to lead you"},
   {"time":"00:44.200","chord":"A","lyric":"on"},
+
   {"time":"00:47.000","chord":"D","lyric":"You were everything I wanted"},
   {"time":"00:50.600","chord":"G","lyric":""},
   {"time":"00:52.000","chord":"D","lyric":"But I just can't finish"},
@@ -42,6 +45,7 @@
   {"time":"01:15.200","chord":"A","lyric":"I'd still pick my friends over you"},
   {"time":"01:18.800","chord":"D","lyric":""},
   {"time":"01:20.000","chord":"G","lyric":"My friends over you"},
+
   {"time":"01:26.000","chord":"D","lyric":"Please tell me everything"},
   {"time":"01:29.400","chord":"G","lyric":"That you think that I should know"},
   {"time":"01:32.800","chord":"D","lyric":"About all the plans you made"},
@@ -52,11 +56,13 @@
   {"time":"01:46.600","chord":"D","lyric":"It's just for fun isn't it"},
   {"time":"01:49.800","chord":"Em","lyric":"It's my fault"},
   {"time":"01:51.200","chord":"G","lyric":"that it fell apart"},
+
   {"time":"01:55.000","chord":"Em","lyric":"Just maybe you need this"},
   {"time":"01:58.200","chord":"G","lyric":""},
   {"time":"01:59.800","chord":"Em","lyric":"And I didn't mean"},
   {"time":"02:01.400","chord":"G","lyric":"to lead you"},
   {"time":"02:03.200","chord":"A","lyric":"on"},
+
   {"time":"02:06.000","chord":"D","lyric":"You were everything I wanted"},
   {"time":"02:09.600","chord":"G","lyric":""},
   {"time":"02:11.000","chord":"D","lyric":"But I just can't finish"},
@@ -71,6 +77,7 @@
   {"time":"02:32.200","chord":"Em","lyric":""},
   {"time":"02:33.000","chord":"D","lyric":""},
   {"time":"02:34.200","chord":"A","lyric":"I'd still pick my friends over you"},
+
   {"time":"02:38.000","chord":"D","lyric":""},
   {"time":"02:39.000","chord":"F#m","lyric":""},
   {"time":"02:40.000","chord":"G","lyric":""},
@@ -83,6 +90,7 @@
   {"time":"02:48.000","chord":"Bm","lyric":""},
   {"time":"02:49.200","chord":"A","lyric":""},
   {"time":"02:50.600","chord":"G","lyric":""},
+
   {"time":"02:54.000","chord":"Em","lyric":"Just maybe you need this"},
   {"time":"02:57.200","chord":"G","lyric":""},
   {"time":"02:58.800","chord":"Em","lyric":"you need this"},
@@ -90,6 +98,7 @@
   {"time":"03:02.600","chord":"Em","lyric":"And I didn't mean"},
   {"time":"03:04.600","chord":"G","lyric":"to lead you"},
   {"time":"03:06.200","chord":"A","lyric":"on"},
+
   {"time":"03:09.000","chord":"D","lyric":"You were everything I wanted"},
   {"time":"03:12.600","chord":"G","lyric":""},
   {"time":"03:14.000","chord":"D","lyric":"But I just can't finish"},
@@ -105,5 +114,6 @@
   {"time":"03:36.000","chord":"D","lyric":""},
   {"time":"03:37.200","chord":"A","lyric":"I'd still pick my friends over you"},
   {"time":"03:39.200","chord":"D","lyric":""},
-  {"time":"03:40.200","chord":"G","lyric":"My friends over you"}]
+  {"time":"03:40.200","chord":"G","lyric":"My friends over you"}
+]
 }
